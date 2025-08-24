@@ -42,20 +42,29 @@ class OficioController extends Controller
     /**
      * Guarda el nuevo oficio en la base de datos.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'numero_oficio' => 'required|string|max:255',
-            'remitente' => 'required|string|max:255',
-            'municipio' => 'required|string|max:255',
-            'asunto' => 'required|string',
-            'fecha_recepcion' => 'required|date',
-        ]);
+    // app/Http/Controllers/OficioController.php -> dentro del método store()
 
-        Oficio::create($request->all());
+public function store(Request $request)
+{
+    $request->validate([
+        'numero_oficio' => 'required|string|max:255',
+        'remitente' => 'required|string|max:255',
+        'municipio' => 'required|string|max:255',
+        'asunto' => 'required|string',
+        'fecha_recepcion' => 'required|date',
+        // --- NUEVAS REGLAS DE VALIDACIÓN ---
+        'tipo_correspondencia' => 'required|string',
+        'prioridad' => 'required|string',
+        'numero_oficio_dependencia' => 'required|string|max:255',
+        'fecha_limite' => 'nullable|date', // Opcional
+        'localidad' => 'required|string|max:255',
+        'observaciones' => 'nullable|string', // Opcional
+    ]);
 
-        return redirect()->route('dashboard')->with('success', 'Oficio registrado correctamente.');
-    }
+    Oficio::create($request->all());
+
+    return redirect()->route('dashboard')->with('success', 'Oficio registrado correctamente.');
+}
 
     /**
      * Muestra los detalles de un oficio específico.
@@ -125,4 +134,25 @@ class OficioController extends Controller
 
         return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio asignado correctamente.');
     }
+
+    
+
+        public function destroy(Oficio $oficio)
+        {
+            // Por seguridad, solo los admins pueden borrar oficios.
+            if (auth()->user()->role !== 'admin') {
+                return back()->with('error', 'No tienes permiso para realizar esta acción.');
+            }
+
+            $oficio->delete(); // Esto ejecuta el borrado suave
+
+            return redirect()->route('dashboard')->with('success', 'Oficio eliminado correctamente.');
+        }
+
+        public function generarOficio(Oficio $oficio)
+        {
+            // Cargamos las relaciones para tener acceso a las áreas y usuarios asignados
+            $oficio->load('areas.users');
+            return view('oficios.generar', compact('oficio'));
+        }
 }

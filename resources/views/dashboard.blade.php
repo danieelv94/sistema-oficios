@@ -36,8 +36,22 @@
                                     <td class="py-2 px-4 border-b">{{ $oficio->fecha_recepcion }}</td>
                                     <td class="py-2 px-4 border-b"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $oficio->estatus }}</span></td>
                                     <td class="py-2 px-4 border-b">
-                                        <a href="{{ route('oficios.show', $oficio) }}" class="text-indigo-600 hover:text-indigo-900">Ver / Asignar</a>
-                                    </td>
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{{ route('oficios.show', $oficio) }}" class="px-3 py-1 bg-green-500 text-white rounded-md text-xs whitespace-nowrap">
+                                            Ver/Asignar
+                                        </a>
+
+                                        @if(Auth::user()->role == 'admin')
+                                        <form action="{{ route('oficios.destroy', $oficio) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este oficio?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded-md text-xs">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                </td>
                                 </tr>
                             @empty
                                 <tr>

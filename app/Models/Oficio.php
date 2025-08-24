@@ -4,18 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Oficio extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'numero_oficio',
         'remitente',
         'municipio',
         'asunto',
+        'estatus',
         'fecha_recepcion',
-        'estatus', // El estatus general del oficio
+        'tipo_correspondencia',
+        'prioridad',
+        'numero_oficio_dependencia',
+        'fecha_limite',
+        'localidad',
+        'observaciones',
     ];
 
     /**

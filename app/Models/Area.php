@@ -19,4 +19,9 @@ class Area extends Model
                     ->withPivot('id', 'instruccion', 'user_id', 'estatus')
                     ->withTimestamps();
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 }
