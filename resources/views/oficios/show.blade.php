@@ -8,7 +8,7 @@
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 text-right">
 
-        <a href="{{ route('oficios.generar', $oficio) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+        <a href="{{ route('oficios.generar', $oficio) }}"  class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
             Generar Oficio Imprimible
         </a>
 
