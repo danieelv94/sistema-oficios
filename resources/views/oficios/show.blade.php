@@ -7,9 +7,11 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 text-right">
-            <a href="{{ route('oficios.generar', $oficio) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
-                Generar Oficio Imprimible
-            </a>
+
+        <a href="{{ route('oficios.generar', $oficio) }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+            Generar Oficio Imprimible
+        </a>
+
         </div>
     </div>
 
@@ -38,7 +40,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold border-b pb-2 mb-4">Seguimiento de Turnos</h3>
-                @forelse($oficio->areas as $area)
+                @forelse($turnosParaMostrar as $area)
                     <div class="border rounded-lg p-4 mb-4">
                         <div class="flex justify-between items-center">
                             <div>
@@ -55,7 +57,7 @@
                                     <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
                                     <select name="user_id" class="block w-full rounded-md shadow-sm border-gray-300">
                                         @foreach($personalPorArea[$area->id] as $persona)
-                                            <option value="{{ $persona->id }}" @selected($area->pivot->user_id == $persona->id)>{{ $persona->name }}</option>
+                                            <option value="{{ $persona->id }}" @selected($area->{{ $persona->name }}</option>
                                         @endforeach
                                     </select>
                                     <button type="submit" class="px-3 py-2 bg-yellow-500 text-white rounded-md text-sm">Asignar</button>

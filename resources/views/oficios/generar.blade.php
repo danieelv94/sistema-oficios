@@ -6,18 +6,10 @@
     <title>Oficio de Turno - {{ $oficio->numero_oficio }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos que se aplican SOLO al imprimir */
         @media print {
-            body {
-                -webkit-print-color-adjust: exact; /* Mantiene los colores de fondo al imprimir en Chrome */
-            }
-            .no-print {
-                display: none !important; /* Oculta los botones y cualquier otro elemento que no queramos en el papel */
-            }
-            .printable-area {
-                border: none !important; /* Quita los bordes en la versión impresa */
-                box-shadow: none !important; /* Quita las sombras */
-            }
+            body { -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .printable-area { border: none !important; box-shadow: none !important; }
         }
     </style>
 </head>
@@ -42,14 +34,18 @@
         </header>
 
         <section class="mb-8">
+            <h2 class="font-bold border-b pb-2 mb-4">DETALLES DEL OFICIO RECIBIDO</h2>
             <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
                 <div><strong>Remitente:</strong> {{ $oficio->remitente }}</div>
                 <div><strong>No. Oficio Dependencia:</strong> {{ $oficio->numero_oficio_dependencia }}</div>
                 <div><strong>Municipio y Localidad:</strong> {{ $oficio->municipio }}, {{ $oficio->localidad }}</div>
+                <div><strong>Tipo de Correspondencia:</strong> {{ $oficio->tipo_correspondencia }}</div>
                 <div><strong>Fecha de Recepción:</strong> {{ \Carbon\Carbon::parse($oficio->fecha_recepcion)->format('d/m/Y') }}</div>
+                <div><strong>Prioridad:</strong> {{ $oficio->prioridad }}</div>
+                <div><strong>Fecha Límite:</strong> {{ $oficio->fecha_limite ? \Carbon\Carbon::parse($oficio->fecha_limite)->format('d/m/Y') : 'N/A' }}</div>
             </div>
         </section>
-
+        
         <section class="mb-8">
             <h2 class="font-bold border-b pb-2 mb-2">ASUNTO:</h2>
             <p class="text-gray-700">{{ $oficio->asunto }}</p>
@@ -57,7 +53,7 @@
 
         <section class="mb-8">
             <h2 class="font-bold border-b pb-2 mb-4">TURNADO A:</h2>
-            @forelse($oficio->areas as $area)
+            @forelse($turnosParaImprimir as $area)
                 <div class="mb-4 pl-4 border-l-2">
                     <p><strong>ÁREA:</strong> {{ $area->name }}</p>
                     <p><strong>INSTRUCCIÓN:</strong> <span class="font-semibold">{{ $area->pivot->instruccion }}</span></p>

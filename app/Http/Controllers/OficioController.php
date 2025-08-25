@@ -69,19 +69,42 @@ public function store(Request $request)
     /**
      * Muestra los detalles de un oficio específico.
      */
-    public function show(Oficio $oficio)
-    {
-        $areasDisponibles = Area::all(); // Renombrado para evitar confusión
-        $oficio->load('areas'); // Carga las áreas ya asignadas al oficio
+    // app/Http/Controllers/OficioController.php
 
-        $personalPorArea = [];
-        // Obtenemos el personal solo para las áreas que ya han sido turnadas
-        foreach ($oficio->areas as $areaTurnada) {
-            $personalPorArea[$areaTurnada->id] = User::where('area_id', $areaTurnada->id)->get();
+/**
+ * Muestra los detalles de un oficio específico.
+ */
+        // app/Http/Controllers/OficioController.php
+
+/**
+ * Muestra los detalles de un oficio específico.
+ */
+        public function show(Oficio $oficio)
+        {
+            $areasDisponibles = Area::all();
+            $user = Auth::user();
+
+            // Carga las áreas turnadas del oficio
+            $oficio->load('areas');
+            
+            $turnosParaMostrar = $oficio->areas; // Por defecto, mostramos todos
+
+            // --- LÓGICA DE FILTRADO ACTUALIZADA ---
+            if ($user->role != 'admin') {
+                $turnosParaMostrar = $oficio->areas->filter(function ($area) use ($user) {
+                    return $area->id == $user->area_id;
+                });
+            }
+
+            $personalPorArea = [];
+            // Obtenemos el personal solo para las áreas que se van a mostrar
+            foreach ($turnosParaMostrar as $areaTurnada) {
+                $personalPorArea[$areaTurnada->id] = User::where('area_id', $areaTurnada->id)->get();
+            }
+
+            // Pasamos la variable $turnosParaMostrar a la vista
+            return view('oficios.show', compact('oficio', 'areasDisponibles', 'personalPorArea', 'turnosParaMostrar'));
         }
-
-        return view('oficios.show', compact('oficio', 'areasDisponibles', 'personalPorArea'));
-    }
 
     /**
      * Turna un oficio a una o más áreas.
@@ -149,10 +172,31 @@ public function store(Request $request)
             return redirect()->route('dashboard')->with('success', 'Oficio eliminado correctamente.');
         }
 
+        // app/Http/Controllers/OficioController.php
+
+/**
+ * Muestra una vista previa del oficio listo para imprimir.
+ */
         public function generarOficio(Oficio $oficio)
         {
-            // Cargamos las relaciones para tener acceso a las áreas y usuarios asignados
-            $oficio->load('areas.users');
-            return view('oficios.generar', compact('oficio'));
+            $user = Auth::user();
+
+            // Cargamos las relaciones para tener acceso a las áreas
+            $oficio->load('areas');
+
+            // --- INICIO DE LA LÓGICA DE FILTRADO ---
+            $turnosParaImprimir = $oficio->areas; // Por defecto, mostramos todos
+
+            if ($user->role != 'admin') {
+                // Si NO es un administrador, filtramos la colección para mostrar
+                // SOLO el turno que corresponde al área del usuario.
+                $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($user) {
+                    return $area->id == $user->area_id;
+                });
+            }
+            // --- FIN DE LA LÓGICA ---
+
+            // Pasamos la variable filtrada a la vista
+            return view('oficios.generar', compact('oficio', 'turnosParaImprimir'));
         }
 }

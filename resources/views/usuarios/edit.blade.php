@@ -13,7 +13,8 @@
 
                     <form action="{{ route('usuarios.update', $user) }}" method="POST">
                         @csrf
-                        @method('PUT') <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @method('PUT')
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-label for="name" :value="__('Nombre')" />
                                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $user->name)" required autofocus />
@@ -23,12 +24,14 @@
                                 <x-label for="email" :value="__('Email')" />
                                 <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $user->email)" required />
                             </div>
-
+                            
                             <div>
                                 <x-label for="area_id" :value="__('Área')" />
                                 <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     @foreach($areas as $area)
-                                        <option value="{{ $area->id }}" @selected(old('area_id', $user->{{ $area->name }}
+                                        {{-- SINTAXIS ANTIGUA Y COMPATIBLE --}}
+                                        <option value="{{ $area->id }}" {{ old('area_id', $user->area_id) == $area->id ? 'selected' : '' }}>
+                                            {{ $area->name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -37,9 +40,10 @@
                             <div>
                                 <x-label for="role" :value="__('Nivel de Usuario')" />
                                 <select name="role" id="role" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
-                                    <option value="user" @selected(old('role', $user->Usuario Normal</option>
-                                    <option value="jefe_area" @selected(old('role', $user->jefe de Área</option>
-                                    <option value="admin" @selected(old('role', $user->Administrador</option>
+                                    {{-- SINTAXIS ANTIGUA Y COMPATIBLE --}}
+                                    <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>Usuario Normal</option>
+                                    <option value="jefe_area" {{ old('role', $user->role) == 'jefe_area' ? 'selected' : '' }}>Jefe de Área</option>
+                                    <option value="admin" {{ old('role', 'admin') == $user->role ? 'selected' : '' }}>Administrador</option>
                                 </select>
                             </div>
 
