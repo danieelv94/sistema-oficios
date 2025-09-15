@@ -51,4 +51,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Area::class);
     }
+
+    public function tickets()
+{
+    return $this->hasMany(Ticket::class);
+}
 }

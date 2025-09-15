@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OficioController;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\TicketController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +47,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/oficios/{oficio}', [OficioController::class, 'destroy'])->name('oficios.destroy');
 
     Route::get('/oficios/{oficio}/generar', [OficioController::class, 'generarOficio'])->name('oficios.generar');
+
+
+    // --- Rutas para el Sistema de Tickets de Soporte ---
+    Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('/tickets/crear', [TicketController::class, 'create'])->name('tickets.create');
+    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show'); // Vista de detalle
+    Route::get('/tickets/{ticket}/resolver', [TicketController::class, 'edit'])->name('tickets.edit'); // Formulario para resolver
+    Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update'); // Lógica para resolver
 });
 
 require __DIR__.'/auth.php';

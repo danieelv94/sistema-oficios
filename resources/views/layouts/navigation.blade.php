@@ -12,16 +12,19 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Inicio') }}
-                    </x-nav-link>
-                    
-                    @if(Auth::user()->role == 'admin')
-                    <x-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.index')">
-                        {{ __('Usuarios') }}
-                    </x-nav-link>
-                    @endif
-                </div>
+                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Oficios') }} </x-nav-link>
+
+                <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
+                    {{ __('Soporte Técnico') }}
+                </x-nav-link>
+
+                @if(Auth::user()->role == 'admin')
+                <x-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.*')">
+                    {{ __('Usuarios') }}
+                </x-nav-link>
+                @endif
+            </div>
             </div>
 
             <!-- Settings Dropdown -->
