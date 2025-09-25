@@ -74,10 +74,15 @@
                                         <td colspan="6" class="text-center py-4">No hay usuarios registrados.</td>
                                     </tr>
                                 @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                </tbody>
+                </table>
+
+                <div class="mt-4">
+                    {{ $usuarios->links() }}
                 </div>
+
             </div>
         </div>
+    </div>
+</div>
     </x-app-layout>
