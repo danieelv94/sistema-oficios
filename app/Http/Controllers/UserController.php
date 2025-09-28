@@ -15,7 +15,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $usuarios = User::withTrashed()->with('area')->latest()->paginate(10);
+        $usuarios = User::withTrashed()->with('area')->orderBy('name', 'asc')->paginate(10);
         return view('usuarios.index', compact('usuarios'));
     }
 

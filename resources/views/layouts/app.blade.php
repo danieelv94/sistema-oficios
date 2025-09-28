@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'CEAA') }}</title>
 
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <meta name="theme-color" content="#4a5568">
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
         <!-- Fonts -->
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 

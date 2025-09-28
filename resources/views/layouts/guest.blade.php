@@ -6,6 +6,10 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'CEAA') }}</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+        <meta name="theme-color" content="#4a5568">
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+
 
         <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
 
