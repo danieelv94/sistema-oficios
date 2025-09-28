@@ -25,6 +25,11 @@
                             </div>
 
                             <div>
+                                <x-label for="no_empleado" :value="__('Número de Empleado (Opcional)')" />
+                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado" :value="old('no_empleado')" />
+                            </div>
+
+                            <div>
                                 <x-label for="password" :value="__('Contraseña')" />
                                 <x-input id="password" class="block mt-1 w-full" type="password" name="password" required />
                             </div>

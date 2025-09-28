@@ -26,6 +26,11 @@
                             </div>
                             
                             <div>
+                                <x-label for="no_empleado" :value="__('Número de Empleado (Opcional)')" />
+                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado" :value="old('no_empleado', $user->no_empleado)" />
+                            </div>
+
+                            <div>
                                 <x-label for="area_id" :value="__('Área')" />
                                 <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     @foreach($areas as $area)
