@@ -5,6 +5,7 @@ use App\Http\Controllers\OficioController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ProfileController; 
+use App\Http\Controllers\ComisionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,9 +20,9 @@ use App\Http\Controllers\ProfileController;
 
 Route::redirect('/', '/login');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::get('/tickets', function () {
+    return view('tickets');
+})->middleware(['auth'])->name('tickets');
 
 Route::middleware('auth')->group(function () {
     // ... (ruta de profile)
@@ -61,7 +62,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/comisiones/crear', [ComisionController::class, 'create'])->name('comisiones.create');
+    Route::post('/comisiones', [ComisionController::class, 'store'])->name('comisiones.store');
+    Route::get('/comisiones/{comision}', [ComisionController::class, 'show'])->name('comisiones.show');
     // ------------------------------------
+    Route::get('/comisiones', [ComisionController::class, 'index'])->name('comisiones.index'); // <-- AÑADE ESTA LÍNEA
+    Route::get('/comisiones/crear', [ComisionController::class, 'create'])->name('comisiones.create');
+    Route::post('/comisiones', [ComisionController::class, 'store'])->name('comisiones.store');
+    Route::get('/comisiones/{comision}', [ComisionController::class, 'show'])->name('comisiones.show');
+    Route::patch('/comisiones/{comision}/cancelar', [ComisionController::class, 'cancelar'])->name('comisiones.cancelar');
 });
 
 require __DIR__.'/auth.php';

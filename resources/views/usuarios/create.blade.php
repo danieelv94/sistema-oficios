@@ -29,17 +29,7 @@
                                 <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado" :value="old('no_empleado')" />
                             </div>
 
-                            <div>
-                                <x-label for="password" :value="__('Contraseña')" />
-                                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required />
-                            </div>
-
-                            <div>
-                                <x-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
-                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
-                            </div>
-
-                            <div>
+                             <div>
                                 <x-label for="area_id" :value="__('Área')" />
                                 <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     @foreach($areas as $area)
@@ -55,6 +45,26 @@
                                     <option value="jefe_area">Jefe de Área</option>
                                     <option value="admin">Administrador</option>
                                 </select>
+                            </div>
+                            
+                            <div>
+                                <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
+                                <select name="nivel_id" id="nivel_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                    <option value="">Selecciona un nivel...</option>
+                                    @foreach($niveles as $nivel)
+                                        <option value="{{ $nivel->id }}">{{ $nivel->nombre }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                             <div class="md:col-span-2"></div> <div>
+                                <x-label for="password" :value="__('Contraseña')" />
+                                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required />
+                            </div>
+
+                            <div>
+                                <x-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
+                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
                             </div>
                         </div>
 

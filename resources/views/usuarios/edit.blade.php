@@ -34,7 +34,6 @@
                                 <x-label for="area_id" :value="__('Área')" />
                                 <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     @foreach($areas as $area)
-                                        {{-- SINTAXIS ANTIGUA Y COMPATIBLE --}}
                                         <option value="{{ $area->id }}" {{ old('area_id', $user->area_id) == $area->id ? 'selected' : '' }}>
                                             {{ $area->name }}
                                         </option>
@@ -45,10 +44,21 @@
                             <div>
                                 <x-label for="role" :value="__('Nivel de Usuario')" />
                                 <select name="role" id="role" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
-                                    {{-- SINTAXIS ANTIGUA Y COMPATIBLE --}}
                                     <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>Usuario Normal</option>
                                     <option value="jefe_area" {{ old('role', $user->role) == 'jefe_area' ? 'selected' : '' }}>Jefe de Área</option>
-                                    <option value="admin" {{ old('role', 'admin') == $user->role ? 'selected' : '' }}>Administrador</option>
+                                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrador</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
+                                <select name="nivel_id" id="nivel_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                    <option value="">Selecciona un nivel...</option>
+                                    @foreach($niveles as $nivel)
+                                        <option value="{{ $nivel->id }}" {{ old('nivel_id', $user->nivel_id) == $nivel->id ? 'selected' : '' }}>
+                                            {{ $nivel->nombre }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 

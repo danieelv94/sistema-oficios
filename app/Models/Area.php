@@ -24,4 +24,9 @@ class Area extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function proyectos()
+    {
+        return $this->belongsToMany(Proyecto::class, 'area_proyecto');
+    }
 }

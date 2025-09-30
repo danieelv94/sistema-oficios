@@ -4,19 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddNoEmpleadoToUsersTable extends Migration
+class CreateProyectosTable extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('no_empleado')->after('role')->nullable()->unique();
-    });
-}
+    public function up() { Schema::create('proyectos', function (Blueprint $table) { $table->id(); $table->string('nombre'); $table->timestamps(); }); }
 
     /**
      * Reverse the migrations.
@@ -25,8 +20,6 @@ class AddNoEmpleadoToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('proyectos');
     }
 }

@@ -34,6 +34,7 @@
                                     <th class="py-2 px-4 border-b">No. Empleado</th>
                                     <th class="py-2 px-4 border-b">Área</th>
                                     <th class="py-2 px-4 border-b">Rol</th>
+                                    <th class="py-2 px-4 border-b">Nivel</th>
                                     <th class="py-2 px-4 border-b">Estado</th>
                                     <th class="py-2 px-4 border-b">Acciones</th>
                                 </tr>
@@ -46,6 +47,7 @@
                                         <td class="py-2 px-4 border-b">{{ $usuario->no_empleado ?? 'N/A' }}</td>
                                         <td class="py-2 px-4 border-b">{{ $usuario->area->name ?? 'N/A' }}</td>
                                         <td class="py-2 px-4 border-b">{{ $usuario->role }}</td>
+                                        <td class="py-2 px-4 border-b">{{ $usuario->nivel->nombre ?? 'N/A' }}</td>
                                         <td class="py-2 px-4 border-b">
                                             @if($usuario->trashed())
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
@@ -83,8 +85,8 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-4">No hay usuarios registrados para esta búsqueda.</td>
-                                    </tr>
+                                        <td colspan="8" class="text-center py-4">No hay usuarios registrados para esta búsqueda.</td>
+                                        </tr>
                                 @endforelse
                             </tbody>
                         </table>
