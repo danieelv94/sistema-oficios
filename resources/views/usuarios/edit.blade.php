@@ -16,6 +16,10 @@
                         @method('PUT')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
+                                <x-label for="prof" :value="__('Título (Ej. C., Lic., Ing.)')" />
+                                <x-input id="prof" class="block mt-1 w-full" type="text" name="prof" :value="old('prof', $user->prof)" />
+                            </div>
+                            <div>
                                 <x-label for="name" :value="__('Nombre')" />
                                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $user->name)" required autofocus />
                             </div>

@@ -68,7 +68,7 @@
                                         <td class="py-2 px-4 border-b">
                                             <div class="flex items-center space-x-2">
                                                 @if($comision->status === 'Activo' || Auth::user()->role == 'admin')
-                                                    <a href="{{ route('comisiones.show', $comision) }}" class="px-3 py-1 bg-gray-500 text-white rounded-md text-xs" target="_blank">Ver</a>
+                                                    <a href="{{ route('comisiones.show', $comision) }}" class="px-3 py-1 bg-gray-500 text-white rounded-md text-xs">Ver</a>
                                                 @endif
                                                 @if(Auth::user()->role == 'admin' && $comision->status === 'Activo')
                                                 <form action="{{ route('comisiones.cancelar', $comision) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres cancelar este oficio?');">

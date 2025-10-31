@@ -30,6 +30,7 @@
                             <thead>
                                 <tr>
                                     <th class="py-2 px-4 border-b">Nombre</th>
+                                    <th class="py-2 px-4 border-b">Título</th>
                                     <th class="py-2 px-4 border-b">Email</th>
                                     <th class="py-2 px-4 border-b">No. Empleado</th>
                                     <th class="py-2 px-4 border-b">Área</th>
@@ -43,6 +44,7 @@
                                 @forelse($usuarios as $usuario)
                                     <tr class="hover:bg-gray-100 {{ $usuario->trashed() ? 'bg-red-50 text-gray-500' : '' }}">
                                         <td class="py-2 px-4 border-b">{{ $usuario->name }}</td>
+                                        <td class="py-2 px-4 border-b">{{ $usuario->prof ?? 'N/A' }}</td>
                                         <td class="py-2 px-4 border-b">{{ $usuario->email }}</td>
                                         <td class="py-2 px-4 border-b">{{ $usuario->no_empleado ?? 'N/A' }}</td>
                                         <td class="py-2 px-4 border-b">{{ $usuario->area->name ?? 'N/A' }}</td>

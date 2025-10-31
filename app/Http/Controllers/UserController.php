@@ -40,6 +40,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'prof' => ['nullable', 'string', 'max:10'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -49,6 +50,7 @@ class UserController extends Controller
         ]);
         User::create([
             'name' => $request->name,
+            'prof' => $request->prof,
             'email' => $request->email,
             'no_empleado' => $request->no_empleado,
             'password' => Hash::make($request->password),
@@ -70,6 +72,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'prof' => ['nullable', 'string', 'max:10'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users,no_empleado,'.$user->id],
             'role' => ['required', 'string', 'in:admin,jefe_area,user'],
@@ -77,7 +80,7 @@ class UserController extends Controller
             'nivel_id' => ['nullable', 'exists:nivels,id'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
-        $data = $request->only('name', 'email', 'role', 'area_id', 'no_empleado', 'nivel_id');
+        $data = $request->only('name', 'prof', 'email', 'role', 'area_id', 'no_empleado', 'nivel_id');
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }

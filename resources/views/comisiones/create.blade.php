@@ -8,7 +8,8 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 md:p-8 text-gray-900" x-data="comisionForm()">
                     <h3 class="text-lg font-bold mb-4">Nueva Solicitud de Comisión</h3>
-                    <form action="{{ route('comisiones.store') }}" method="POST">
+                    
+                    <form action="{{ route('comisiones.store') }}" method="POST" @submit="isSubmitting = true">
                         @csrf
                         <div class="space-y-6">
                             <div class="border-t pt-6">
@@ -60,22 +61,34 @@
 
                         <div class="flex items-center justify-end mt-8 border-t pt-6">
                             <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 underline hover:text-gray-900">Cancelar</a>
-                            <x-button class="ml-4">Generar Oficio</x-button>
+                            
+                            <x-button class="ml-4" x-bind:disabled="isSubmitting" x-bind:class="{ 'opacity-75 cursor-not-allowed': isSubmitting }">
+                                <span x-show="!isSubmitting">Generar Oficio</span>
+                                <span x-show="isSubmitting" class="flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Procesando...
+                                </span>
+                            </x-button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    
     <script>
         function comisionForm() {
             return {
                 selectedProyecto: '',
                 unidades: [],
                 proyectos: @json($proyectos->keyBy('id')),
+                isSubmitting: false, 
                 init() {
                     this.$watch('selectedProyecto', (newVal) => {
-                        document.getElementById('unidad_administrativa_id').value = ''; // Resetea la selección
+                        document.getElementById('unidad_administrativa_id').value = '';
                         if (newVal && this.proyectos[newVal]) {
                             this.unidades = this.proyectos[newVal].unidades_administrativas;
                         } else {
