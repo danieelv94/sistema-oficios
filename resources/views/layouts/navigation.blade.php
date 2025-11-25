@@ -13,9 +13,9 @@
                         {{ __('Oficios') }}
                     </x-nav-link>-->
 
-                   <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
+                   <!--<x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
                         {{ __('Comisiones') }}
-                    </x-nav-link>
+                    </x-nav-link>-->
 
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Soporte Técnico') }}
