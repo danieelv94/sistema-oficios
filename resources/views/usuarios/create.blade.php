@@ -20,22 +20,26 @@
                             </div>
                             <div>
                                 <x-label for="name" :value="__('Nombre')" />
-                                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
+                                <x-input id="name" class="block mt-1 w-full" type="text" name="name"
+                                    :value="old('name')" required autofocus />
                             </div>
 
                             <div>
                                 <x-label for="email" :value="__('Email')" />
-                                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
+                                <x-input id="email" class="block mt-1 w-full" type="email" name="email"
+                                    :value="old('email')" required />
                             </div>
 
                             <div>
                                 <x-label for="no_empleado" :value="__('Número de Empleado (Opcional)')" />
-                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado" :value="old('no_empleado')" />
+                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado"
+                                    :value="old('no_empleado')" />
                             </div>
 
-                             <div>
+                            <div>
                                 <x-label for="area_id" :value="__('Área')" />
-                                <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <select name="area_id" id="area_id"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     @foreach($areas as $area)
                                         <option value="{{ $area->id }}">{{ $area->name }}</option>
                                     @endforeach
@@ -44,16 +48,20 @@
 
                             <div>
                                 <x-label for="role" :value="__('Nivel de Usuario')" />
-                                <select name="role" id="role" class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <select name="role" id="role"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     <option value="user">Usuario Normal</option>
                                     <option value="jefe_area">Jefe de Área</option>
                                     <option value="admin">Administrador</option>
+                                    <option value="recepcionista">Recepcionista</option>
+                                    <option value="secretaria_area">Secretaria de Área</option>
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
-                                <select name="nivel_id" id="nivel_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                <select name="nivel_id" id="nivel_id"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     <option value="">Selecciona un nivel...</option>
                                     @foreach($niveles as $nivel)
                                         <option value="{{ $nivel->id }}">{{ $nivel->nombre }}</option>
@@ -61,14 +69,17 @@
                                 </select>
                             </div>
 
-                             <div class="md:col-span-2"></div> <div>
+                            <div class="md:col-span-2"></div>
+                            <div>
                                 <x-label for="password" :value="__('Contraseña')" />
-                                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required />
+                                <x-input id="password" class="block mt-1 w-full" type="password" name="password"
+                                    required />
                             </div>
 
                             <div>
                                 <x-label for="password_confirmation" :value="__('Confirmar Contraseña')" />
-                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
+                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password"
+                                    name="password_confirmation" required />
                             </div>
                         </div>
 

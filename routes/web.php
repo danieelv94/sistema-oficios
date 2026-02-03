@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OficioController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
-use App\Http\Controllers\ProfileController; 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComisionController;
 
 /*
@@ -27,12 +27,14 @@ Route::get('/tickets', function () {
 Route::middleware('auth')->group(function () {
     // ... (ruta de profile)
 
-    Route::get('/dashboard', [OficioController::class, 'index'])->name('dashboard');
+    Route::get('/principal', [OficioController::class, 'index'])->name('principal');
     Route::get('/oficios/crear', [OficioController::class, 'create'])->name('oficios.create');
     Route::post('/oficios', [OficioController::class, 'store'])->name('oficios.store');
     Route::get('/oficios/{oficio}', [OficioController::class, 'show'])->name('oficios.show');
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');
     Route::put('/oficios/{oficio}/asignar', [OficioController::class, 'asignar'])->name('oficios.asignar');
+    Route::delete('/oficios/turno/{pivote_id}', [OficioController::class, 'eliminarTurno'])->name('oficios.eliminarTurno');
+
     // --- Rutas para Administración de Usuarios (Solo para Admins) ---
     Route::get('/usuarios', [UserController::class, 'index'])->name('usuarios.index');
     Route::get('/usuarios/crear', [UserController::class, 'create'])->name('usuarios.create');
@@ -74,4 +76,4 @@ Route::middleware('auth')->group(function () {
     Route::patch('/comisiones/{comision}/cancelar', [ComisionController::class, 'cancelar'])->name('comisiones.cancelar');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

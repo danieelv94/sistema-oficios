@@ -26,17 +26,20 @@
 
                             <div>
                                 <x-label for="email" :value="__('Email')" />
-                                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $user->email)" required />
+                                <x-input id="email" class="block mt-1 w-full" type="email" name="email"
+                                    :value="old('email', $user->email)" required />
                             </div>
-                            
+
                             <div>
                                 <x-label for="no_empleado" :value="__('Número de Empleado (Opcional)')" />
-                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado" :value="old('no_empleado', $user->no_empleado)" />
+                                <x-input id="no_empleado" class="block mt-1 w-full" type="text" name="no_empleado"
+                                    :value="old('no_empleado', $user->no_empleado)" />
                             </div>
 
                             <div>
                                 <x-label for="area_id" :value="__('Área')" />
-                                <select name="area_id" id="area_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                <select name="area_id" id="area_id"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     @foreach($areas as $area)
                                         <option value="{{ $area->id }}" {{ old('area_id', $user->area_id) == $area->id ? 'selected' : '' }}>
                                             {{ $area->name }}
@@ -47,16 +50,22 @@
 
                             <div>
                                 <x-label for="role" :value="__('Nivel de Usuario')" />
-                                <select name="role" id="role" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
-                                    <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>Usuario Normal</option>
+                                <select name="role" id="role"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                    <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>
+                                        Usuario Normal</option>
                                     <option value="jefe_area" {{ old('role', $user->role) == 'jefe_area' ? 'selected' : '' }}>Jefe de Área</option>
-                                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrador</option>
+                                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>
+                                        Administrador</option>
+                                    <option value="recepcionista" {{ old('role', $user->role) == 'recepcionista' ? 'selected' : '' }}>Recepcionista</option>
+                                    <option value="secretaria_area" {{ old('role', $user->role) == 'secretaria_area' ? 'selected' : '' }}>Secretaria de Área</option>
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
-                                <select name="nivel_id" id="nivel_id" class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                <select name="nivel_id" id="nivel_id"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
                                     <option value="">Selecciona un nivel...</option>
                                     @foreach($niveles as $nivel)
                                         <option value="{{ $nivel->id }}" {{ old('nivel_id', $user->nivel_id) == $nivel->id ? 'selected' : '' }}>
@@ -67,7 +76,8 @@
                             </div>
 
                             <div class="col-span-2">
-                                <p class="text-sm text-gray-600">Deja los campos de contraseña en blanco si no deseas cambiarla.</p>
+                                <p class="text-sm text-gray-600">Deja los campos de contraseña en blanco si no deseas
+                                    cambiarla.</p>
                             </div>
                             <div>
                                 <x-label for="password" :value="__('Nueva Contraseña')" />
@@ -75,7 +85,8 @@
                             </div>
                             <div>
                                 <x-label for="password_confirmation" :value="__('Confirmar Nueva Contraseña')" />
-                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" />
+                                <x-input id="password_confirmation" class="block mt-1 w-full" type="password"
+                                    name="password_confirmation" />
                             </div>
                         </div>
 
