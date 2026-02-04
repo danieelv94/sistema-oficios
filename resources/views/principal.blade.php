@@ -29,8 +29,10 @@
                             <tbody>
                                 @foreach($correspondenciaGeneral as $oficio)
                                     <tr class="hover:bg-gray-100">
-                                        <td class="py-2 px-4 border-b">{{ $oficio->numero_oficio }}</td>
-                                        <td class="py-2 px-4 border-b">{{ Str::limit($oficio->asunto, 60) }}</td>
+                                        <td class="py-2 px-4 border-b text-center">{{ $oficio->numero_oficio }}</td>
+                                        <td class="py-2 px-4 border-b text-center"><span class="block break-words w-full">
+                                                {!! nl2br(e($oficio->asunto)) !!}
+                                            </span></td>
                                         <td class="py-2 px-4 border-b text-center">
                                             <a href="{{ route('oficios.show', ['oficio' => $oficio->id, 'mode' => 'recepcion']) }}"
                                                 class="px-3 py-1 bg-green-500 text-white rounded-md text-xs whitespace-nowrap">
@@ -61,7 +63,7 @@
                             <tbody>
                                 @foreach($gestionArea as $oficio)
                                     <tr class="hover:bg-gray-100">
-                                        <td class="py-2 px-4 border-b">{{ $oficio->numero_oficio }}</td>
+                                        <td class="py-2 px-4 border-b text-center">{{ $oficio->numero_oficio }}</td>
                                         <td class="py-2 px-4 border-b text-center">
                                             <span
                                                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -97,8 +99,8 @@
                         <tbody>
                             @forelse($misTurnosAsignados as $oficio)
                                 <tr class="hover:bg-gray-100">
-                                    <td class="py-2 px-4 border-b">{{ $oficio->numero_oficio }}</td>
-                                    <td class="py-2 px-4 border-b italic">
+                                    <td class="py-2 px-4 border-b text-center">{{ $oficio->numero_oficio }}</td>
+                                    <td class="py-2 px-4 border-b italic text-sm text-center">
                                         {{ $oficio->areas->where('id', Auth::user()->area_id)->first()->pivot->instruccion ?? 'N/A' }}
                                     </td>
                                     <td class="py-2 px-4 border-b text-center">

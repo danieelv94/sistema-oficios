@@ -26,7 +26,13 @@
                         <p><strong>Remitente:</strong> {{ $oficio->remitente }}</p>
                         <p><strong>Fecha Recepción:</strong> {{ $oficio->fecha_recepcion }}</p>
                         <p><strong>Estatus General:</strong> {{ $oficio->estatus }}</p>
-                        <p class="col-span-2"><strong>Asunto:</strong><br>{{ $oficio->asunto }}</p>
+                        <p class="col-span-2">
+                            <strong>Asunto:</strong><br>
+                            {{-- La clase break-words asegura que el texto no se salga del cuadro blanco --}}
+                            <span class="block break-words w-full">
+                                {!! nl2br(e($oficio->asunto)) !!}
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -65,11 +71,12 @@
                                     </div>
                                     <p class="text-sm text-gray-600">Instrucción: {{ $area->pivot->instruccion }}</p>
                                     <p class="text-sm text-gray-600">Persona Asignada:
-                                        {{ \App\Models\User::find($area->pivot->user_id)->name ?? 'Sin asignar' }}</p>
+                                        {{ \App\Models\User::find($area->pivot->user_id)->name ?? 'Sin asignar' }}
+                                    </p>
                                 </div>
 
-                                {{-- Botón Asignar (Jefe o Secretaria de Área) --}}
-                                @if((Auth::user()->role == 'jefe_area' || Auth::user()->role == 'secretaria_area') && Auth::user()->area_id == $area->id)
+                                {{-- Botón Asignar (Control de acceso actualizado) --}}
+                                @if((Auth::user()->role == 'admin' || Auth::user()->role == 'jefe_area' || Auth::user()->role == 'secretaria_area' || Auth::user()->role == 'recepcionista') && Auth::user()->area_id == $area->id)
                                     <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
                                         class="flex items-center space-x-2">
                                         @csrf @method('PUT')
