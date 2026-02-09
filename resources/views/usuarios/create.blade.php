@@ -23,6 +23,11 @@
                                 <x-input id="name" class="block mt-1 w-full" type="text" name="name"
                                     :value="old('name')" required autofocus />
                             </div>
+                            <div>
+                                <x-label for="cargo" :value="__('Cargo')" />
+                                <x-input id="cargo" class="block mt-1 w-full" type="text" name="cargo"
+                                    :value="old('cargo')" />
+                            </div>
 
                             <div>
                                 <x-label for="email" :value="__('Email')" />
@@ -57,7 +62,6 @@
                                     <option value="secretaria_area">Secretaria de Área</option>
                                 </select>
                             </div>
-
                             <div>
                                 <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
                                 <select name="nivel_id" id="nivel_id"

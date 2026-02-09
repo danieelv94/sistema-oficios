@@ -23,7 +23,11 @@
                                 <x-label for="name" :value="__('Nombre')" />
                                 <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $user->name)" required autofocus />
                             </div>
-
+                            <div>
+                                <x-label for="cargo" :value="__('Cargo')" />
+                                <x-input id="cargo" class="block mt-1 w-full" type="text" name="cargo"
+                                    :value="old('cargo', $user->cargo)" />
+                            </div>
                             <div>
                                 <x-label for="email" :value="__('Email')" />
                                 <x-input id="email" class="block mt-1 w-full" type="email" name="email"

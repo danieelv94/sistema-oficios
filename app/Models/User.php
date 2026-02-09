@@ -22,7 +22,8 @@ class User extends Authenticatable
     // app/Models/User.php
     protected $fillable = [
         'name',
-        'prof', // <-- AÑADE ESTA LÍNEA
+        'prof',
+        'cargo',
         'email',
         'password',
         'role',
@@ -49,7 +50,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    
+
 
     public function area()
     {
@@ -57,12 +58,12 @@ class User extends Authenticatable
     }
 
     public function nivel()
-{
-    return $this->belongsTo(Nivel::class);
-}
+    {
+        return $this->belongsTo(Nivel::class);
+    }
 
     public function tickets()
-{
-    return $this->hasMany(Ticket::class);
-}
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }

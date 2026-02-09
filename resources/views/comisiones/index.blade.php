@@ -17,22 +17,25 @@
                                 Mis Solicitudes
                             @endif
                         </h3>
-                        <a href="{{ route('comisiones.create') }}" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        <a href="{{ route('comisiones.create') }}"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                             + Solicitar Nueva Comisión
                         </a>
                     </div>
-                    
+
                     @if(Auth::user()->role == 'admin')
-                    <div class="mb-4">
-                        <form action="{{ route('comisiones.index') }}" method="GET">
-                            <div class="flex items-center">
-                                <input type="text" name="search" placeholder="Buscar por no. de oficio, solicitante, actividad..." 
-                                       class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                       value="{{ request('search') }}">
-                                <button type="submit" class="px-4 py-2 bg-gray-700 text-white rounded-r-md hover:bg-gray-800">Buscar</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="mb-4">
+                            <form action="{{ route('comisiones.index') }}" method="GET">
+                                <div class="flex items-center">
+                                    <input type="text" name="search"
+                                        placeholder="Buscar por no. de oficio, solicitante, actividad..."
+                                        class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        value="{{ request('search') }}">
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-gray-700 text-white rounded-r-md hover:bg-gray-800">Buscar</button>
+                                </div>
+                            </form>
+                        </div>
                     @endif
 
                     <div class="overflow-x-auto">
@@ -42,7 +45,7 @@
                                     <th class="py-2 px-4 border-b text-left">No. Oficio</th>
                                     <th class="py-2 px-4 border-b text-left">Fecha</th>
                                     @if(Auth::user()->role == 'admin')
-                                    <th class="py-2 px-4 border-b text-left">Solicitante</th>
+                                        <th class="py-2 px-4 border-b text-left">Solicitante</th>
                                     @endif
                                     <th class="py-2 px-4 border-b text-left">Actividad</th>
                                     <th class="py-2 px-4 border-b text-left">Estado</th>
@@ -52,41 +55,53 @@
                             <tbody>
                                 @forelse($comisiones as $comision)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="py-2 px-4 border-b">{{ $comision->oficio_numero }}</td>
-                                        <td class="py-2 px-4 border-b">{{ $comision->created_at->format('d/m/Y') }}</td>
+                                        <td class="py-2 px-4 border-b text-center">{{ $comision->oficio_numero }}</td>
+                                        <td class="py-2 px-4 border-b text-center">
+                                            {{ $comision->created_at->format('d/m/Y') }}
+                                        </td>
                                         @if(Auth::user()->role == 'admin')
-                                        <td class="py-2 px-4 border-b">{{ $comision->user->name }}</td>
+                                            <td class="py-2 px-4 border-b">{{ $comision->user->name }}</td>
                                         @endif
-                                        <td class="py-2 px-4 border-b">{{ Str::limit($comision->actividad, 40) }}</td>
-                                        <td class="py-2 px-4 border-b">
+                                        <td class="py-2 px-4 border-b text-center">
+                                            {{ Str::limit($comision->actividad, 40) }}
+                                        </td>
+                                        <td class="py-2 px-4 border-b text-center">
                                             @if($comision->status === 'Cancelado')
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelado</span>
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelado</span>
                                             @else
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
+                                                <span
+                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
                                             @endif
                                         </td>
                                         <td class="py-2 px-4 border-b">
                                             <div class="flex items-center space-x-2">
                                                 @if($comision->status === 'Activo' || Auth::user()->role == 'admin')
-                                                    <a href="{{ route('comisiones.show', $comision) }}" class="px-3 py-1 bg-gray-500 text-white rounded-md text-xs">Ver</a>
+                                                    <a href="{{ route('comisiones.show', $comision) }}"
+                                                        class="px-3 py-1 bg-gray-500 text-white rounded-md text-xs">Ver</a>
                                                 @endif
                                                 @if(Auth::user()->role == 'admin' && $comision->status === 'Activo')
-                                                <form action="{{ route('comisiones.cancelar', $comision) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres cancelar este oficio?');">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="px-3 py-1 bg-yellow-500 text-white rounded-md text-xs">Cancelar</button>
-                                                </form>
+                                                    <form action="{{ route('comisiones.cancelar', $comision) }}" method="POST"
+                                                        onsubmit="return confirm('¿Estás seguro de que quieres cancelar este oficio?');">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button type="submit"
+                                                            class="px-3 py-1 bg-yellow-500 text-white rounded-md text-xs">Cancelar</button>
+                                                    </form>
                                                 @endif
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" class="text-center py-4 text-gray-500">No se han encontrado comisiones que coincidan con la búsqueda.</td></tr>
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-gray-500">No se han encontrado
+                                            comisiones que coincidan con la búsqueda.</td>
+                                    </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="mt-4">
                         {{ $comisiones->appends(request()->query())->links() }}
                     </div>

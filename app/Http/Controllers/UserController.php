@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Area;
-use App\Models\Nivel; // <-- ¡ESTA ES LA LÍNEA QUE FALTABA!
+use App\Models\Nivel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -20,6 +20,9 @@ class UserController extends Controller
                 $q->where('name', 'like', "%{$searchTerm}%")
                     ->orWhere('email', 'like', "%{$searchTerm}%")
                     ->orWhere('no_empleado', 'like', "%{$searchTerm}%")
+                    ->orWhere('prof', 'like', "%{$searchTerm}%")
+                    ->orWhere('role', 'like', "%{$searchTerm}%")
+                    ->orWhere('cargo', 'like', "%{$searchTerm}%")
                     ->orWhereHas('area', function ($subQuery) use ($searchTerm) {
                         $subQuery->where('name', 'like', "%{$searchTerm}%");
                     });
@@ -45,6 +48,7 @@ class UserController extends Controller
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:admin,jefe_area,user,recepcionista,secretaria_area'],
+            'cargo' => ['required', 'string', 'max:255'],
             'area_id' => ['required', 'exists:areas,id'],
             'nivel_id' => ['nullable', 'exists:nivels,id'],
         ]);
@@ -56,6 +60,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'area_id' => $request->area_id,
+            'cargo' => $request->cargo,
             'nivel_id' => $request->nivel_id,
         ]);
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado exitosamente.');
@@ -77,10 +82,11 @@ class UserController extends Controller
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users,no_empleado,' . $user->id],
             'role' => ['required', 'string', 'in:admin,jefe_area,user,recepcionista,secretaria_area'],
             'area_id' => ['required', 'exists:areas,id'],
+            'cargo' => ['required', 'string', 'max:255'],
             'nivel_id' => ['nullable', 'exists:nivels,id'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
-        $data = $request->only('name', 'prof', 'email', 'role', 'area_id', 'no_empleado', 'nivel_id');
+        $data = $request->only('name', 'prof', 'email', 'role', 'area_id', 'no_empleado', 'cargo', 'nivel_id');
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }

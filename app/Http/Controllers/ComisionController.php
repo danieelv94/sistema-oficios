@@ -29,17 +29,17 @@ class ComisionController extends Controller
         // Si hay un término de búsqueda en la solicitud...
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-            
+
             // ...filtramos los resultados
             $query->where(function ($q) use ($searchTerm) {
                 // Busca en el número de oficio, actividad o lugar
                 $q->where('oficio_numero', 'like', "%{$searchTerm}%")
-                  ->orWhere('actividad', 'like', "%{$searchTerm}%")
-                  ->orWhere('lugar', 'like', "%{$searchTerm}%")
-                  // También busca en la tabla relacionada 'users' por el nombre del solicitante
-                  ->orWhereHas('user', function ($subQuery) use ($searchTerm) {
-                      $subQuery->where('name', 'like', "%{$searchTerm}%");
-                  });
+                    ->orWhere('actividad', 'like', "%{$searchTerm}%")
+                    ->orWhere('lugar', 'like', "%{$searchTerm}%")
+                    // También busca en la tabla relacionada 'users' por el nombre del solicitante
+                    ->orWhereHas('user', function ($subQuery) use ($searchTerm) {
+                        $subQuery->where('name', 'like', "%{$searchTerm}%");
+                    });
             });
         }
 
@@ -56,7 +56,7 @@ class ComisionController extends Controller
     {
         $vehiculos = Vehiculo::orderBy('marca')->get();
         $proyectos = Proyecto::with('unidadesAdministrativas')->get();
-        
+
         return view('comisiones.create', compact('vehiculos', 'proyectos'));
     }
 
@@ -83,7 +83,7 @@ class ComisionController extends Controller
         $currentYear = now()->year;
         $ultimoConsecutivo = Comision::where('anio', $currentYear)->max('consecutivo');
         $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
-        $numeroOficio = 'CEAA-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+        $numeroOficio = 'DGI-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
         $comision = Comision::create([
             'consecutivo' => $siguienteConsecutivo,
@@ -98,7 +98,7 @@ class ComisionController extends Controller
             'proyecto_id' => $request->proyecto_id,
             'unidad_administrativa_id' => $request->unidad_administrativa_id,
         ]);
-        
+
         return redirect()->route('comisiones.show', $comision);
     }
 

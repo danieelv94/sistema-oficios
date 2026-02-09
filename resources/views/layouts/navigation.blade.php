@@ -9,14 +9,16 @@
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-nav-link :href="route('principal')" :active="request()->routeIs('principal')">
-                        {{ __('Oficios') }}
-                    </x-nav-link>
-
-                    <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
-                        {{ __('Comisiones') }}
-                    </x-nav-link>
-
+                    @if (Auth::user()->role == 'admin')
+                        <x-nav-link :href="route('principal')" :active="request()->routeIs('principal')">
+                            {{ __('Oficios') }}
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->area_id == '2')
+                        <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
+                            {{ __('Comisiones') }}
+                        </x-nav-link>
+                    @endif
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Soporte Técnico') }}
                     </x-nav-link>
