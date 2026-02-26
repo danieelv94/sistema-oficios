@@ -44,7 +44,7 @@
                                 <tr>
                                     <th class="py-2 px-4 border-b text-left">No. Oficio</th>
                                     <th class="py-2 px-4 border-b text-left">Fecha</th>
-                                    @if(Auth::user()->role == 'admin')
+                                    @if(Auth::user()->role == 'admin' || Auth::user()->role == 'secretaria_area')
                                         <th class="py-2 px-4 border-b text-left">Solicitante</th>
                                     @endif
                                     <th class="py-2 px-4 border-b text-left">Actividad</th>
@@ -59,7 +59,7 @@
                                         <td class="py-2 px-4 border-b text-center">
                                             {{ $comision->created_at->format('d/m/Y') }}
                                         </td>
-                                        @if(Auth::user()->role == 'admin')
+                                        @if(Auth::user()->role == 'admin' || Auth::user()->role == 'secretaria_area')
                                             <td class="py-2 px-4 border-b">{{ $comision->user->name }}</td>
                                         @endif
                                         <td class="py-2 px-4 border-b text-center">

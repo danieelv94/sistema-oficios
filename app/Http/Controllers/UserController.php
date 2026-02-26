@@ -48,7 +48,7 @@ class UserController extends Controller
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:admin,jefe_area,user,recepcionista,secretaria_area'],
-            'cargo' => ['required', 'string', 'max:255'],
+            'cargo' => ['nullable', 'string', 'max:255'],
             'area_id' => ['required', 'exists:areas,id'],
             'nivel_id' => ['nullable', 'exists:nivels,id'],
         ]);
@@ -82,7 +82,7 @@ class UserController extends Controller
             'no_empleado' => ['nullable', 'string', 'max:255', 'unique:users,no_empleado,' . $user->id],
             'role' => ['required', 'string', 'in:admin,jefe_area,user,recepcionista,secretaria_area'],
             'area_id' => ['required', 'exists:areas,id'],
-            'cargo' => ['required', 'string', 'max:255'],
+            'cargo' => ['nullable', 'string', 'max:255'],
             'nivel_id' => ['nullable', 'exists:nivels,id'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);

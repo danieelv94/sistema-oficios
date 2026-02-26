@@ -14,11 +14,9 @@
                             {{ __('Oficios') }}
                         </x-nav-link>
                     @endif
-                    @if (Auth::user()->area_id == '2')
-                        <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
-                            {{ __('Comisiones') }}
-                        </x-nav-link>
-                    @endif
+                    <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
+                        {{ __('Comisiones') }}
+                    </x-nav-link>
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Soporte Técnico') }}
                     </x-nav-link>
