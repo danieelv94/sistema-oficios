@@ -48,6 +48,8 @@
 
                             <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
+                                    <label class="text-red-600">Si no se viaticará no llenar y dejar "Sin Proyecto
+                                        especifico".</label>
                                     <label for="proyecto_id" class="block font-medium text-sm text-gray-700">Proyecto
                                         (Opcional)</label>
                                     <select name="proyecto_id" id="proyecto_id" x-model="selectedProyecto"
@@ -59,6 +61,8 @@
                                     </select>
                                 </div>
                                 <div x-show="unidades.length > 0" x-transition>
+                                    <label class="text-red-600">Si no se viaticará no llenar y dejar "Sin Proyecto
+                                        especifico".</label>
                                     <label for="unidad_administrativa_id"
                                         class="block font-medium text-sm text-gray-700">Unidad Administrativa</label>
                                     <select name="unidad_administrativa_id" id="unidad_administrativa_id"

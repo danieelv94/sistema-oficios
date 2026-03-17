@@ -119,7 +119,7 @@
                     <div class="signature-line"></div>
 
                     @if($comision->user->role === 'jefe_area')
-                        <p>M.A.P. Juan Carlos Chavez Gonzalez</p>
+                        <p>M.A.P. Juan Carlos Chávez González</p>
                         <p>Director General</p>
                     @else
                         @php

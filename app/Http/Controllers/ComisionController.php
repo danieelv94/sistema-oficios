@@ -155,6 +155,45 @@ class ComisionController extends Controller
     }
 
     /**
+     * Muestra el formulario de edición.
+     */
+    public function edit(Comision $comision)
+    {
+        // Solo el admin puede editar
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para editar comisiones.');
+        }
+
+        $vehiculos = Vehiculo::orderBy('marca')->get();
+        $proyectos = Proyecto::with('unidadesAdministrativas')->get();
+
+        return view('comisiones.edit', compact('comision', 'vehiculos', 'proyectos'));
+    }
+
+    /**
+     * Actualiza la comisión.
+     */
+    public function update(Request $request, Comision $comision)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+
+        $request->validate([
+            'dias_comision' => 'required|string|max:255',
+            'actividad' => 'required|string',
+            'lugar' => 'required|string|max:255',
+            'vehiculo_id' => 'nullable|exists:vehiculos,id',
+            'proyecto_id' => 'nullable|exists:proyectos,id',
+            'unidad_administrativa_id' => 'nullable|exists:unidad_administrativas,id',
+        ]);
+
+        $comision->update($request->all());
+
+        return redirect()->route('comisiones.index')->with('success', 'Comisión actualizada correctamente.');
+    }
+
+    /**
      * Cancela un oficio de comisión.
      */
     public function cancelar(Comision $comision)

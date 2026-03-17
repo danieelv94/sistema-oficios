@@ -68,12 +68,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/comisiones/crear', [ComisionController::class, 'create'])->name('comisiones.create');
     Route::post('/comisiones', [ComisionController::class, 'store'])->name('comisiones.store');
     Route::get('/comisiones/{comision}', [ComisionController::class, 'show'])->name('comisiones.show');
-    // ------------------------------------
     Route::get('/comisiones', [ComisionController::class, 'index'])->name('comisiones.index'); // <-- AÑADE ESTA LÍNEA
     Route::get('/comisiones/crear', [ComisionController::class, 'create'])->name('comisiones.create');
     Route::post('/comisiones', [ComisionController::class, 'store'])->name('comisiones.store');
     Route::get('/comisiones/{comision}', [ComisionController::class, 'show'])->name('comisiones.show');
     Route::patch('/comisiones/{comision}/cancelar', [ComisionController::class, 'cancelar'])->name('comisiones.cancelar');
+    Route::get('/comisiones/{comision}/edit', [ComisionController::class, 'edit'])->name('comisiones.edit');
+    Route::put('/comisiones/{comision}', [ComisionController::class, 'update'])->name('comisiones.update');
 });
 
 require __DIR__ . '/auth.php';

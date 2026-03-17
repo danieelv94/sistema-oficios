@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class TicketController extends Controller
 {
@@ -46,11 +47,19 @@ class TicketController extends Controller
             'description' => 'required|string',
         ]);
 
-        Ticket::create([
+        $ticket = Ticket::create([
             'user_id' => Auth::id(),
             'subject' => $request->subject,
             'description' => $request->description,
         ]);
+
+        // NOTIFICACIÓN AL ADMIN (Tú)
+        $data = ['ticket' => $ticket, 'usuario' => Auth::user()->name];
+        // TicketController.php -> método store
+        Mail::send('emails.ticket_nuevo', $data, function ($message) use ($ticket) {
+            $message->to('daniel.lopez@hidalgo.gob.mx' && 'edd_mirage@hotmail.com')
+                ->subject('SOPORTE: Nuevo Ticket de ' . Auth::user()->name);
+        });
 
         return redirect()->route('tickets.index')->with('success', 'Tu solicitud de soporte ha sido enviada.');
     }
@@ -104,6 +113,13 @@ class TicketController extends Controller
             'evidence_path' => $path,
             'completed_at' => now(),
         ]);
+
+        // NOTIFICACIÓN AL USUARIO
+        $data = ['ticket' => $ticket];
+        Mail::send('emails.ticket_resuelto', $data, function ($message) use ($ticket) {
+            $message->to($ticket->user->email)
+                ->subject('Ticket Resuelto: ' . $ticket->subject);
+        });
 
         return redirect()->route('tickets.index')->with('success', 'El ticket ha sido marcado como concluido.');
     }
