@@ -18,36 +18,38 @@ class ComisionController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        // Iniciamos la consulta cargando la relación del usuario para evitar múltiples consultas (Eager Loading)
-        $query = Comision::with('user');
+
+        // EL TRUCO: withTrashed() permite traer los datos de usuarios deshabilitados
+        $query = Comision::with([
+            'user' => function ($q) {
+                $q->withTrashed();
+            },
+            'user.area'
+        ]);
 
         // --- LÓGICA DE FILTRADO POR ROLES ---
-        if ($user->role == 'jefe_area' || $user->role == 'secretaria_area' || $user->role == 'recepcionista') {
-            // Los jefes y secretarias ven las comisiones de toda su área
+        if (in_array($user->role, ['jefe_area', 'secretaria_area', 'recepcionista'])) {
             $query->whereHas('user', function ($q) use ($user) {
-                $q->where('area_id', $user->area_id);
+                // También buscamos en el área incluyendo a los deshabilitados
+                $q->withTrashed()->where('area_id', $user->area_id);
             });
         } elseif ($user->role !== 'admin') {
-            // El personal operativo (o cualquier otro rol no admin) solo ve sus propias comisiones
             $query->where('user_id', $user->id);
         }
-        // El 'admin' no entra en estas condiciones, por lo que sigue viendo todo
 
         // --- LÓGICA DE BÚSQUEDA ---
         if ($request->filled('search')) {
             $searchTerm = $request->search;
-
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('oficio_numero', 'like', "%{$searchTerm}%")
                     ->orWhere('actividad', 'like', "%{$searchTerm}%")
                     ->orWhere('lugar', 'like', "%{$searchTerm}%")
                     ->orWhereHas('user', function ($subQuery) use ($searchTerm) {
-                        $subQuery->where('name', 'like', "%{$searchTerm}%");
+                        $subQuery->withTrashed()->where('name', 'like', "%{$searchTerm}%");
                     });
             });
         }
 
-        // Ordenamos por fecha de creación (los más recientes primero) y paginamos
         $comisiones = $query->latest()->paginate(15);
 
         return view('comisiones.index', compact('comisiones'));
@@ -76,6 +78,8 @@ class ComisionController extends Controller
             'vehiculo_id' => 'nullable|exists:vehiculos,id',
             'proyecto_id' => 'nullable|exists:proyectos,id',
             'unidad_administrativa_id' => 'nullable|exists:unidad_administrativas,id',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required',
         ]);
 
         $user = Auth::user();
@@ -109,6 +113,8 @@ class ComisionController extends Controller
             'user_id' => $user->id,
             'jefe_area_id' => $jefeArea->id,
             'dias_comision' => $request->dias_comision,
+            'hora_inicio' => $request->hora_inicio, // <--- Esto envía el dato a la DB
+            'hora_fin' => $request->hora_fin,       // <--- Esto envía el dato a la DB
             'actividad' => $request->actividad,
             'lugar' => $request->lugar,
             'vehiculo_id' => $request->vehiculo_id,
@@ -126,12 +132,13 @@ class ComisionController extends Controller
     {
         $user = Auth::user();
 
-        // --- VALIDACIÓN DE ACCESO MULTI-PERFIL ---
-        // Permitimos el acceso si:
-        // 1. Es Administrador.
-        // 2. Es el dueño de la comisión.
-        // 3. Es la secretaria del área correspondiente.
-        // 4. Es la recepcionista (que también apoya al área).
+        // Para el PDF también necesitamos cargar al usuario aunque esté deshabilitado
+        $comision->load([
+            'user' => function ($q) {
+                $q->withTrashed();
+            },
+            'user.area'
+        ]);
 
         $esAutorizado = ($user->role === 'admin') ||
             ($comision->user_id === $user->id) ||
@@ -140,12 +147,6 @@ class ComisionController extends Controller
 
         if (!$esAutorizado) {
             abort(403, 'No tienes permiso para ver esta comisión.');
-        }
-
-        // Restricción de visualización para documentos cancelados
-        if ($comision->status === 'Cancelado' && $user->role !== 'admin') {
-            return redirect()->route('comisiones.index')
-                ->with('error', 'Este oficio de comisión ha sido cancelado y ya no se puede visualizar.');
         }
 
         Carbon::setLocale('es');
@@ -186,6 +187,8 @@ class ComisionController extends Controller
             'vehiculo_id' => 'nullable|exists:vehiculos,id',
             'proyecto_id' => 'nullable|exists:proyectos,id',
             'unidad_administrativa_id' => 'nullable|exists:unidad_administrativas,id',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required',
         ]);
 
         $comision->update($request->all());

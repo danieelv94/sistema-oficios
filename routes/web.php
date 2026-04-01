@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComisionController;
+use App\Http\Controllers\AvisoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,20 @@ Route::middleware('auth')->group(function () {
     Route::patch('/comisiones/{comision}/cancelar', [ComisionController::class, 'cancelar'])->name('comisiones.cancelar');
     Route::get('/comisiones/{comision}/edit', [ComisionController::class, 'edit'])->name('comisiones.edit');
     Route::put('/comisiones/{comision}', [ComisionController::class, 'update'])->name('comisiones.update');
+
+    // Ruta para que tú o las secretarias creen avisos
+    Route::post('/avisos/store', [AvisoController::class, 'store'])->name('avisos.store');
+    Route::get('/avisos/{aviso}/seguimiento', [AvisoController::class, 'seguimiento'])->name('avisos.seguimiento');
+
+    // Módulo de Avisos / Circulares
+    Route::get('/avisos', [AvisoController::class, 'index'])->name('avisos.index');
+    Route::get('/avisos/crear', [AvisoController::class, 'create'])->name('avisos.create');
+    Route::post('/avisos', [AvisoController::class, 'store'])->name('avisos.store');
+
+    // Rutas de lectura y seguimiento
+    Route::get('/avisos/pendientes', [AvisoController::class, 'pendientes'])->name('avisos.pendientes');
+    Route::post('/avisos/{aviso}/leer', [AvisoController::class, 'leer'])->name('avisos.leer');
+    Route::get('/avisos/{aviso}/seguimiento', [AvisoController::class, 'seguimiento'])->name('avisos.seguimiento');
 });
 
 require __DIR__ . '/auth.php';

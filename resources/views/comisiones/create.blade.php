@@ -19,6 +19,21 @@
                                     <input type="text" name="dias_comision" placeholder="Ej: 28 y 29 de Septiembre"
                                         class="form-input rounded-md shadow-sm mt-1 block w-full" required>
                                 </p>
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 border-l-4 border-guinda-ceaa pl-4 bg-gray-50 p-2">
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500">Hora de
+                                            Inicio</label>
+                                        <input type="time" name="hora_inicio"
+                                            class="form-input rounded-md shadow-sm mt-1 block w-full" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500">Hora de
+                                            Término</label>
+                                        <input type="time" name="hora_fin" max="17:00"
+                                            class="form-input rounded-md shadow-sm mt-1 block w-full" required>
+                                    </div>
+                                </div>
                                 <p class="mb-4">
                                     para realizar la siguiente actividad:
                                     <textarea name="actividad" rows="3"

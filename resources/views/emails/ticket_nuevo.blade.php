@@ -1,4 +1,4 @@
-<h2>¡Hola Informatica!</h2>
+<h2>¡Hola Daniel!</h2>
 <p>Se ha recibido una nueva solicitud de soporte técnico:</p>
 <ul>
     <li><strong>Usuario:</strong> {{ $usuario }}</li>

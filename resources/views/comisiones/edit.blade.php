@@ -33,6 +33,19 @@
                                     required>
                             </div>
 
+                            {{-- Hora --}}
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 uppercase">Hora Inicio</label>
+                                <input type="time" name="hora_inicio"
+                                    value="{{ old('hora_inicio', $comision->hora_inicio) }}"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 uppercase">Hora Término</label>
+                                <input type="time" name="hora_fin" value="{{ old('hora_fin', $comision->hora_fin) }}"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                            </div>
+
                             {{-- Lugar --}}
                             <div>
                                 <label for="lugar" class="block text-sm font-bold text-gray-700 uppercase">Lugar de la

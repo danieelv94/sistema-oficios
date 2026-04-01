@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public function avisos()
+    {
+        return $this->belongsToMany(Aviso::class)->withPivot('leido_at')->withTimestamps();
+    }
 }

@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -14,11 +14,33 @@
                             {{ __('Oficios') }}
                         </x-nav-link>
                     @endif
+
                     <x-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
                         {{ __('Comisiones') }}
                     </x-nav-link>
+
                     <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                         {{ __('Soporte Técnico') }}
+                    </x-nav-link>
+
+                    @if(in_array(Auth::user()->role, ['admin', 'secretaria_area', 'jefe_area']))
+                        <x-nav-link :href="route('avisos.index')" :active="request()->routeIs('avisos.index')">
+                            {{ __('Historial Avisos') }}
+                        </x-nav-link>
+                    @endif
+
+                    @php
+                        $pendientesCount = Auth::user()->avisos()->wherePivot('leido_at', null)->count();
+                    @endphp
+
+                    <x-nav-link :href="route('avisos.pendientes')" :active="request()->routeIs('avisos.pendientes')">
+                        {{ __('Mis Avisos') }}
+                        @if($pendientesCount > 0)
+                            <span
+                                class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                                {{ $pendientesCount }}
+                            </span>
+                        @endif
                     </x-nav-link>
 
                     @if(Auth::user()->role == 'admin')
@@ -35,7 +57,6 @@
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
-
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                     viewBox="0 0 20 20">
@@ -52,11 +73,12 @@
                             {{ __('Contraseña') }}
                         </x-dropdown-link>
 
+                        <hr class="border-gray-100">
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
-                                                this.closest('form').submit();">
+                            <x-dropdown-link :href="route('logout')"
+                                onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Cerrar Sesión') }}
                             </x-dropdown-link>
                         </form>
@@ -81,17 +103,45 @@
 
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+
+            {{-- Oficios (Admin) --}}
             @if (Auth::user()->role == 'admin')
                 <x-responsive-nav-link :href="route('principal')" :active="request()->routeIs('principal')">
                     {{ __('Oficios') }}
                 </x-responsive-nav-link>
             @endif
+
+            {{-- Comisiones --}}
             <x-responsive-nav-link :href="route('comisiones.index')" :active="request()->routeIs('comisiones.*')">
                 {{ __('Comisiones') }}
             </x-responsive-nav-link>
+
+            {{-- Soporte Técnico --}}
             <x-responsive-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
                 {{ __('Soporte Técnico') }}
             </x-responsive-nav-link>
+
+            {{-- Historial Avisos --}}
+            @if(in_array(Auth::user()->role, ['admin', 'secretaria_area']))
+                <x-responsive-nav-link :href="route('avisos.index')" :active="request()->routeIs('avisos.index')">
+                    {{ __('Historial Avisos') }}
+                </x-responsive-nav-link>
+            @endif
+
+            {{-- Mis Avisos --}}
+            <x-responsive-nav-link :href="route('avisos.pendientes')" :active="request()->routeIs('avisos.pendientes')">
+                <div class="flex items-center">
+                    {{ __('Mis Avisos') }}
+                    @if($pendientesCount > 0)
+                        <span
+                            class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                            {{ $pendientesCount }}
+                        </span>
+                    @endif
+                </div>
+            </x-responsive-nav-link>
+
+            {{-- Usuarios (Admin) --}}
             @if(Auth::user()->role == 'admin')
                 <x-responsive-nav-link :href="route('usuarios.index')" :active="request()->routeIs('usuarios.*')">
                     {{ __('Usuarios') }}
@@ -107,14 +157,13 @@
 
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Perfil') }}
+                    {{ __('Contraseña') }}
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                    <x-responsive-nav-link :href="route('logout')"
+                        onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Cerrar Sesión') }}
                     </x-responsive-nav-link>
                 </form>

@@ -3,15 +3,18 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
+        './vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
     ],
 
     theme: {
         extend: {
+            colors: {
+                'guinda-ceaa': '#932C43',
+            },
             fontFamily: {
-                sans: ['Nunito', ...defaultTheme.fontFamily.sans],
+                sans: ['Nunito', 'sans-serif'],
             },
         },
     },
