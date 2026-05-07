@@ -1,5 +1,4 @@
 <?php
-//antes dashborad.blade.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -11,45 +10,31 @@ use Illuminate\Support\Facades\DB;
 
 class OficioController extends Controller
 {
-    /**
-     * Muestra la lista de oficios.
-     */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        // 1. Cargas globales para Admin/Recepcionista (Entrada de correspondencia)
         $correspondenciaGeneral = ($user->role == 'admin' || $user->role == 'recepcionista')
-            ? Oficio::latest()->get()
+            ? Oficio::latest()->paginate(10, ['*'], 'gen_page')
             : collect();
 
-        // 2. Cargas para Secretarias/Jefes (Gestión de su Dirección)
         $gestionArea = ($user->role == 'admin' || $user->role == 'jefe_area' || $user->role == 'secretaria_area')
             ? Oficio::whereHas('areas', function ($q) use ($user) {
                 $q->where('areas.id', $user->area_id);
-            })->latest()->get()
+            })->latest()->paginate(10, ['*'], 'gest_page')
             : collect();
 
-        // 3. Cargas para el Responsable (Tareas personales para completar el turno)
         $misTurnosAsignados = Oficio::whereHas('areas', function ($q) use ($user) {
             $q->where('area_oficio.user_id', $user->id);
-        })->latest()->get();
+        })->latest()->paginate(9, ['*'], 'task_page');
 
         return view('principal', compact('correspondenciaGeneral', 'gestionArea', 'misTurnosAsignados'));
     }
 
-    /**
-     * Muestra el formulario para crear un nuevo oficio.
-     */
     public function create()
     {
         return view('oficios.create');
     }
-
-    /**
-     * Guarda el nuevo oficio en la base de datos.
-     */
-    // app/Http/Controllers/OficioController.php -> dentro del método store()
 
     public function store(Request $request)
     {
@@ -59,34 +44,43 @@ class OficioController extends Controller
             'municipio' => 'required|string|max:255',
             'asunto' => 'required|string',
             'fecha_recepcion' => 'required|date',
-            // --- NUEVAS REGLAS DE VALIDACIÓN ---
-            'tipo_correspondencia' => 'required|string',
             'prioridad' => 'required|string',
             'numero_oficio_dependencia' => 'required|string|max:255',
-            'fecha_limite' => 'nullable|date', // Opcional
+            'fecha_limite' => 'nullable|date',
             'localidad' => 'required|string|max:255',
-            'observaciones' => 'nullable|string', // Opcional
+            'observaciones' => 'nullable|string',
+            'archivo_pdf' => 'required|mimes:pdf|max:10240',
+            'tipo_correspondencia' => 'nullable|string',
         ]);
 
-        Oficio::create($request->all());
+        $data = $request->all();
 
-        return redirect()->route('principal')->with('success', 'Oficio registrado correctamente.');
+        if (!$request->has('tipo_correspondencia')) {
+            $data['tipo_correspondencia'] = 'Externa';
+        }
+
+        if ($request->hasFile('archivo_pdf')) {
+            $path = $request->file('archivo_pdf')->store('oficios_pdf', 'public');
+            $data['pdf_path'] = $path;
+        }
+
+        Oficio::create($data);
+
+        return redirect()->route('principal')->with('success', 'Oficio y PDF registrados correctamente.');
     }
 
 
     public function show(Request $request, Oficio $oficio)
     {
         $user = Auth::user();
-        $mode = $request->query('mode', 'operativo'); // Por defecto 'operativo'
+        $mode = $request->query('mode', 'operativo');
         $oficio->load('areas');
 
-        // Determinamos qué turnos mostrar según el clic que diste en el Dashboard
         if ($mode == 'recepcion' && ($user->role == 'admin' || $user->role == 'recepcionista')) {
-            $turnosParaMostrar = $oficio->areas; // Ver todo para gestionar
+            $turnosParaMostrar = $oficio->areas;
         } elseif ($mode == 'gestion' && ($user->role == 'admin' || $user->role == 'jefe_area' || $user->role == 'secretaria_area')) {
-            $turnosParaMostrar = $oficio->areas->where('id', $user->area_id); // Solo los de mi área para asignar
+            $turnosParaMostrar = $oficio->areas->where('id', $user->area_id);
         } else {
-            // Modo operativo: Solo el turno que tengo asignado yo
             $turnosParaMostrar = $oficio->areas->filter(function ($area) use ($user) {
                 return $area->pivot->user_id == $user->id;
             });
@@ -130,15 +124,11 @@ class OficioController extends Controller
             return back()->with('error', 'No tienes permiso para realizar esta acción.');
         }
 
-        // Eliminamos directamente de la tabla pivote
         DB::table('area_oficio')->where('id', $pivote_id)->delete();
 
         return back()->with('success', 'Turno eliminado correctamente.');
     }
 
-    /**
-     * Asigna un turno específico a una persona.
-     */
     public function asignar(Request $request, Oficio $oficio)
     {
         $request->validate([
@@ -162,41 +152,28 @@ class OficioController extends Controller
 
     public function destroy(Oficio $oficio)
     {
-        // Por seguridad, solo los admins pueden borrar oficios.
         if (auth()->user()->role !== 'admin') {
             return back()->with('error', 'No tienes permiso para realizar esta acción.');
         }
 
-        $oficio->delete(); // Esto ejecuta el borrado suave
+        $oficio->delete();
 
         return redirect()->route('principal')->with('success', 'Oficio eliminado correctamente.');
     }
 
-    // app/Http/Controllers/OficioController.php
-
-    /**
-     * Muestra una vista previa del oficio listo para imprimir.
-     */
     public function generarOficio(Oficio $oficio)
     {
         $user = Auth::user();
-
-        // Cargamos las relaciones para tener acceso a las áreas
         $oficio->load('areas');
 
-        // --- INICIO DE LA LÓGICA DE FILTRADO ---
-        $turnosParaImprimir = $oficio->areas; // Por defecto, mostramos todos
+        $turnosParaImprimir = $oficio->areas;
 
         if ($user->role != 'admin') {
-            // Si NO es un administrador, filtramos la colección para mostrar
-            // SOLO el turno que corresponde al área del usuario.
             $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($user) {
                 return $area->id == $user->area_id;
             });
         }
-        // --- FIN DE LA LÓGICA ---
 
-        // Pasamos la variable filtrada a la vista
         return view('oficios.generar', compact('oficio', 'turnosParaImprimir'));
     }
 }

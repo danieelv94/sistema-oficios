@@ -45,6 +45,7 @@ class AvisoController extends Controller
     }
     public function store(Request $request)
     {
+        // 1. Validación de entrada
         $request->validate([
             'titulo' => 'required|string|max:255',
             'mensaje' => 'required|string',
@@ -53,6 +54,7 @@ class AvisoController extends Controller
             'archivo' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // Máximo 10MB
         ]);
 
+        // 2. Preparación de datos
         $data = [
             'user_id' => Auth::id(),
             'titulo' => $request->titulo,
@@ -61,21 +63,44 @@ class AvisoController extends Controller
             'area_id' => $request->area_id
         ];
 
-        // Lógica para subir el archivo
+        // 3. Subida de archivo (si existe)
         if ($request->hasFile('archivo')) {
             $path = $request->file('archivo')->store('avisos', 'public');
             $data['archivo'] = $path;
         }
 
+        // 4. Crear el registro del aviso
         $aviso = Aviso::create($data);
 
-        // Determinar destinatarios (tu lógica actual)
+        // 5. Determinar destinatarios (Tu lógica original)
         $query = User::query();
         if ($request->filled('area_id')) {
             $query->where('area_id', $request->area_id);
         }
-        $usuariosIds = $query->pluck('id');
+
+        $usuarios = $query->get();
+        $usuariosIds = $usuarios->pluck('id');
+
+        // Registrar la relación en la tabla pivote
         $aviso->usuarios()->attach($usuariosIds);
+
+        // 6. NOTIFICACIÓN PUSH (Con protección contra errores de suscripción)
+        try {
+            // Filtramos para enviar SOLO a usuarios con suscripciones activas en la DB
+            $usuariosConSuscripcion = $usuarios->filter(function ($user) {
+                return $user->pushSubscriptions()->exists();
+            });
+
+            if ($usuariosConSuscripcion->isNotEmpty()) {
+                \Illuminate\Support\Facades\Notification::send(
+                    $usuariosConSuscripcion,
+                    new \App\Notifications\AvisoInstitucionalNotification($aviso)
+                );
+            }
+        } catch (\Exception $e) {
+            // Si algo falla con el servicio de Push, el aviso se guarda de todos modos
+            // Puedes loguear el error si lo deseas: \Log::error("Error en Push: " . $e->getMessage());
+        }
 
         return redirect()->route('avisos.index')->with('success', 'Circular emitida con éxito.');
     }

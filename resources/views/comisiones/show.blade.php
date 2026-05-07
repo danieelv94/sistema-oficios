@@ -20,7 +20,6 @@
         @page {
             size: letter;
             margin: 0;
-            /* ELIMINA EL MARGEN DEL NAVEGADOR */
         }
 
         @media print {
@@ -29,7 +28,6 @@
             body {
                 height: 100%;
                 overflow: hidden;
-                /* MATA LA SEGUNDA HOJA */
                 background: white;
             }
 
@@ -58,7 +56,6 @@
                 color: black !important;
             }
 
-            /* PIE DE PÁGINA FIJO AL FONDO REAL */
             .footer-oficio-fijo {
                 position: absolute;
                 bottom: 1.2cm;
@@ -107,7 +104,6 @@
 
 <body>
 
-    {{-- Botones de Acción --}}
     <div class="max-w-[21.59cm] mx-auto pt-8 text-right no-print">
         <a href="{{ route('comisiones.index') }}"
             class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-sans text-sm inline-flex items-center">
@@ -123,7 +119,6 @@
 
     <div class="printable-area relative">
 
-        {{-- Marca de Agua Cancelado --}}
         @if($comision->status === 'Cancelado')
             <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
                 <p style="font-size: 10rem;"
@@ -132,7 +127,6 @@
         @endif
 
         <div class="relative z-10">
-            {{-- Encabezado --}}
             <div class="flex justify-end mb-6 text-right">
                 <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">
             </div>
@@ -145,13 +139,14 @@
             </div>
 
             <div class="mb-8 space-y-1">
-                <p><strong class="text-[#932C43]">Nombre de Empleado: </strong>{{ $comision->user->prof }}
-                    {{ $comision->user->name }}</p>
-                <p><strong class="text-[#932C43]">No. de empleado: </strong>{{ $comision->user->no_empleado ?? 'N/A' }}
-                </p>
-                <p><strong class="text-[#932C43]">Área de adscripción:
-                    </strong>{{ $comision->user->area->name ?? 'N/A' }}</p>
-                <p class="font-bold mt-6 tracking-widest">P R E S E N T E</p>
+                {{-- Corregido: Uso de optional() en lugar de ?-> para compatibilidad con PHP < 8.0 --}} <p><strong
+                        class="text-[#932C43]">Nombre de Empleado: </strong>{{ optional($comision->user)->prof }}
+                    {{ optional($comision->user)->name }}</p>
+                    <p><strong class="text-[#932C43]">No. de empleado:
+                        </strong>{{ optional($comision->user)->no_empleado ?? 'N/A' }}</p>
+                    <p><strong class="text-[#932C43]">Área de adscripción:
+                        </strong>{{ optional(optional($comision->user)->area)->name ?? 'N/A' }}</p>
+                    <p class="font-bold mt-6 tracking-widest">P R E S E N T E</p>
             </div>
 
             <p class="text-justify mb-6">
@@ -187,19 +182,20 @@
                 <div>
                     <p class="font-bold uppercase text-gray-600">Autorizó</p>
                     <div class="signature-line"></div>
-                    @if($comision->user->role === 'jefe_area')
+                    @if(optional($comision->user)->role === 'jefe_area')
                         <p class="font-bold">M.A.P. Juan Carlos Chávez González</p>
                         <p>Director General</p>
                     @else
                         @php
-                            $areaNombre = $comision->jefeArea->area->name ?? 'Área No Asignada';
+                            $areaNombre = optional(optional($comision->jefeArea)->area)->name ?? 'Área No Asignada';
                             $areasFemeninas = ['Dirección de Calidad del Agua', 'Dirección Jurídica y Unidad para la Igualdad entre Mujeres y Hombres'];
                             $esFemenino = in_array($areaNombre, $areasFemeninas);
                             $reemplazos = $esFemenino ? ['Directora', 'Subdirectora', 'Jefa'] : ['Director', 'Subdirector', 'Jefe'];
                             $cargo = str_ireplace(['Dirección', 'Subdirección', 'Jefatura'], $reemplazos, $areaNombre);
                         @endphp
-                        <p class="font-bold">{{ $comision->jefeArea->prof }} {{ $comision->jefeArea->name }}</p>
-                        <p class="text-[9pt] uppercase leading-tight">{{ $cargo }}</p>
+                        <p class="font-bold">{{ optional($comision->jefeArea)->prof }}
+                            {{ optional($comision->jefeArea)->name }}</p>
+                        <p class="leading-tight">{{ $cargo }}</p>
                     @endif
                 </div>
                 <div>
@@ -211,8 +207,8 @@
                 <div>
                     <p class="font-bold uppercase text-gray-600">Enterado</p>
                     <div class="signature-line"></div>
-                    <p class="font-bold">{{ $comision->user->prof }} {{ $comision->user->name }}</p>
-                    <p class="text-[9pt] uppercase">{{ $comision->user->cargo }}</p>
+                    <p class="font-bold">{{ optional($comision->user)->prof }} {{ optional($comision->user)->name }}</p>
+                    <p class="leading-tight">{{ optional($comision->user)->cargo ?? 'Personal CEAA' }}</p>
                 </div>
             </div>
 
@@ -221,7 +217,6 @@
             </div>
         </div>
 
-        {{-- PIE DE PÁGINA (FLOTANTE AL FONDO) --}}
         <div class="footer-oficio-fijo">
             <div class="flex justify-left">
                 <img src="{{ asset('images/SGC.webp') }}" alt="SGC" style="width:1.6cm; height:1.6cm;">
@@ -234,7 +229,6 @@
                 <p class="text-blue-300">ceaa.hidalgo.gob.mx</p>
             </div>
         </div>
-
     </div>
 </body>
 

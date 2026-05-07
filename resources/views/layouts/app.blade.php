@@ -35,6 +35,18 @@
     </div>
 
     <script src="{{ mix('js/app.js') }}" defer></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js').then(function (registration) {
+                    console.log('ServiceWorker registrado con éxito: ', registration.scope);
+                }, function (err) {
+                    console.log('Fallo en el registro de ServiceWorker: ', err);
+                });
+            });
+        }
+    </script>
 </body>
 
 </html>

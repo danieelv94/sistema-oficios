@@ -23,6 +23,7 @@ class Oficio extends Model
         'fecha_limite',
         'localidad',
         'observaciones',
+        'pdf_path',
     ];
 
     /**
@@ -31,7 +32,7 @@ class Oficio extends Model
     public function areas()
     {
         return $this->belongsToMany(Area::class, 'area_oficio')
-                    ->withPivot('id', 'instruccion', 'user_id', 'estatus') // Campos extra que queremos leer de la tabla pivote
-                    ->withTimestamps();
+            ->withPivot('id', 'instruccion', 'user_id', 'estatus') // Campos extra que queremos leer de la tabla pivote
+            ->withTimestamps();
     }
 }

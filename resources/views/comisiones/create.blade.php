@@ -24,7 +24,7 @@
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500">Hora de
                                             Inicio</label>
-                                        <input type="time" name="hora_inicio"
+                                        <input type="time" name="hora_inicio" min="09:00"
                                             class="form-input rounded-md shadow-sm mt-1 block w-full" required>
                                     </div>
                                     <div>

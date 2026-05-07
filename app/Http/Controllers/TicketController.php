@@ -55,9 +55,8 @@ class TicketController extends Controller
 
         // NOTIFICACIÓN AL ADMIN (Tú)
         $data = ['ticket' => $ticket, 'usuario' => Auth::user()->name];
-        // TicketController.php -> método store
         Mail::send('emails.ticket_nuevo', $data, function ($message) use ($ticket) {
-            $message->to('daniel.lopez@hidalgo.gob.mx' && 'edd_mirage@hotmail.com')
+            $message->to('daniel.lopez@hidalgo.gob.mx')
                 ->subject('SOPORTE: Nuevo Ticket de ' . Auth::user()->name);
         });
 
@@ -98,7 +97,7 @@ class TicketController extends Controller
 
         $request->validate([
             'resolution_notes' => 'required|string',
-            'evidence' => 'nullable|image|max:2048', // Opcional, imagen, máx 2MB
+            'evidence' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
 
         $path = null;
