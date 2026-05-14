@@ -25,9 +25,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/oficios/{oficio}/generar', [OficioController::class, 'generarOficio'])->name('oficios.generar');
 
     // --- Administración de Usuarios (Admins) ---
-    Route::resource('usuarios', UserController::class);
+    Route::resource('usuarios', UserController::class)->parameters([
+        'usuarios' => 'user'
+    ]);
     Route::put('/usuarios/{user}/restore', [UserController::class, 'restore'])->name('usuarios.restore');
     Route::delete('/usuarios/{user}/force-delete', [UserController::class, 'forceDelete'])->name('usuarios.forceDelete');
+
 
     // --- Sistema de Tickets de Soporte ---
     Route::resource('tickets', TicketController::class);
@@ -37,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     // --- Órdenes de Comisión ---
     Route::resource('comisiones', ComisionController::class)->parameters([
