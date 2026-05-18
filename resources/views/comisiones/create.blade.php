@@ -24,13 +24,13 @@
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500">Hora de
                                             Inicio</label>
-                                        <input type="time" name="hora_inicio" min="09:00"
+                                        <input type="time" name="hora_inicio" min="09:00" max="17:00"
                                             class="form-input rounded-md shadow-sm mt-1 block w-full" required>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold uppercase text-gray-500">Hora de
                                             Término</label>
-                                        <input type="time" name="hora_fin" max="17:00"
+                                        <input type="time" name="hora_fin" min="09:00" max="17:00"
                                             class="form-input rounded-md shadow-sm mt-1 block w-full" required>
                                     </div>
                                 </div>
