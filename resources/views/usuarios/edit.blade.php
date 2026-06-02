@@ -63,6 +63,7 @@
                                         Administrador</option>
                                     <option value="recepcionista" {{ old('role', $user->role) == 'recepcionista' ? 'selected' : '' }}>Recepcionista</option>
                                     <option value="secretaria_area" {{ old('role', $user->role) == 'secretaria_area' ? 'selected' : '' }}>Secretaria de Área</option>
+                                    <option value="correspondencia" {{ old('role', $user->role) == 'correspondencia' ? 'selected' : '' }}>Correspondencia</option>
                                 </select>
                             </div>
 

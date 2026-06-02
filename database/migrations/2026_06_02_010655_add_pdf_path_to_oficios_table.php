@@ -4,19 +4,24 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class AddPdfPathToOficiosTable extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
         Schema::table('oficios', function (Blueprint $table) {
-            $table->softDeletes(); // Esto añade la columna deleted_at
+            $table->string('pdf_path')->nullable();
         });
     }
 
     public function down()
     {
         Schema::table('oficios', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            $table->dropColumn('pdf_path');
         });
     }
-};
+}

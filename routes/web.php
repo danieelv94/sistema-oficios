@@ -14,8 +14,23 @@ Route::redirect('/', '/login');
 
 Route::middleware('auth')->group(function () {
 
-    // --- Dashboard Principal ---
-    Route::get('/principal', [OficioController::class, 'index'])->name('principal');
+    // Dashboard
+    Route::get('/principal', [App\Http\Controllers\OficioController::class, 'principal'])->name('principal');
+
+    // Gestión de Correspondencia (la tabla)
+    Route::get('/oficios', [App\Http\Controllers\OficioController::class, 'index'])->name('oficios.index');
+
+    // Bandeja de Gestión de Turnos (Debe declararse antes del recurso para evitar conflicto con el comodín {oficio})
+    Route::get('/oficios/gestion', [App\Http\Controllers\OficioController::class, 'gestion'])
+        ->name('oficios.gestion');
+
+    // Seguimiento General de Turnos (Debe declararse antes del recurso)
+    Route::get('/oficios/seguimiento', [App\Http\Controllers\OficioController::class, 'seguimiento'])
+        ->name('oficios.seguimiento');
+
+    // Reporte Diario de Turnos (Debe declararse antes del recurso)
+    Route::get('/oficios/reporte-diario', [App\Http\Controllers\OficioController::class, 'reporteDiario'])
+        ->name('oficios.reporteDiario');
 
     // --- Módulo de Oficios ---
     Route::resource('oficios', OficioController::class)->except(['index', 'edit', 'update']);
@@ -55,6 +70,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/avisos/pendientes', [AvisoController::class, 'pendientes'])->name('avisos.pendientes');
     Route::post('/avisos/{aviso}/leer', [AvisoController::class, 'leer'])->name('avisos.leer');
     Route::get('/avisos/{aviso}/seguimiento', [AvisoController::class, 'seguimiento'])->name('avisos.seguimiento');
+
+    // Rutas de Gestión de Turnos (Solo para roles con capacidad de gestión)
+    Route::middleware(['auth'])->group(function () {
+        // Confirmar recepción del turno
+        Route::put('/oficios/turno/{pivote_id}/recibir', [App\Http\Controllers\OficioController::class, 'recibirTurno'])
+            ->name('oficios.recibirTurno');
+
+        // Confirmar de notificado por el operativo
+        Route::put('/oficios/turno/{pivote_id}/notificar', [App\Http\Controllers\OficioController::class, 'notificarTurno'])
+            ->name('oficios.notificarTurno');
+
+        // Formulario de Solventación / Atención
+        Route::get('/oficios/turno/{areaOficioId}/atender', [App\Http\Controllers\OficioController::class, 'atender'])
+            ->name('oficios.atender');
+
+        // Guardar la respuesta del operativo
+        Route::post('/oficios/turno/{areaOficioId}/solventar', [App\Http\Controllers\OficioController::class, 'solventar'])
+            ->name('oficios.solventar');
+    });
+
+    // Esta ruta es para que el Admin/Correspondencia vea el oficio y lo turne
+    Route::get('/oficios/{oficio}/turnar', [App\Http\Controllers\OficioController::class, 'vistaTurnado'])
+        ->name('oficios.vistaTurnado');
 
     // --- NOTIFICACIONES WEB PUSH ---
     Route::post('/notifications/subscribe', function (Request $request) {

@@ -60,6 +60,7 @@
                                     <option value="admin">Administrador</option>
                                     <option value="recepcionista">Recepcionista</option>
                                     <option value="secretaria_area">Secretaria de Área</option>
+                                    <option value="correspondencia">Correspondencia</option>
                                 </select>
                             </div>
                             <div>

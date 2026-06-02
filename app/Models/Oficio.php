@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\OficioRespuesta;
 
 class Oficio extends Model
 {
@@ -31,8 +32,20 @@ class Oficio extends Model
      */
     public function areas()
     {
-        return $this->belongsToMany(Area::class, 'area_oficio')
-            ->withPivot('id', 'instruccion', 'user_id', 'estatus') // Campos extra que queremos leer de la tabla pivote
+        // Cambiamos a string 'area_oficio' para que Laravel sepa que es una tabla
+        return $this->belongsToMany(Area::class, 'area_oficio', 'oficio_id', 'area_id')
+            ->withPivot('id', 'user_id', 'instruccion', 'estatus')
             ->withTimestamps();
+    }
+
+    public function respuestas()
+    {
+        // Obtenemos los IDs de la tabla pivote de manera segura usando DB::table
+        $idsTurnos = \Illuminate\Support\Facades\DB::table('area_oficio')
+            ->where('oficio_id', $this->id)
+            ->pluck('id');
+
+        // Retornamos la consulta directa al modelo de respuestas
+        return \App\Models\OficioRespuesta::whereIn('area_oficio_id', $idsTurnos);
     }
 }

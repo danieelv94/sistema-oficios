@@ -18,7 +18,7 @@
             <h2 class="font-bold text-xl text-gray-800 leading-tight uppercase tracking-widest">
                 {{ __('Panel de Control de Oficios') }}
             </h2>
-            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'recepcionista')
+            @if(in_array(Auth::user()->role, ['admin', 'recepcionista']))
                 <a href="{{ route('oficios.create') }}" 
                    class="px-4 py-2 bg-[#932C43] text-white rounded-md hover:bg-[#722134] font-bold shadow-md transition-all transform hover:scale-105 text-sm uppercase">
                     + Registrar Oficio
@@ -31,7 +31,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
             {{-- 1. CORRESPONDENCIA GENERAL (Admin y Recepción) --}}
-            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'recepcionista')
+            @if(in_array(Auth::user()->role, ['admin', 'recepcionista', 'correspondencia']))
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-[#932C43]">
                 <div class="p-6">
                     <div class="flex items-center mb-4">

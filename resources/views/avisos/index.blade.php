@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-bold">Registro de Comunicaciones</h3>
+                        <h3 class="text-lg font-bold">Registro de Circulares</h3>
                         @if(in_array(Auth::user()->role, ['admin', 'secretaria_area', 'jefe_area']))
                             <a href="{{ route('avisos.create') }}"
                                 class="px-4 py-2 bg-[#932C43] text-white rounded-md text-sm font-bold">
