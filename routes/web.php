@@ -33,7 +33,7 @@ Route::middleware('auth')->group(function () {
         ->name('oficios.reporteDiario');
 
     // --- Módulo de Oficios ---
-    Route::resource('oficios', OficioController::class)->except(['index', 'edit', 'update']);
+    Route::resource('oficios', OficioController::class)->except(['index']);
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');
     Route::put('/oficios/{oficio}/asignar', [OficioController::class, 'asignar'])->name('oficios.asignar');
     Route::delete('/oficios/turno/{pivote_id}', [OficioController::class, 'eliminarTurno'])->name('oficios.eliminarTurno');

@@ -87,16 +87,18 @@
                                                             </form>
                                                         @endif
 
-                                                        @if(!$pivot->user_id)
-                                                            <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
-                                                                class="inline-block bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
-                                                                Asignar
-                                                            </a>
-                                                        @else
-                                                            <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
-                                                                class="inline-block bg-slate-500 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
-                                                                Ver Seguimiento
-                                                            </a>
+                                                        @if($pivot->estatus !== 'Turnado')
+                                                            @if(!$pivot->user_id)
+                                                                <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
+                                                                    class="inline-block bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    Asignar
+                                                                </a>
+                                                            @else
+                                                                <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
+                                                                    class="inline-block bg-slate-500 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    Ver Seguimiento
+                                                                </a>
+                                                            @endif
                                                         @endif
                                                     @endif
 
@@ -110,14 +112,12 @@
                                                                     Confirmar Notificado
                                                                 </button>
                                                             </form>
-                                                        @endif
-                                                        
-                                                        @if($pivot->estatus !== 'Solventado')
+                                                        @elseif($pivot->estatus == 'Notificado')
                                                             <a href="{{ route('oficios.atender', $pivot->id) }}"
                                                                 class="inline-block bg-blue-600 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
                                                                 Atender
                                                             </a>
-                                                        @else
+                                                        @elseif($pivot->estatus == 'Solventado')
                                                             <span class="text-green-600 font-black uppercase text-[10px] flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />

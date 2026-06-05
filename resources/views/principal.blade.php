@@ -27,9 +27,9 @@
 
             {{-- 2. Acciones Rápidas (Botones grandes adaptados por rol) --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
+
                 {{-- Nuevo Oficio (Solo Recepción y Admin) --}}
-                @if(in_array(Auth::user()->role, ['admin', 'recepcionista']))
+                @if(in_array(Auth::user()->role, ['admin', 'recepcionista', 'correspondencia']))
                     <a href="{{ route('oficios.create') }}"
                         class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition flex items-center gap-6 border border-gray-100">
                         <div
@@ -63,7 +63,8 @@
                     </a>
                 @endif
 
-                {{-- Gestión de Turnos (Jefes, Secretarias y Operativos, o Admin; Ocultar para Recepcionista y Correspondencia) --}}
+                {{-- Gestión de Turnos (Jefes, Secretarias y Operativos, o Admin; Ocultar para Recepcionista y
+                Correspondencia) --}}
                 @if((Auth::user()->area_id && !in_array(Auth::user()->role, ['recepcionista', 'correspondencia'])) || Auth::user()->role == 'admin')
                     <a href="{{ route('oficios.gestion') }}"
                         class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition flex items-center gap-6 border border-gray-100">
@@ -76,12 +77,14 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-black text-gray-800 uppercase">Gestión de Turnos</h3>
-                            <p class="text-xs text-gray-400 font-bold uppercase">Ver, delegar y solventar correspondencia</p>
+                            <p class="text-xs text-gray-400 font-bold uppercase">Ver, delegar y solventar correspondencia
+                            </p>
                         </div>
                     </a>
                 @endif
 
-                {{-- Seguimiento General (Solo Admin, Correspondencia y Jefe de Gestión Institucional (area_id = 2)) --}}
+                {{-- Seguimiento General (Solo Admin, Correspondencia y Jefe de Gestión Institucional (area_id = 2))
+                --}}
                 @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
                     <a href="{{ route('oficios.seguimiento') }}"
                         class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition flex items-center gap-6 border border-gray-100">

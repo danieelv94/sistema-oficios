@@ -62,12 +62,18 @@
                                     </td>
                                     <td class="py-3 px-4 text-xs text-gray-600 font-medium">{{ $oficio->remitente }}</td>
                                     <td class="py-3 px-4 text-xs text-gray-500 italic">{{ Str::limit($oficio->asunto, 60) }}</td>
-                                    <td class="py-3 px-4 text-center">
-                                        <a href="{{ route('oficios.show', ['oficio' => $oficio, 'mode' => 'recepcion']) }}" 
-                                           class="px-3 py-1 bg-gray-800 text-white rounded text-[10px] font-bold hover:bg-black uppercase tracking-tighter">
-                                            Turnar
-                                        </a>
-                                    </td>
+                                    <td class="py-3 px-4 text-center space-x-1">
+                                         <a href="{{ route('oficios.show', ['oficio' => $oficio, 'mode' => 'recepcion']) }}" 
+                                            class="px-3 py-1 bg-gray-800 text-white rounded text-[10px] font-bold hover:bg-black uppercase tracking-tighter">
+                                             Turnar
+                                         </a>
+                                         @if(in_array(Auth::user()->role, ['admin', 'correspondencia', 'recepcionista']))
+                                             <a href="{{ route('oficios.edit', $oficio) }}" 
+                                                class="px-3 py-1 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-700 uppercase tracking-tighter">
+                                                 Editar
+                                             </a>
+                                         @endif
+                                     </td>
                                 </tr>
                                 @empty
                                 <tr><td colspan="4" class="py-10 text-center text-gray-400 italic">Sin correspondencia registrada.</td></tr>

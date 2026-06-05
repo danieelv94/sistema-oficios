@@ -421,4 +421,48 @@ class OficioController extends Controller
 
         return redirect()->route('oficios.gestion')->with('success', '¡Acción registrada correctamente!');
     }
+
+    public function edit(Oficio $oficio)
+    {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+            abort(403, 'No tienes permiso para editar este oficio.');
+        }
+
+        return view('oficios.edit', compact('oficio'));
+    }
+
+    public function update(Request $request, Oficio $oficio)
+    {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+            abort(403, 'No tienes permiso para actualizar este oficio.');
+        }
+
+        $request->validate([
+            'numero_oficio' => 'required|string|max:255',
+            'remitente' => 'required|string|max:255',
+            'municipio' => 'required|string|max:255',
+            'asunto' => 'required|string',
+            'fecha_recepcion' => 'required|date',
+            'prioridad' => 'required|string',
+            'numero_oficio_dependencia' => 'required|string|max:255',
+            'fecha_limite' => 'nullable|date',
+            'localidad' => 'required|string|max:255',
+            'observaciones' => 'nullable|string',
+            'archivo_pdf' => 'nullable|mimes:pdf|max:10240',
+            'tipo_correspondencia' => 'nullable|string',
+        ]);
+
+        $data = $request->all();
+
+        if ($request->hasFile('archivo_pdf')) {
+            $path = $request->file('archivo_pdf')->store('oficios_pdf', 'public');
+            $data['pdf_path'] = $path;
+        }
+
+        $oficio->update($data);
+
+        return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio actualizado correctamente.');
+    }
 }

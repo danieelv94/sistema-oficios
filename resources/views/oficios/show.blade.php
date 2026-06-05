@@ -15,10 +15,21 @@
                         Ver PDF
                     </a>
                 @endif
+                @if(in_array(Auth::user()->role, ['admin', 'correspondencia', 'recepcionista']))
+                    <a href="{{ route('oficios.edit', $oficio) }}"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-blue-700 shadow-md transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Editar Captura
+                    </a>
+                @endif
                 <a href="{{ route('oficios.generar', $oficio) }}"
                     class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-green-700 shadow-md transition">
                     Imprimir Turno
                 </a>
+
             </div>
         </div>
     </x-slot>
@@ -93,11 +104,24 @@
                                     </button>
                                 </form>
                             @elseif($area->pivot->estatus == 'Notificado')
-                                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Notificado en el Sistema
+                                    </span>
+                                    <a href="{{ route('oficios.atender', $area->pivot->id) }}"
+                                        class="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                        Atender
+                                    </a>
+                                </div>
+                            @elseif($area->pivot->estatus == 'Solventado')
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                                     </svg>
-                                    Notificado en el Sistema
+                                    Atendido / Solventado
                                 </span>
                             @endif
                         </div>
@@ -167,7 +191,7 @@
                                         @endif
 
                                         {{-- Formulario Asignación --}}
-                                        @if(Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id))
+                                        @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado')
                                             <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
                                                 class="flex items-center space-x-2 flex-wrap gap-y-1"
                                                 x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">

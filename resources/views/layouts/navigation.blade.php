@@ -114,6 +114,17 @@
                     <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Comisión</span>
                 </a>
 
+                <!-- Link: Soporte Técnico -->
+                <a href="{{ route('tickets.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('tickets.*') ? 'bg-[#932C43] text-white' : '' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('tickets.*') ? 'text-white' : '' }}"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Soporte Técnico</span>
+                </a>
+
                 <!-- Dropdown: Avisos -->
                 <div class="space-y-1">
                     <button @click="openDropdownAvisos = !openDropdownAvisos"
@@ -208,6 +219,16 @@
                             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                     <span>Oficios Comisión</span>
+                </a>
+
+                <!-- Enlace: Soporte Técnico -->
+                <a href="{{ route('tickets.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>Soporte Técnico</span>
                 </a>
 
                 <!-- Sección Agrupada: Avisos (Mismos Iconos SVG) -->
