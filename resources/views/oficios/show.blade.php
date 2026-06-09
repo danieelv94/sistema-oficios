@@ -93,7 +93,7 @@
                     @foreach($turnosParaMostrar as $area)
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <p class="text-2xl font-bold text-purple-900 leading-snug">"{{ $area->pivot->instruccion }}"</p>
-                            
+
                             {{-- Botón Confirmar Notificado para Operativos --}}
                             @if($area->pivot->estatus == 'Asignado')
                                 <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST">
@@ -105,9 +105,11 @@
                                 </form>
                             @elseif($area->pivot->estatus == 'Notificado')
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                    <span
+                                        class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M5 13l4 4L19 7" />
                                         </svg>
                                         Notificado en el Sistema
                                     </span>
@@ -117,9 +119,11 @@
                                     </a>
                                 </div>
                             @elseif($area->pivot->estatus == 'Solventado')
-                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                <span
+                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M5 13l4 4L19 7" />
                                     </svg>
                                     Atendido / Solventado
                                 </span>
@@ -143,12 +147,12 @@
                                         <div class="flex items-center space-x-3 mb-2 flex-wrap gap-y-1">
                                             <p class="text-lg font-black text-blue-800 uppercase">{{ $area->name }}</p>
                                             <span class="inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider
-                                                {{ $area->pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                                {{ $area->pivot->estatus == 'Recibido' ? 'bg-blue-100 text-blue-700' : '' }}
-                                                {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                                {{ $area->pivot->estatus == 'Notificado' ? 'bg-purple-100 text-purple-700' : '' }}
-                                                {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
-                                            ">
+                                                        {{ $area->pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Recibido' ? 'bg-blue-100 text-blue-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Notificado' ? 'bg-purple-100 text-purple-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                    ">
                                                 {{ $area->pivot->estatus }}
                                             </span>
                                             @if(Auth::user()->role == 'admin')
@@ -166,14 +170,23 @@
                                                 class="font-bold uppercase text-gray-400">Responsable:</span> <span
                                                 class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span>
                                         </p>
+                                        @if($area->pivot->folio_interno)
+                                            <p class="text-xs text-gray-600 mt-1"><span
+                                                    class="font-bold uppercase text-gray-400">Folio Interno:</span> <span
+                                                    class="font-bold text-[#932C43]">{{ $area->pivot->folio_interno }}</span>
+                                            </p>
+                                        @endif
                                         @if($area->pivot->user_id)
                                             <div class="mt-1">
-                                                <a href="{{ route('oficios.generar', $oficio) }}" target="_blank"
+                                                <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id]) }}"
+                                                    target="_blank"
                                                     class="inline-flex items-center text-[10px] font-bold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-md">
-                                                    <svg class="w-3.5 h-3.5 mr-1 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                    <svg class="w-3.5 h-3.5 mr-1 text-blue-600" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                                     </svg>
-                                                    Imprimir Volante de Turno (Papel)
+                                                    Imprimir Turno
                                                 </a>
                                             </div>
                                         @endif
@@ -197,30 +210,30 @@
                                                 x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">
                                                 @csrf @method('PUT')
                                                 <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
-                                                <select name="user_id" 
+                                                <select name="user_id"
                                                     class="text-xs rounded border-gray-300 focus:ring-[#932C43] disabled:bg-gray-100 disabled:text-gray-500"
-                                                    :disabled="!isEditing"
-                                                    required>
+                                                    :disabled="!isEditing" required>
                                                     <option value="">Asignar a...</option>
                                                     @foreach($personalPorArea[$area->id] as $persona)
                                                         <option value="{{ $persona->id }}" {{ $area->pivot->user_id == $persona->id ? 'selected' : '' }}>{{ $persona->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                
+
                                                 {{-- Botón Asignar (solo visible cuando está editando) --}}
                                                 <button type="submit" x-show="isEditing"
                                                     class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
                                                     Asignar
                                                 </button>
-                                                
-                                                {{-- Botón Cancelar (solo visible cuando está editando y ya tiene un usuario asignado) --}}
+
+                                                {{-- Botón Cancelar (solo visible cuando está editando y ya tiene un usuario
+                                                asignado) --}}
                                                 @if($area->pivot->user_id)
                                                     <button type="button" x-show="isEditing" @click="isEditing = false"
                                                         class="bg-gray-400 hover:bg-gray-500 text-white px-2 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
                                                         Cancelar
                                                     </button>
                                                 @endif
-                                                
+
                                                 {{-- Botón Reasignar (solo visible cuando no está editando) --}}
                                                 <button type="button" x-show="!isEditing" @click="isEditing = true"
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">

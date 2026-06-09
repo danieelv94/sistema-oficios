@@ -16,7 +16,7 @@ class Area extends Model
     public function oficios()
     {
         return $this->belongsToMany(Oficio::class, 'area_oficio')
-                    ->withPivot('id', 'instruccion', 'user_id', 'estatus')
+                    ->withPivot('id', 'instruccion', 'user_id', 'estatus', 'folio_interno', 'consecutivo', 'anio')
                     ->withTimestamps();
     }
 

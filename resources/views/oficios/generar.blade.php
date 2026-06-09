@@ -122,6 +122,10 @@
             <p class="font-bold text-sm text-gray-800">{{ now()->format('d/m/Y') }}</p>
             <p class="text-xs text-gray-500 uppercase font-semibold mt-1">No. Oficio Interno</p>
             <p class="font-bold text-base text-gray-900">{{ $oficio->numero_oficio }}</p>
+            @if($turnosParaImprimir->count() === 1 && $turnosParaImprimir->first()->pivot->folio_interno)
+                <p class="text-xs text-gray-500 uppercase font-semibold mt-1">Folio del Turno</p>
+                <p class="font-bold text-base text-[#932C43]">{{ $turnosParaImprimir->first()->pivot->folio_interno }}</p>
+            @endif
         </div>
 
         {{-- Datos de Recepción del Oficio --}}
@@ -164,8 +168,13 @@
                     $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
                 @endphp
                 <div class="mb-4 pl-4 border-l-4 border-[#932C43]">
-                    <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
-                        {{ $area->name }}</p>
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
+                            {{ $area->name }}</p>
+                        @if($area->pivot->folio_interno)
+                            <span class="text-xs font-bold text-[#932C43]">Folio: {{ $area->pivot->folio_interno }}</span>
+                        @endif
+                    </div>
                     <p class="text-xs text-gray-600 mt-1"><strong class="text-gray-800 uppercase">Instrucción:</strong>
                         <span class="font-black text-[#932C43]">{{ $area->pivot->instruccion }}</span></p>
                     <p class="text-xs text-gray-600 mt-1">

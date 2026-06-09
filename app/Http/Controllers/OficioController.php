@@ -158,12 +158,41 @@ class OficioController extends Controller
             'pivote_id' => 'required|exists:area_oficio,id'
         ]);
 
+        $areaOficio = DB::table('area_oficio')->where('id', $request->pivote_id)->first();
+        if (!$areaOficio) {
+            return back()->with('error', 'Registro de turno no encontrado.');
+        }
+
+        $updateData = [
+            'user_id' => $request->user_id,
+            'estatus' => 'Asignado'
+        ];
+
+        // Generamos el folio interno si no existe uno previo
+        if (empty($areaOficio->folio_interno)) {
+            $area = Area::find($areaOficio->area_id);
+            if ($area) {
+                $currentYear = now()->year;
+                $ultimoConsecutivo = DB::table('area_oficio')
+                    ->where('area_id', $area->id)
+                    ->where('anio', $currentYear)
+                    ->max('consecutivo');
+
+                $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
+
+                // Formato: PREFIJO-INT-CONSECUTIVO/ANIO
+                $prefijo = !empty($area->prefijo) ? $area->prefijo : 'OIC';
+                $folioInterno = $prefijo . '-INT-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+                $updateData['folio_interno'] = $folioInterno;
+                $updateData['consecutivo'] = $siguienteConsecutivo;
+                $updateData['anio'] = $currentYear;
+            }
+        }
+
         DB::table('area_oficio')
             ->where('id', $request->pivote_id)
-            ->update([
-                'user_id' => $request->user_id,
-                'estatus' => 'Asignado'
-            ]);
+            ->update($updateData);
 
         $oficio->update(['estatus' => 'En Proceso']);
 
@@ -183,14 +212,18 @@ class OficioController extends Controller
         return redirect()->route('principal')->with('success', 'Oficio eliminado correctamente.');
     }
 
-    public function generarOficio(Oficio $oficio)
+    public function generarOficio(Request $request, Oficio $oficio)
     {
         $user = Auth::user();
         $oficio->load('areas');
 
         $turnosParaImprimir = $oficio->areas;
 
-        if ($user->role != 'admin') {
+        if ($request->filled('area_id')) {
+            $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($request) {
+                return $area->id == $request->area_id;
+            });
+        } elseif ($user->role != 'admin') {
             $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($user) {
                 return $area->id == $user->area_id;
             });
