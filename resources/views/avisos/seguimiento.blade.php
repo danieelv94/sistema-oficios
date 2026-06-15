@@ -13,7 +13,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white p-6 rounded-lg shadow border-b-4 border-blue-500 text-center">
+                <div class="bg-white p-6 rounded-lg shadow border-b-4 border-gris-oscuro text-center">
                     <p class="text-gray-500 text-xs uppercase font-bold">Total Destinatarios</p>
                     <p class="text-3xl font-black">{{ $total }}</p>
                 </div>
@@ -25,9 +25,9 @@
                     <p class="text-gray-500 text-xs uppercase font-bold">Pendientes</p>
                     <p class="text-3xl font-black text-red-600">{{ $pendientes }}</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow border-b-4 border-[#932C43] text-center">
+                <div class="bg-white p-6 rounded-lg shadow border-b-4 border-guinda-ceaa text-center">
                     <p class="text-gray-500 text-xs uppercase font-bold">% de Cumplimiento</p>
-                    <p class="text-3xl font-black text-[#932C43]">{{ $porcentaje }}%</p>
+                    <p class="text-3xl font-black text-guinda-ceaa">{{ $porcentaje }}%</p>
                 </div>
             </div>
 

@@ -9,21 +9,21 @@
 
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-[#932C43]">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-guinda-ceaa">
                 <div class="p-6 text-gray-900">
                     
                     {{-- Encabezado e botón de creación --}}
                     <div class="flex justify-between items-center mb-6">
                         <div class="flex items-center">
                             <span class="p-2 bg-red-100 rounded-lg mr-3">
-                                <svg class="w-6 h-6 text-[#932C43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 text-guinda-ceaa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </span>
                             <h3 class="text-lg font-black text-gray-700 uppercase italic">Listado de Usuarios</h3>
                         </div>
                         <a href="{{ route('usuarios.create') }}"
-                            class="px-4 py-2 bg-[#932C43] text-white rounded-md hover:bg-[#722134] font-bold shadow-md transition-all transform hover:scale-105 text-sm uppercase">
+                            class="px-4 py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded-md font-bold shadow-md transition-all transform hover:scale-105 text-sm uppercase">
                             + Crear Nuevo Usuario
                         </a>
                     </div>
@@ -33,7 +33,7 @@
                         <form action="{{ route('usuarios.index') }}" method="GET" class="flex gap-2">
                             <input type="text" name="search"
                                 placeholder="Buscar por nombre, email, no. empleado o área..."
-                                class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:ring-[#932C43] focus:border-[#932C43] focus:outline-none"
+                                class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:ring-guinda-ceaa focus:border-guinda-ceaa focus:outline-none"
                                 value="{{ request('search') }}">
                             <button type="submit"
                                 class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-black transition text-sm font-bold uppercase tracking-wider">Buscar</button>
@@ -64,7 +64,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($usuarios as $usuario)
                                     <tr class="hover:bg-gray-50 transition {{ $usuario->trashed() ? 'bg-red-50 text-gray-500' : '' }}">
-                                        <td class="py-3 px-4 text-sm font-bold text-[#932C43]">{{ $usuario->name }}</td>
+                                        <td class="py-3 px-4 text-sm font-bold text-guinda-ceaa">{{ $usuario->name }}</td>
                                         <td class="py-3 px-4 text-sm text-gray-600">{{ $usuario->prof ?? 'N/A' }}</td>
                                         <td class="py-3 px-4 text-sm text-gray-600">{{ $usuario->cargo ?? 'N/A' }}</td>
                                         <td class="py-3 px-4 text-sm text-gray-600">{{ $usuario->email }}</td>
@@ -107,7 +107,7 @@
                                                     </form>
                                                 @else
                                                     <a href="{{ route('usuarios.edit', $usuario) }}"
-                                                        class="px-3 py-1 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-800 uppercase tracking-tighter shadow-sm transition">Editar</a>
+                                                        class="px-3 py-1 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-700 uppercase tracking-tighter shadow-sm transition">Editar</a>
                                                     <form action="{{ route('usuarios.destroy', $usuario) }}" method="POST"
                                                         class="inline"
                                                         onsubmit="return confirm('¿Estás seguro de que quieres deshabilitar a este usuario?');">

@@ -5,7 +5,7 @@
                 
                 {{-- DETALLES DEL OFICIO ORIGINAL --}}
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-[#932C43]">
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-guinda-ceaa">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4 gap-4">
                             <div>
                                 <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight">Detalles del Turno Asignado</h3>
@@ -34,12 +34,12 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">No. Oficio Dependencia</p>
-                                <p class="font-bold text-[#932C43] font-mono">{{ $areaOficio->oficio->numero_oficio_dependencia }}</p>
+                                <p class="font-bold text-guinda-ceaa font-mono">{{ $areaOficio->oficio->numero_oficio_dependencia }}</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase">Prioridad</p>
                                 <span class="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
-                                    {{ $areaOficio->oficio->prioridad == 'Urgente' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }}
+                                    {{ $areaOficio->oficio->prioridad == 'Urgente' ? 'bg-red-100 text-red-700' : 'bg-gris-claro/20 text-gris-oscuro' }}
                                 ">
                                     {{ $areaOficio->oficio->prioridad }}
                                 </span>
@@ -60,9 +60,9 @@
                         </div>
 
                         <div class="border-t pt-4 mb-6">
-                            <p class="text-xs font-bold text-purple-600 uppercase mb-1">Instrucción de Dirección</p>
-                            <div class="p-4 bg-purple-50 border border-purple-100 rounded-lg">
-                                <p class="text-xl font-black text-purple-900 leading-snug">"{{ $areaOficio->instruccion }}"</p>
+                            <p class="text-xs font-bold text-dorado-ocre uppercase mb-1">Instrucción de Dirección</p>
+                            <div class="p-4 bg-arena-claro/10 border border-dorado-ocre/20 rounded-lg">
+                                <p class="text-xl font-black text-gray-800 leading-snug">"{{ $areaOficio->instruccion }}"</p>
                             </div>
                         </div>
 
@@ -84,7 +84,7 @@
 
                 {{-- FORMULARIO DE RESPUESTA --}}
                 <div class="lg:col-span-1">
-                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-purple-600 sticky top-6">
+                    <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-dorado-ocre sticky top-6">
                         <h3 class="text-lg font-black text-gray-800 uppercase mb-6">Registrar Respuesta</h3>
 
                         <form action="{{ route('oficios.solventar', $areaOficio->id) }}" method="POST"
@@ -93,7 +93,7 @@
 
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Respuesta</label>
-                                <select name="tipo_respuesta" class="w-full rounded border-gray-300 text-sm focus:ring-purple-500 focus:border-purple-500">
+                                <select name="tipo_respuesta" class="w-full rounded border-gray-300 text-sm focus:ring-dorado-ocre focus:border-dorado-ocre">
                                     <option value="Conocimiento">Solo Conocimiento</option>
                                     <option value="Solventacion">Solventación / Respuesta Formal</option>
                                 </select>
@@ -101,24 +101,24 @@
 
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Mensaje de Acción</label>
-                                <textarea name="mensaje" class="w-full rounded border-gray-300 text-sm focus:ring-purple-500 focus:border-purple-500" rows="4"
+                                <textarea name="mensaje" class="w-full rounded border-gray-300 text-sm focus:ring-dorado-ocre focus:border-dorado-ocre" rows="4"
                                     placeholder="Detalle las acciones realizadas o los comentarios referentes al turno..." required></textarea>
                             </div>
 
                             <div class="mb-6">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Adjuntar Evidencia (PDF)</label>
-                                <div class="mt-1 flex justify-center px-4 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-purple-50 transition-colors cursor-pointer relative group"
+                                <div class="mt-1 flex justify-center px-4 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-arena-claro/20 transition-colors cursor-pointer relative group"
                                     onclick="document.getElementById('archivo_evidencia').click()">
                                     <div class="space-y-2 text-center">
                                         <svg id="pdf-icon"
-                                            class="mx-auto h-10 w-10 text-gray-400 group-hover:text-purple-600 transition-colors"
+                                            class="mx-auto h-10 w-10 text-gray-400 group-hover:text-dorado-ocre transition-colors"
                                             stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                             <path
                                                 d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                         <div class="text-sm text-gray-600">
-                                            <span class="font-black text-purple-600 uppercase text-[10px] tracking-widest">Seleccionar PDF</span>
+                                            <span class="font-black text-dorado-ocre uppercase text-[10px] tracking-widest">Seleccionar PDF</span>
                                             <input id="archivo_evidencia" name="archivo_evidencia" type="file" class="hidden"
                                                 accept=".pdf" onchange="handleFileSelect(this)">
                                         </div>
@@ -130,7 +130,7 @@
 
                             <div class="flex flex-col gap-3">
                                 <button type="submit"
-                                    class="w-full bg-purple-600 text-white font-black uppercase py-3 rounded shadow-md hover:bg-purple-800 transition transform active:scale-95 text-xs tracking-wider">
+                                    class="w-full bg-dorado-ocre text-white font-black uppercase py-3 rounded shadow-md hover:bg-guinda-ceaa transition transform active:scale-95 text-xs tracking-wider">
                                     Enviar Respuesta
                                 </button>
                                 <a href="{{ route('oficios.gestion') }}"
@@ -157,13 +157,13 @@
                 hint.classList.remove('text-gray-400');
                 hint.classList.add('text-green-600');
                 icon.classList.remove('text-gray-400');
-                icon.classList.add('text-purple-600');
+                icon.classList.add('text-dorado-ocre');
             } else {
                 hint.innerText = "Ningún archivo cargado";
                 hint.classList.remove('text-green-600');
                 hint.classList.add('text-gray-400');
                 icon.classList.add('text-gray-400');
-                icon.classList.remove('text-purple-600');
+                icon.classList.remove('text-dorado-ocre');
             }
         }
     </script>

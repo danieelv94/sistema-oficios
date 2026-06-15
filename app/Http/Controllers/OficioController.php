@@ -37,11 +37,17 @@ class OficioController extends Controller
 
     public function create()
     {
-        return view('oficios.create');
+        $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
+        $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
+        return view('oficios.create', compact('siguienteConsecutivo'));
     }
 
     public function store(Request $request)
     {
+        $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
+        $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
+        $request->merge(['numero_oficio' => $siguienteConsecutivo]);
+
         $request->validate([
             'numero_oficio' => 'required|string|max:255',
             'remitente' => 'required|string|max:255',

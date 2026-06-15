@@ -13,7 +13,7 @@
                         <h3 class="text-lg font-bold">Registro de Circulares</h3>
                         @if(in_array(Auth::user()->role, ['admin', 'secretaria_area', 'jefe_area']))
                             <a href="{{ route('avisos.create') }}"
-                                class="px-4 py-2 bg-[#932C43] text-white rounded-md text-sm font-bold">
+                                class="px-4 py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded-md text-sm font-bold transition">
                                 + Nueva Circular
                             </a>
                         @endif
@@ -48,7 +48,7 @@
                                         </td>
                                         <td class="py-4 px-4 text-center">
                                             <span
-                                                class="px-2 py-1 text-xs rounded-full {{ $aviso->prioridad == 'Urgente' ? 'bg-red-100 text-red-700 font-bold' : 'bg-blue-100 text-blue-700' }}">
+                                                class="px-2 py-1 text-xs rounded-full {{ $aviso->prioridad == 'Urgente' ? 'bg-red-100 text-red-700 font-bold' : 'bg-gris-claro/20 text-gris-oscuro' }}">
                                                 {{ $aviso->prioridad }}
                                             </span>
                                         </td>
@@ -67,7 +67,7 @@
                                         </td>
                                         <td class="py-4 px-4 text-center">
                                             <a href="{{ route('avisos.seguimiento', $aviso) }}"
-                                                class="inline-flex items-center text-[#932C43] hover:underline text-sm font-bold">
+                                                class="inline-flex items-center text-guinda-ceaa hover:underline text-sm font-bold">
                                                 Ver Seguimiento &rarr;
                                             </a>
                                         </td>

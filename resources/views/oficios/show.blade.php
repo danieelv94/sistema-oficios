@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-bold text-xl text-gray-800 leading-tight uppercase tracking-tight">
-                {{ __('Expediente de Oficio') }}: <span class="text-[#932C43]">{{ $oficio->numero_oficio }}</span>
+                {{ __('Expediente de Oficio') }}: <span class="text-guinda-ceaa">{{ $oficio->numero_oficio }}</span>
             </h2>
             <div class="flex space-x-3">
                 @if($oficio->pdf_path)
@@ -38,9 +38,9 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- INFORMACIÓN PRINCIPAL --}}
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-[#932C43]">
-                <div class="p-6">
-                    <h3 class="text-sm font-black text-[#932C43] uppercase tracking-widest mb-4 border-b pb-2">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-guinda-ceaa">
+                <div class="p-6 text-gray-900 space-y-6">
+                    <h3 class="text-sm font-black text-guinda-ceaa uppercase tracking-widest mb-4 border-b pb-2">
                         Información de Recepción</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                         <div>
@@ -64,7 +64,7 @@
                         <div>
                             <p class="text-xs font-bold text-gray-400 uppercase">Prioridad</p>
                             <span
-                                class="px-2 py-0.5 rounded text-[10px] font-black uppercase {{ $oficio->prioridad == 'Urgente' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' }}">
+                                class="px-2 py-0.5 rounded text-[10px] font-black uppercase {{ $oficio->prioridad == 'Urgente' ? 'bg-red-100 text-red-700' : 'bg-gris-claro/20 text-gris-oscuro' }}">
                                 {{ $oficio->prioridad }}
                             </span>
                         </div>
@@ -81,9 +81,9 @@
 
             @if($mode == 'operativo')
                 {{-- MODO OPERATIVO --}}
-                <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-8 border-l-8 border-purple-600">
+                <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-8 border-l-8 border-dorado-ocre">
                     <div class="flex items-center mb-4">
-                        <svg class="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-dorado-ocre mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
@@ -92,21 +92,21 @@
                     </div>
                     @foreach($turnosParaMostrar as $area)
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <p class="text-2xl font-bold text-purple-900 leading-snug">"{{ $area->pivot->instruccion }}"</p>
+                            <p class="text-2xl font-bold text-gray-800 leading-snug">"{{ $area->pivot->instruccion }}"</p>
 
                             {{-- Botón Confirmar Notificado para Operativos --}}
                             @if($area->pivot->estatus == 'Asignado')
                                 <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST">
                                     @csrf @method('PUT')
                                     <button type="submit"
-                                        class="bg-purple-600 hover:bg-purple-800 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                        class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
                                         Confirmar Notificado
                                     </button>
                                 </form>
                             @elseif($area->pivot->estatus == 'Notificado')
                                 <div class="flex items-center gap-3">
                                     <span
-                                        class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                        class="bg-dorado-ocre/10 text-dorado-ocre px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                                 d="M5 13l4 4L19 7" />
@@ -114,7 +114,7 @@
                                         Notificado en el Sistema
                                     </span>
                                     <a href="{{ route('oficios.atender', $area->pivot->id) }}"
-                                        class="bg-blue-600 hover:bg-blue-800 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
                                         Atender
                                     </a>
                                 </div>
@@ -136,21 +136,21 @@
             @if($mode == 'recepcion' || $mode == 'gestion')
                 {{-- SEGUIMIENTO DE TURNOS --}}
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                    <h3 class="text-sm font-black text-[#932C43] uppercase tracking-widest mb-6 border-b pb-2">Seguimiento
+                    <h3 class="text-sm font-black text-gris-oscuro uppercase tracking-widest mb-6 border-b pb-2">Seguimiento
                         de Turnos y Áreas</h3>
                     <div class="space-y-4">
                         @forelse($turnosParaMostrar as $area)
                             <div
-                                class="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:border-blue-300 transition shadow-sm">
+                                class="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:border-gris-claro/30 transition shadow-sm">
                                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3 mb-2 flex-wrap gap-y-1">
-                                            <p class="text-lg font-black text-blue-800 uppercase">{{ $area->name }}</p>
+                                            <p class="text-lg font-black text-gris-oscuro uppercase">{{ $area->name }}</p>
                                             <span class="inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider
                                                         {{ $area->pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                                        {{ $area->pivot->estatus == 'Recibido' ? 'bg-blue-100 text-blue-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Recibido' ? 'bg-gris-claro/20 text-gris-oscuro' : '' }}
                                                         {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                                        {{ $area->pivot->estatus == 'Notificado' ? 'bg-purple-100 text-purple-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Notificado' ? 'bg-dorado-ocre/10 text-dorado-ocre' : '' }}
                                                         {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
                                                     ">
                                                 {{ $area->pivot->estatus }}
@@ -173,15 +173,15 @@
                                         @if($area->pivot->folio_interno)
                                             <p class="text-xs text-gray-600 mt-1"><span
                                                     class="font-bold uppercase text-gray-400">Folio Interno:</span> <span
-                                                    class="font-bold text-[#932C43]">{{ $area->pivot->folio_interno }}</span>
+                                                    class="font-bold text-gris-oscuro">{{ $area->pivot->folio_interno }}</span>
                                             </p>
                                         @endif
                                         @if($area->pivot->user_id)
                                             <div class="mt-1">
                                                 <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id]) }}"
                                                     target="_blank"
-                                                    class="inline-flex items-center text-[10px] font-bold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-md">
-                                                    <svg class="w-3.5 h-3.5 mr-1 text-blue-600" fill="none" stroke="currentColor"
+                                                    class="inline-flex items-center text-[10px] font-bold text-gris-oscuro hover:underline bg-gris-claro/10 px-2.5 py-1 rounded-md">
+                                                    <svg class="w-3.5 h-3.5 mr-1 text-gris-oscuro" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -197,7 +197,7 @@
                                             <form action="{{ route('oficios.recibirTurno', $area->pivot->id) }}" method="POST">
                                                 @csrf @method('PUT')
                                                 <button type="submit"
-                                                    class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded text-[10px] font-black uppercase shadow-sm transition">
+                                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-[10px] font-black uppercase shadow-sm transition">
                                                     Confirmar Recibido
                                                 </button>
                                             </form>
@@ -211,7 +211,7 @@
                                                 @csrf @method('PUT')
                                                 <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
                                                 <select name="user_id"
-                                                    class="text-xs rounded border-gray-300 focus:ring-[#932C43] disabled:bg-gray-100 disabled:text-gray-500"
+                                                    class="text-xs rounded border-gray-300 focus:ring-gris-oscuro disabled:bg-gray-100 disabled:text-gray-500"
                                                     :disabled="!isEditing" required>
                                                     <option value="">Asignar a...</option>
                                                     @foreach($personalPorArea[$area->id] as $persona)
@@ -221,7 +221,7 @@
 
                                                 {{-- Botón Asignar (solo visible cuando está editando) --}}
                                                 <button type="submit" x-show="isEditing"
-                                                    class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
                                                     Asignar
                                                 </button>
 
@@ -252,9 +252,9 @@
 
                 @if($mode == 'recepcion')
                     {{-- FORMULARIO DE TURNADO CON LISTA DESPLEGABLE --}}
-                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-blue-500"
+                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-gris-oscuro"
                         x-data="{ areas: [{id: '', instruccion: ''}] }">
-                        <h3 class="text-sm font-black text-blue-800 uppercase tracking-widest mb-6 border-b pb-2">Turnar Oficio
+                        <h3 class="text-sm font-black text-gris-oscuro uppercase tracking-widest mb-6 border-b pb-2">Turnar Oficio
                             a Nuevas Direcciones</h3>
                         <form action="{{ route('oficios.turnar', $oficio) }}" method="POST">
                             @csrf @method('PUT')
@@ -265,7 +265,7 @@
                                         <label class="block font-bold text-[10px] text-gray-400 uppercase">Seleccionar
                                             Dirección</label>
                                         <select name="areas[]"
-                                            class="block mt-1 w-full rounded border-gray-300 text-xs focus:ring-blue-500"
+                                            class="block mt-1 w-full rounded border-gray-300 text-xs focus:ring-gris-oscuro focus:border-gris-oscuro"
                                             required>
                                             <option value="">-- Seleccionar --</option>
                                             @foreach($areasDisponibles as $areaOption)
@@ -278,7 +278,7 @@
                                             Turnado</label>
                                         {{-- CAMBIO A SELECT CON TUS OPCIONES --}}
                                         <select name="instrucciones[]"
-                                            class="block mt-1 w-full rounded border-gray-300 text-xs focus:ring-blue-500"
+                                            class="block mt-1 w-full rounded border-gray-300 text-xs focus:ring-gris-oscuro focus:border-gris-oscuro"
                                             required>
                                             <option value="">-- Seleccione Instrucción --</option>
                                             <option value="Contestar con firma del Director">1. Contestar con firma del Director
@@ -308,9 +308,9 @@
                             </template>
                             <div class="flex justify-between items-center mt-6">
                                 <button type="button" @click="areas.push({id: '', instruccion: ''})"
-                                    class="text-blue-600 font-bold text-xs uppercase hover:underline">+ Añadir Área</button>
+                                    class="text-gris-oscuro font-bold text-xs uppercase hover:underline">+ Añadir Área</button>
                                 <button type="submit"
-                                    class="bg-blue-600 hover:bg-blue-800 text-white px-8 py-2 rounded font-black uppercase text-xs shadow-lg tracking-widest transition-all transform hover:scale-105">Guardar
+                                    class="bg-gris-oscuro hover:bg-guinda-ceaa text-white px-8 py-2 rounded font-black uppercase text-xs shadow-lg tracking-widest transition-all transform hover:scale-105">Guardar
                                     Turnos</button>
                             </div>
                         </form>
@@ -331,7 +331,7 @@
                 <div class="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex-shrink-0">
                         <div
-                            class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-black text-blue-700">
+                            class="w-10 h-10 rounded-full bg-gris-claro/20 flex items-center justify-center font-black text-gris-oscuro">
                             {{ substr($respuesta->user->name, 0, 1) }}
                         </div>
                     </div>

@@ -5,7 +5,7 @@
 
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-xl sm:rounded-2xl border-t-4 border-blue-600 transition-all">
+            <div class="bg-white shadow-xl sm:rounded-2xl border-t-4 border-gris-oscuro transition-all">
                 <div class="p-8">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <div>
@@ -18,12 +18,12 @@
                             <div class="relative w-full sm:w-72">
                                 <input type="text" name="search" value="{{ request('search') }}" 
                                     placeholder="Buscar por oficio, asunto, remitente, instrucción o personal..." 
-                                    class="w-full text-xs rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 pl-8 py-2">
+                                    class="w-full text-xs rounded-lg border-gray-300 focus:ring-gris-oscuro focus:border-gris-oscuro pl-8 py-2">
                                 <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase px-4 py-2 rounded-lg transition shadow-sm">
+                            <button type="submit" class="bg-gris-oscuro hover:bg-guinda-ceaa text-white text-xs font-black uppercase px-4 py-2 rounded-lg transition shadow-sm">
                                 Buscar
                             </button>
                             @if(request()->filled('search'))
@@ -36,7 +36,7 @@
 
                     <div class="overflow-x-auto rounded-xl border border-gray-100">
                         <table class="min-w-full text-xs text-left">
-                            <thead class="bg-blue-50 text-blue-800 uppercase font-black">
+                            <thead class="bg-arena-claro/20 text-guinda-ceaa uppercase font-black">
                                 <tr>
                                     <th class="px-6 py-4 tracking-wider">Número de Oficio</th>
                                     <th class="px-6 py-4 tracking-wider">Asunto</th>
@@ -55,7 +55,7 @@
                                         <tr class="hover:bg-gray-50/80 transition duration-150">
                                             <td class="px-6 py-4 font-bold text-gray-900">
                                                 <a href="{{ route('oficios.show', [$oficio->id, 'mode' => in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo']) }}" 
-                                                   class="text-blue-600 hover:underline">
+                                                   class="text-gris-oscuro hover:underline font-bold">
                                                     {{ $oficio->numero_oficio }}
                                                 </a>
                                             </td>
@@ -64,9 +64,9 @@
                                             <td class="px-6 py-4 text-center">
                                                 <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
                                                     {{ $pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                                    {{ $pivot->estatus == 'Recibido' ? 'bg-blue-100 text-blue-700' : '' }}
+                                                    {{ $pivot->estatus == 'Recibido' ? 'bg-gris-claro/20 text-gris-oscuro' : '' }}
                                                     {{ $pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                                    {{ $pivot->estatus == 'Notificado' ? 'bg-purple-100 text-purple-700' : '' }}
+                                                    {{ $pivot->estatus == 'Notificado' ? 'bg-dorado-ocre/10 text-dorado-ocre' : '' }}
                                                     {{ $pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
                                                 ">
                                                     {{ $pivot->estatus }}
@@ -81,7 +81,7 @@
                                                             <form action="{{ route('oficios.recibirTurno', $pivot->id) }}" method="POST" class="inline-block">
                                                                 @csrf @method('PUT')
                                                                 <button type="submit"
-                                                                    class="bg-blue-600 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
                                                                     Confirmar Recibido
                                                                 </button>
                                                             </form>
@@ -108,13 +108,13 @@
                                                             <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
                                                                 @csrf @method('PUT')
                                                                 <button type="submit"
-                                                                    class="bg-purple-600 hover:bg-purple-800 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
                                                                     Confirmar Notificado
                                                                 </button>
                                                             </form>
                                                         @elseif($pivot->estatus == 'Notificado')
                                                             <a href="{{ route('oficios.atender', $pivot->id) }}"
-                                                                class="inline-block bg-blue-600 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
                                                                 Atender
                                                             </a>
                                                         @elseif($pivot->estatus == 'Solventado')

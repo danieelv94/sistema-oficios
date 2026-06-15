@@ -24,7 +24,7 @@
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo CEAA" class="h-9 w-auto object-contain">
                 <span class="font-bold text-lg text-gray-800 tracking-wider uppercase font-sans hidden sm:inline">
-                    Sistema <span class="text-[#932C43]">Oficios</span>
+                    Sistema <span class="text-guinda-ceaa">Oficios</span>
                 </span>
             </div>
         </div>
@@ -94,7 +94,7 @@
 
                 <!-- Link: Inicio -->
                 <a href="{{ route('principal') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('principal') ? 'bg-[#932C43] text-white' : '' }}">
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('principal') ? 'bg-guinda-ceaa text-white' : '' }}">
                     <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('principal') ? 'text-white' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +105,7 @@
 
                 <!-- Link: Oficios Comisión -->
                 <a href="{{ route('comisiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.*') ? 'bg-[#932C43] text-white' : '' }}">
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.*') ? 'bg-guinda-ceaa text-white' : '' }}">
                     <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.*') ? 'text-white' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,7 +116,7 @@
 
                 <!-- Link: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('tickets.*') ? 'bg-[#932C43] text-white' : '' }}">
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('tickets.*') ? 'bg-guinda-ceaa text-white' : '' }}">
                     <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('tickets.*') ? 'text-white' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -162,7 +162,7 @@
                 <!-- Módulo de Usuarios (Solo Admin) -->
                 @if(Auth::user()->role === 'admin')
                     <a href="{{ route('usuarios.index') }}"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('usuarios.*') ? 'bg-[#932C43] text-white' : '' }}">
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('usuarios.*') ? 'bg-guinda-ceaa text-white' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('usuarios.*') ? 'text-white' : '' }}"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

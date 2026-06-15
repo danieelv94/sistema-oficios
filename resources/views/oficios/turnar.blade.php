@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-12 bg-gray-50">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-[#932C43]">
+            <div class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-guinda-ceaa">
                 <h2 class="text-xl font-black uppercase mb-6">Turnar Oficio: {{ $oficio->numero_oficio }}</h2>
 
                 <form action="{{ route('oficios.turnar', $oficio) }}" method="POST"
@@ -33,11 +33,11 @@
                     </template>
 
                     <button type="button" @click="turnos.push({area_id: '', instruccion: ''})"
-                        class="text-xs font-bold text-blue-600 underline uppercase">+ Añadir otra dirección</button>
+                        class="text-xs font-bold text-gris-oscuro underline uppercase">+ Añadir otra dirección</button>
 
                     <div class="mt-8 flex justify-end">
                         <button type="submit"
-                            class="bg-[#932C43] text-white px-6 py-2 rounded font-black uppercase">Confirmar
+                            class="bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white px-6 py-2 rounded font-black uppercase transition shadow-md">Confirmar
                             Turnado</button>
                     </div>
                 </form>

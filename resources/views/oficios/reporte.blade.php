@@ -10,6 +10,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <!-- Tailwind CSS (for quick layout, print friendly native style) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'guinda-ceaa': '#691B31',
+                        'arena-claro': '#DDC9A3',
+                        'gris-claro': '#98989A',
+                        'guinda-medio': '#A02142',
+                        'dorado-ocre': '#BC955B',
+                        'gris-oscuro': '#6F7271',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             font-family: 'Outfit', sans-serif;
@@ -70,7 +86,7 @@
         {{-- Encabezado Institucional --}}
         <div class="flex justify-between items-start border-b-2 border-gray-100 pb-6 mb-8">
             <div>
-                <h1 class="text-xl font-black text-[#932C43] uppercase tracking-tight">SISTEMA DE OFICIOS Y CORRESPONDENCIA</h1>
+                <h1 class="text-xl font-black text-guinda-ceaa uppercase tracking-tight">SISTEMA DE OFICIOS Y CORRESPONDENCIA</h1>
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest mt-1">Dirección de Gestión Institucional</p>
             </div>
             <div class="text-right flex flex-col items-end">
@@ -119,7 +135,7 @@
                             </td>
                             
                             {{-- Destino --}}
-                            <td class="px-4 py-3 border-r border-gray-200 font-bold text-[#932C43] uppercase">
+                            <td class="px-4 py-3 border-r border-gray-200 font-bold text-guinda-ceaa uppercase">
                                 {{ $turno->area_name }}
                             </td>
                             
@@ -137,7 +153,7 @@
                             <td class="px-4 py-3 text-center font-black uppercase text-[10px]">
                                 <span class="px-2 py-0.5 rounded
                                     {{ $turno->turno_estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                    {{ $turno->turno_estatus == 'Recibido' ? 'bg-blue-100 text-blue-700' : '' }}
+                                    {{ $turno->turno_estatus == 'Recibido' ? 'bg-gris-claro/20 text-gris-oscuro' : '' }}
                                     {{ $turno->turno_estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
                                     {{ $turno->turno_estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
                                 ">

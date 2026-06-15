@@ -7,7 +7,7 @@
 
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border-t-4 border-[#932C43] transition-all">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-2xl border-t-4 border-guinda-ceaa transition-all">
                 <div class="p-8">
                     <div class="flex justify-between items-center mb-6">
                         <div>
@@ -16,7 +16,7 @@
                         </div>
                         @if(in_array(Auth::user()->role, ['admin', 'recepcionista']))
                             <a href="{{ route('oficios.create') }}"
-                                class="bg-[#932C43] text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase hover:bg-[#722134] shadow-md hover:shadow-lg transition duration-200 transform hover:scale-102 flex items-center gap-2">
+                                class="bg-guinda-ceaa text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase hover:bg-guinda-ceaa-hover shadow-md hover:shadow-lg transition duration-200 transform hover:scale-102 flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -43,12 +43,12 @@
                                         <td class="px-6 py-4 text-gray-500 max-w-xs truncate">{{ $oficio->asunto }}</td>
                                         <td class="px-6 py-4 text-center space-x-2">
                                             <a href="{{ route('oficios.vistaTurnado', $oficio->id) }}"
-                                                class="inline-block bg-[#932C43] text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-[#722134] transition duration-150 hover:shadow-sm">
+                                                class="inline-block bg-guinda-ceaa text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa-hover transition duration-150 hover:shadow-sm">
                                                 Turnar
                                             </a>
                                             @if(in_array(Auth::user()->role, ['admin', 'correspondencia', 'recepcionista']))
                                                 <a href="{{ route('oficios.edit', $oficio->id) }}"
-                                                    class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-blue-700 transition duration-150 hover:shadow-sm">
+                                                    class="inline-block bg-gris-oscuro text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa transition duration-150 hover:shadow-sm">
                                                     Editar
                                                 </a>
                                             @endif

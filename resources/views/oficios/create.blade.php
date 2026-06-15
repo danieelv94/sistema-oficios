@@ -20,13 +20,13 @@
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-2xl sm:rounded-lg border-t-8 border-[#932C43]">
+            <div class="bg-white overflow-hidden shadow-2xl sm:rounded-lg border-t-8 border-guinda-ceaa">
                 <div class="p-8">
 
                     {{-- Encabezado del Formulario --}}
                     <div class="flex items-center mb-8 pb-4 border-b border-gray-100">
                         <div class="p-3 bg-red-50 rounded-full mr-4">
-                            <svg class="w-8 h-8 text-[#932C43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8 text-guinda-ceaa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
@@ -46,7 +46,7 @@
                             {{-- BLOQUE 1: IDENTIFICACIÓN --}}
                             <div class="space-y-4">
                                 <h4
-                                    class="text-[10px] font-black text-[#932C43] uppercase tracking-widest border-b border-red-50 mb-2">
+                                    class="text-[10px] font-black text-guinda-ceaa uppercase tracking-widest border-b border-red-50 mb-2">
                                     1. Identificación del Documento</h4>
 
                                 <div>
@@ -54,9 +54,9 @@
                                         class="block font-bold text-[10px] text-gray-400 uppercase tracking-wider">No.
                                         Turno</label>
                                     <input type="text" name="numero_oficio" id="numero_oficio"
-                                        value="{{ old('numero_oficio') }}"
-                                        class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
-                                        placeholder="SIPDUS-01/2026" required>
+                                        value="{{ $siguienteConsecutivo }}" readonly
+                                        class="block mt-1 w-full rounded border-gray-300 text-sm bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300"
+                                        placeholder="Generando consecutivo..." required>
                                 </div>
 
                                 <div>
@@ -65,7 +65,7 @@
                                         Oficio de la Dependencia</label>
                                     <input type="text" name="numero_oficio_dependencia" id="numero_oficio_dependencia"
                                         value="{{ old('numero_oficio_dependencia') }}"
-                                        class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                        class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                         placeholder="DOP-2026-XYZ" required>
                                 </div>
 
@@ -74,7 +74,7 @@
                                         <label for="prioridad"
                                             class="block font-bold text-[10px] text-gray-400 uppercase">Prioridad</label>
                                         <select name="prioridad" id="prioridad"
-                                            class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-[#932C43]"
+                                            class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-guinda-ceaa"
                                             required>
                                             <option value="Normal">NORMAL</option>
                                             <option value="Urgente">URGENTE</option>
@@ -85,7 +85,7 @@
                                         <label for="tipo_correspondencia"
                                             class="block font-bold text-[10px] text-gray-400 uppercase">Tipo</label>
                                         <select name="tipo_correspondencia" id="tipo_correspondencia"
-                                            class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-[#932C43]"
+                                            class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-guinda-ceaa"
                                             required>
                                             <option value="Externa">EXTERNA</option>
                                             <option value="Interna">INTERNA</option>
@@ -100,7 +100,7 @@
                             {{-- BLOQUE 2: ORIGEN Y FECHAS --}}
                             <div class="space-y-4">
                                 <h4
-                                    class="text-[10px] font-black text-[#932C43] uppercase tracking-widest border-b border-red-50 mb-2">
+                                    class="text-[10px] font-black text-guinda-ceaa uppercase tracking-widest border-b border-red-50 mb-2">
                                     2. Origen y Plazos</h4>
 
                                 <div>
@@ -108,7 +108,7 @@
                                         class="block font-bold text-[10px] text-gray-400 uppercase tracking-wider">Remitente
                                         / Dependencia</label>
                                     <input type="text" name="remitente" id="remitente" value="{{ old('remitente') }}"
-                                        class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                        class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                         required>
                                 </div>
 
@@ -118,7 +118,7 @@
                                             class="block font-bold text-[10px] text-gray-400 uppercase tracking-wider">Municipio</label>
                                         <input type="text" name="municipio" id="municipio"
                                             value="{{ old('municipio') }}"
-                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                             required>
                                     </div>
                                     <div>
@@ -126,7 +126,7 @@
                                             class="block font-bold text-[10px] text-gray-400 uppercase tracking-wider">Localidad</label>
                                         <input type="text" name="localidad" id="localidad"
                                             value="{{ old('localidad') }}"
-                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                             required>
                                     </div>
                                 </div>
@@ -138,7 +138,7 @@
                                             Recepción</label>
                                         <input type="date" name="fecha_recepcion" id="fecha_recepcion"
                                             value="{{ old('fecha_recepcion', date('Y-m-d')) }}"
-                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43]"
+                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa"
                                             required>
                                     </div>
                                     <div>
@@ -147,7 +147,7 @@
                                             Límite</label>
                                         <input type="date" name="fecha_limite" id="fecha_limite"
                                             value="{{ old('fecha_limite') }}"
-                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43]">
+                                            class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa">
                                     </div>
                                 </div>
                             </div>
@@ -155,14 +155,14 @@
                             {{-- BLOQUE 3: ARCHIVO DIGITAL (PDF) --}}
                             <div class="space-y-4">
                                 <h4
-                                    class="text-[10px] font-black text-[#932C43] uppercase tracking-widest border-b border-red-50 mb-2">
+                                    class="text-[10px] font-black text-guinda-ceaa uppercase tracking-widest border-b border-red-50 mb-2">
                                     3. Digitalización</h4>
 
                                 <div class="mt-1 flex justify-center px-6 pt-10 pb-10 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-red-50 transition-colors cursor-pointer relative group"
                                     onclick="document.getElementById('archivo_pdf').click()">
                                     <div class="space-y-2 text-center">
                                         <svg id="pdf-icon"
-                                            class="mx-auto h-12 w-12 text-gray-400 group-hover:text-[#932C43] transition-colors"
+                                            class="mx-auto h-12 w-12 text-gray-400 group-hover:text-guinda-ceaa transition-colors"
                                             stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                             <path
                                                 d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
@@ -170,7 +170,7 @@
                                         </svg>
                                         <div class="text-sm text-gray-600">
                                             <span
-                                                class="font-black text-[#932C43] uppercase text-[10px] tracking-widest">Seleccionar
+                                                class="font-black text-guinda-ceaa uppercase text-[10px] tracking-widest">Seleccionar
                                                 Oficio PDF</span>
                                             <input id="archivo_pdf" name="archivo_pdf" type="file" class="hidden"
                                                 accept=".pdf" required onchange="handleFileSelect(this)">
@@ -193,7 +193,7 @@
                                     class="block font-bold text-[10px] text-gray-400 uppercase tracking-widest">Asunto
                                     del Documento</label>
                                 <textarea name="asunto" id="asunto" rows="3"
-                                    class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                    class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                     placeholder="Describa brevemente de qué trata el oficio..."
                                     required>{{ old('asunto') }}</textarea>
                             </div>
@@ -203,18 +203,18 @@
                                     class="block font-bold text-[10px] text-gray-400 uppercase tracking-widest">Observaciones
                                     Adicionales (Opcional)</label>
                                 <textarea name="observaciones" id="observaciones" rows="2"
-                                    class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-[#932C43] focus:border-[#932C43] bg-gray-50 italic">{{ old('observaciones') }}</textarea>
+                                    class="block mt-1 w-full rounded border-gray-300 text-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa bg-gray-50 italic">{{ old('observaciones') }}</textarea>
                             </div>
                         </div>
 
                         {{-- BOTONES DE ACCIÓN (AJUSTADOS) --}}
                         <div class="mt-10 flex justify-end items-center space-x-6 border-t pt-8">
                             <a href="{{ route('principal') }}"
-                                class="text-xs font-black text-gray-400 uppercase hover:text-[#932C43] transition-colors tracking-widest">
+                                class="text-xs font-black text-gray-400 uppercase hover:text-guinda-ceaa transition-colors tracking-widest">
                                 Cancelar Registro
                             </a>
                             <button type="submit"
-                                class="px-8 py-3 bg-[#932C43] text-white rounded shadow-lg hover:bg-[#722134] transition-all transform active:scale-95 flex items-center">
+                                class="px-8 py-3 bg-guinda-ceaa text-white rounded shadow-lg hover:bg-guinda-ceaa-hover transition-all transform active:scale-95 flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -239,13 +239,13 @@
                 hint.classList.remove('text-gray-400');
                 hint.classList.add('text-green-600');
                 icon.classList.remove('text-gray-400');
-                icon.classList.add('text-[#932C43]');
+                icon.classList.add('text-guinda-ceaa');
             } else {
                 hint.innerText = "Ningún archivo cargado";
                 hint.classList.remove('text-green-600');
                 hint.classList.add('text-gray-400');
                 icon.classList.add('text-gray-400');
-                icon.classList.remove('text-[#932C43]');
+                icon.classList.remove('text-guinda-ceaa');
             }
         }
     </script>

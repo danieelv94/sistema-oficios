@@ -12,6 +12,23 @@
         rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'guinda-ceaa': '#691B31',
+                        'guinda-ceaa-hover': '#A02142',
+                        'guinda-medio': '#A02142',
+                        'dorado-ocre': '#BC955B',
+                        'arena-claro': '#DDC9A3',
+                        'gris-claro': '#98989A',
+                        'gris-oscuro': '#6F7271',
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         body {
@@ -55,7 +72,7 @@
 
             .footer-oficio-fijo {
                 margin-top: 4rem;
-                border-top: 1px solid #932C43;
+                border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex !important;
                 justify-content: space-between;
@@ -75,7 +92,7 @@
 
             .footer-oficio-fijo {
                 margin-top: 4rem;
-                border-top: 1px solid #932C43;
+                border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex;
                 justify-content: space-between;
@@ -101,8 +118,8 @@
             class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-bold text-xs uppercase tracking-wider transition">
             &larr; Volver a Expediente
         </a>
-        <button onclick="window.print()"
-            class="px-6 py-2 bg-[#932C43] text-white rounded-lg hover:bg-[#722134] font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition">
+         <button onclick="window.print()"
+            class="px-6 py-2 bg-guinda-ceaa text-white rounded-lg hover:bg-guinda-ceaa-hover font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition">
             Imprimir Turno
         </button>
     </div>
@@ -115,7 +132,7 @@
             <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">
         </div>
 
-        <p class="font-bold text-[#932C43] text-lg uppercase mb-2 tracking-wider">Turno Interno</p>
+        <p class="font-bold text-guinda-ceaa text-lg uppercase mb-2 tracking-wider">Turno Interno</p>
 
         <div class="text-right mb-8">
             <p class="text-xs text-gray-500 uppercase font-semibold">Fecha de Emisión</p>
@@ -124,13 +141,13 @@
             <p class="font-bold text-base text-gray-900">{{ $oficio->numero_oficio }}</p>
             @if($turnosParaImprimir->count() === 1 && $turnosParaImprimir->first()->pivot->folio_interno)
                 <p class="text-xs text-gray-500 uppercase font-semibold mt-1">Folio del Turno</p>
-                <p class="font-bold text-base text-[#932C43]">{{ $turnosParaImprimir->first()->pivot->folio_interno }}</p>
+                <p class="font-bold text-base text-guinda-ceaa">{{ $turnosParaImprimir->first()->pivot->folio_interno }}</p>
             @endif
         </div>
 
         {{-- Datos de Recepción del Oficio --}}
         <section class="mb-8 bg-gray-50/50 p-5 rounded-xl border border-gray-100">
-            <h2 class="font-bold text-[#932C43] border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
                 Detalles de la Correspondencia</h2>
             <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-xs text-gray-700">
                 <div class="break-words"><strong class="text-gray-900 uppercase">Remitente:</strong>
@@ -145,14 +162,14 @@
                 <div>
                     <strong class="text-gray-900 uppercase">Prioridad:</strong>
                     <span
-                        class="font-bold {{ $oficio->prioridad == 'Urgente' ? 'text-red-600' : 'text-blue-600' }}">{{ $oficio->prioridad }}</span>
+                        class="font-bold {{ $oficio->prioridad == 'Urgente' ? 'text-red-600' : 'text-gris-oscuro' }}">{{ $oficio->prioridad }}</span>
                 </div>
             </div>
         </section>
 
         {{-- Asunto --}}
         <section class="mb-8">
-            <h2 class="font-bold text-[#932C43] border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
                 Asunto:</h2>
             <p class="text-xs text-gray-700 leading-relaxed italic break-words">
                 "{!! nl2br(e($oficio->asunto)) !!}"
@@ -161,22 +178,22 @@
 
         {{-- Destinatario del Turno --}}
         <section class="mb-8">
-            <h2 class="font-bold text-[#932C43] border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
                 Turnado A:</h2>
             @forelse($turnosParaImprimir as $area)
                 @php
                     $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
                 @endphp
-                <div class="mb-4 pl-4 border-l-4 border-[#932C43]">
+                <div class="mb-4 pl-4 border-l-4 border-guinda-ceaa">
                     <div class="flex justify-between items-start">
                         <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
                             {{ $area->name }}</p>
                         @if($area->pivot->folio_interno)
-                            <span class="text-xs font-bold text-[#932C43]">Folio: {{ $area->pivot->folio_interno }}</span>
+                            <span class="text-xs font-bold text-guinda-ceaa">Folio: {{ $area->pivot->folio_interno }}</span>
                         @endif
                     </div>
                     <p class="text-xs text-gray-600 mt-1"><strong class="text-gray-800 uppercase">Instrucción:</strong>
-                        <span class="font-black text-[#932C43]">{{ $area->pivot->instruccion }}</span></p>
+                        <span class="font-black text-guinda-ceaa">{{ $area->pivot->instruccion }}</span></p>
                     <p class="text-xs text-gray-600 mt-1">
                         <strong class="text-gray-800 uppercase">Destinatario (Para Atención):</strong>
                         @if($userAsignado)
@@ -199,7 +216,7 @@
         {{-- Observaciones adicionales --}}
         @if($oficio->observaciones)
             <section class="mb-8">
-                <h2 class="font-bold text-[#932C43] border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
+                <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
                     Observaciones:</h2>
                 <p class="text-xs text-gray-600 break-words">{{ $oficio->observaciones }}</p>
             </section>
@@ -233,7 +250,7 @@
                 <p class="font-bold text-gray-500">Camino Real de la Plata No. 336</p>
                 <p>Zona Plateada, Pachuca de Soto, Hgo. C.P. 42084</p>
                 <p>Ofic: 771 715 8390 y 771 715 8391</p>
-                <p class="text-blue-300">ceaa.hidalgo.gob.mx</p>
+                <p class="text-gris-claro">ceaa.hidalgo.gob.mx</p>
             </div>
         </div>
 

@@ -43,7 +43,7 @@
                                             @if(Str::endsWith($aviso->archivo, '.pdf'))
                                                 <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path></svg>
                                             @else
-                                                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg>
+                                                <svg class="w-8 h-8 text-gris-oscuro" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg>
                                             @endif
                                         </div>
                                         <div>
@@ -98,7 +98,7 @@
                                 
                                 <div class="flex gap-4">
                                     @if($leido->archivo)
-                                        <a href="{{ asset('storage/' . $leido->archivo) }}" target="_blank" class="text-[10px] font-black text-blue-600 hover:underline uppercase tracking-tighter">Descargar Anexo</a>
+                                        <a href="{{ asset('storage/' . $leido->archivo) }}" target="_blank" class="text-[10px] font-black text-gris-oscuro hover:underline uppercase tracking-tighter">Descargar Anexo</a>
                                     @endif
                                     <button x-data x-on:click="alert('Contenido: {{ str_replace(["\r", "\n"], ' ', $leido->mensaje) }}')" class="text-[10px] font-black text-gray-400 hover:text-guinda-ceaa uppercase tracking-tighter">Ver Mensaje</button>
                                 </div>

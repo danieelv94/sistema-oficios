@@ -17,7 +17,7 @@
                  x-transition:enter="transition ease-out duration-500"
                  x-transition:enter-start="opacity-0 transform -translate-y-4"
                  x-transition:enter-end="opacity-100 transform translate-y-0"
-                 class="bg-gradient-to-r from-[#932C43] to-[#722134] rounded-xl shadow-lg p-6 text-white relative overflow-hidden" 
+                 class="bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover rounded-xl shadow-lg p-6 text-white relative overflow-hidden" 
                  style="display: none;">
                 
                 {{-- Icono de fondo decorativo --}}
@@ -44,7 +44,7 @@
                     
                     <div class="flex items-center space-x-4">
                         <button @click="showBanner = false" class="text-[10px] font-black uppercase opacity-60 hover:opacity-100 transition tracking-widest underline">Omitir</button>
-                        <button @click="toggleSubscription" class="bg-white text-[#932C43] px-8 py-2.5 rounded shadow-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-gray-100 transition-all transform active:scale-95">
+                        <button @click="toggleSubscription" class="bg-white text-guinda-ceaa px-8 py-2.5 rounded shadow-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-gray-100 transition-all transform active:scale-95">
                             Activar Alertas
                         </button>
                     </div>
@@ -53,14 +53,14 @@
 
             <div class="flex justify-end no-print">
                 <a href="{{ route('tickets.create') }}" 
-                   class="px-6 py-2 bg-[#932C43] text-white rounded-md hover:bg-[#722134] font-bold shadow-lg transition-all transform hover:scale-105 flex items-center">
+                   class="px-6 py-2 bg-guinda-ceaa text-white rounded-md hover:bg-guinda-ceaa-hover font-bold shadow-lg transition-all transform hover:scale-105 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Levantar Ticket de Soporte
                 </a>
             </div>
 
             {{-- SOLICITUDES EN PROCESO --}}
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-[#932C43]">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-guinda-ceaa">
                 <div class="p-6 text-gray-900">
                     <div class="flex items-center mb-6">
                         <div class="p-2 bg-orange-100 rounded-lg mr-3">
@@ -72,7 +72,7 @@
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead>
-                                <tr class="bg-gray-100 text-[#932C43] uppercase text-xs font-bold tracking-wider">
+                                <tr class="bg-gray-100 text-guinda-ceaa uppercase text-xs font-bold tracking-wider">
                                     <th class="py-3 px-4 border-b text-left">Fecha de Envío</th>
                                     @if(Auth::user()->role == 'admin')
                                         <th class="py-3 px-4 border-b text-left">Usuario / Área</th>
@@ -96,7 +96,7 @@
                                             @if(Auth::user()->role == 'admin')
                                                 <a href="{{ route('tickets.edit', $ticket) }}" class="inline-block px-4 py-1 bg-green-600 text-white rounded text-xs font-bold hover:bg-green-700">Resolver</a>
                                             @else
-                                                <a href="{{ route('tickets.show', $ticket) }}" class="inline-block px-4 py-1 bg-[#932C43] text-white rounded text-xs font-bold hover:bg-[#722134]">Ver Detalles</a>
+                                                <a href="{{ route('tickets.show', $ticket) }}" class="inline-block px-4 py-1 bg-guinda-ceaa text-white rounded text-xs font-bold hover:bg-guinda-ceaa-hover">Ver Detalles</a>
                                             @endif
                                         </td>
                                     </tr>

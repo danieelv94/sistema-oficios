@@ -5,6 +5,23 @@
     <meta charset="UTF-8">
     <title>Oficio de Comisión - {{ $comision->oficio_numero }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'guinda-ceaa': '#691B31',
+                        'guinda-ceaa-hover': '#A02142',
+                        'guinda-medio': '#A02142',
+                        'dorado-ocre': '#BC955B',
+                        'arena-claro': '#DDC9A3',
+                        'gris-claro': '#98989A',
+                        'gris-oscuro': '#6F7271',
+                    }
+                }
+            }
+        }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,7 +78,7 @@
                 bottom: 1.2cm;
                 left: 2cm;
                 right: 2cm;
-                border-top: 1px solid #932C43;
+                border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex !important;
                 justify-content: space-between;
@@ -85,7 +102,7 @@
                 bottom: 1.2cm;
                 left: 2cm;
                 right: 2cm;
-                border-top: 1px solid #932C43;
+                border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex;
                 justify-content: space-between;
@@ -110,8 +127,8 @@
             &larr; Volver al Listado
         </a>
         @if($comision->status !== 'Cancelado' || Auth::user()->role == 'admin')
-            <button onclick="window.print()"
-                class="ml-2 px-6 py-2 bg-[#932C43] text-white rounded-md hover:bg-[#722134] font-bold shadow-lg">
+             <button onclick="window.print()"
+                class="ml-2 px-6 py-2 bg-guinda-ceaa text-white rounded-md hover:bg-guinda-ceaa-hover font-bold shadow-lg">
                 Imprimir Oficio
             </button>
         @endif
@@ -131,7 +148,7 @@
                 <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">
             </div>
 
-            <p class="font-bold text-[#932C43] text-lg uppercase mb-2">Oficio de Comisión</p>
+            <p class="font-bold text-guinda-ceaa text-lg uppercase mb-2">Oficio de Comisión</p>
 
             <div class="text-right mb-10">
                 <p>Pachuca de Soto, Hgo. a {{ $fechaFormateada }}</p>
@@ -140,11 +157,11 @@
 
             <div class="mb-8 space-y-1">
                 {{-- Corregido: Uso de optional() en lugar de ?-> para compatibilidad con PHP < 8.0 --}} <p><strong
-                        class="text-[#932C43]">Nombre de Empleado: </strong>{{ optional($comision->user)->prof }}
+                        class="text-guinda-ceaa">Nombre de Empleado: </strong>{{ optional($comision->user)->prof }}
                     {{ optional($comision->user)->name }}</p>
-                    <p><strong class="text-[#932C43]">No. de empleado:
+                    <p><strong class="text-guinda-ceaa">No. de empleado:
                         </strong>{{ optional($comision->user)->no_empleado ?? 'N/A' }}</p>
-                    <p><strong class="text-[#932C43]">Área de adscripción:
+                    <p><strong class="text-guinda-ceaa">Área de adscripción:
                         </strong>{{ optional(optional($comision->user)->area)->name ?? 'N/A' }}</p>
                     <p class="font-bold mt-6 tracking-widest">P R E S E N T E</p>
             </div>
@@ -226,7 +243,7 @@
                 <p class="font-bold text-gray-500">Camino Real de la Plata No. 336</p>
                 <p>Zona Plateada, Pachuca de Soto, Hgo. C.P. 42084</p>
                 <p>Ofic: 771 715 8390 y 771 715 8391</p>
-                <p class="text-blue-300">ceaa.hidalgo.gob.mx</p>
+                <p class="text-gris-claro">ceaa.hidalgo.gob.mx</p>
             </div>
         </div>
     </div>

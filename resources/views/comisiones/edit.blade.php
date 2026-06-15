@@ -11,7 +11,7 @@
                 <div class="p-8 text-gray-900">
 
                     <div class="mb-6 flex justify-between items-center border-b pb-4">
-                        <h3 class="text-lg font-bold text-[#932C43]">Modificar Datos de Registro</h3>
+                        <h3 class="text-lg font-bold text-guinda-ceaa">Modificar Datos de Registro</h3>
                         <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded">ID: {{ $comision->id }}</span>
                     </div>
 
@@ -29,7 +29,7 @@
                                     de Comisión</label>
                                 <input type="text" name="dias_comision" id="dias_comision"
                                     value="{{ old('dias_comision', $comision->dias_comision) }}"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                     required>
                             </div>
 
@@ -38,12 +38,12 @@
                                 <label class="block text-sm font-bold text-gray-700 uppercase">Hora Inicio</label>
                                 <input type="time" name="hora_inicio"
                                     value="{{ old('hora_inicio', $comision->hora_inicio) }}"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 uppercase">Hora Término</label>
                                 <input type="time" name="hora_fin" value="{{ old('hora_fin', $comision->hora_fin) }}"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa">
                             </div>
 
                             {{-- Lugar --}}
@@ -52,7 +52,7 @@
                                     Comisión</label>
                                 <input type="text" name="lugar" id="lugar"
                                     value="{{ old('dias_comision', $comision->lugar) }}"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                     required>
                             </div>
 
@@ -61,7 +61,7 @@
                                 <label for="actividad" class="block text-sm font-bold text-gray-700 uppercase">Actividad
                                     a realizar</label>
                                 <textarea name="actividad" id="actividad" rows="3"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                     required>{{ old('actividad', $comision->actividad) }}</textarea>
                             </div>
 
@@ -70,7 +70,7 @@
                                 <label for="vehiculo_id"
                                     class="block text-sm font-bold text-gray-700 uppercase">Vehículo Asignado</label>
                                 <select name="vehiculo_id" id="vehiculo_id"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa">
                                     <option value="">Ninguno / Particular</option>
                                     @foreach($vehiculos as $vehiculo)
                                         <option value="{{ $vehiculo->id }}" {{ $comision->vehiculo_id == $vehiculo->id ? 'selected' : '' }}>
@@ -85,7 +85,7 @@
                                 <label for="proyecto_id"
                                     class="block text-sm font-bold text-gray-700 uppercase">Proyecto / Recurso</label>
                                 <select name="proyecto_id" id="proyecto_id"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#932C43] focus:border-[#932C43]">
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-guinda-ceaa focus:border-guinda-ceaa">
                                     <option value="">Seleccionar Proyecto</option>
                                     @foreach($proyectos as $proyecto)
                                         <option value="{{ $proyecto->id }}" {{ $comision->proyecto_id == $proyecto->id ? 'selected' : '' }}>
@@ -102,7 +102,7 @@
                                 Cancelar
                             </a>
                             <button type="submit"
-                                class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition font-bold text-sm uppercase shadow-md">
+                                class="px-6 py-2 bg-guinda-ceaa text-white rounded-md hover:bg-guinda-ceaa-hover transition font-bold text-sm uppercase shadow-md">
                                 Guardar Cambios
                             </button>
                         </div>

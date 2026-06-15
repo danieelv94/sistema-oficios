@@ -32,8 +32,8 @@
                     </div>
 
                     @if($avisoUrgente->archivo)
-                        <div class="mt-5 p-3 bg-blue-50 rounded-lg border border-blue-100 flex items-center justify-between">
-                            <span class="text-[10px] font-black text-blue-700 uppercase">Documento Oficial Adjunto</span>
+                        <div class="mt-5 p-3 bg-gris-claro/10 rounded-lg border border-gris-claro/20 flex items-center justify-between">
+                            <span class="text-[10px] font-black text-gris-oscuro uppercase">Documento Oficial Adjunto</span>
                             <a href="{{ asset('storage/' . $avisoUrgente->archivo) }}" target="_blank"
                                 class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase transition shadow-sm">
                                 Ver Archivo

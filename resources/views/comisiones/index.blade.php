@@ -54,10 +54,10 @@
             {{-- Encabezado de Reporte para el Admin --}}
             @if(Auth::user()->role === 'admin')
                 <div class="printable-header mb-6">
-                    <div class="flex justify-between items-center border-b-2 border-[#932C43] pb-4">
+                    <div class="flex justify-between items-center border-b-2 border-guinda-ceaa pb-4">
                         <img src="{{ asset('images/encabezado.png') }}" style="height: 60px;">
                         <div class="text-right">
-                            <h1 class="text-xl font-bold uppercase text-[#932C43]">CEAA HIDALGO</h1>
+                            <h1 class="text-xl font-bold uppercase text-guinda-ceaa">CEAA HIDALGO</h1>
                             <h2 class="text-lg font-bold">Reporte de Comisiones</h2>
                             <p class="text-xs">Fecha: {{ now()->format('d/m/Y H:i') }} | Criterios:
                                 {{ request('search') ?? 'General' }}</p>
@@ -76,12 +76,12 @@
                         <div class="flex gap-2">
                             @if(Auth::user()->role === 'admin' && request('search'))
                                 <button onclick="window.print()"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-bold shadow-sm transition text-xs uppercase">
+                                    class="px-4 py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded-md font-bold shadow-sm transition text-xs uppercase">
                                     🖨️ Imprimir Reporte
                                 </button>
                             @endif
                             <a href="{{ route('comisiones.create') }}"
-                                class="px-4 py-2 bg-[#932C43] text-white rounded-md hover:bg-[#722134] font-bold shadow-sm transition">
+                                class="px-4 py-2 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded-md font-bold shadow-sm transition">
                                 + Solicitar Nueva Comisión
                             </a>
                         </div>
@@ -93,7 +93,7 @@
                             <form action="{{ route('comisiones.index') }}" method="GET" class="flex gap-2">
                                 <input type="text" name="search"
                                     placeholder="Separa por comas: 15 de mayo, 15/05, Daniel..."
-                                    class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:ring-[#932C43] focus:border-[#932C43]"
+                                    class="w-full md:w-1/2 px-3 py-2 border border-gray-300 rounded-md focus:ring-guinda-ceaa focus:border-guinda-ceaa"
                                     value="{{ request('search') }}">
                                 <button type="submit"
                                     class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-black transition">Buscar</button>
@@ -124,7 +124,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($comisiones as $comision)
                                     <tr class="hover:bg-gray-50 transition">
-                                        <td class="py-3 px-4 text-sm font-bold text-[#932C43]">
+                                        <td class="py-3 px-4 text-sm font-bold text-guinda-ceaa">
                                             {{ $comision->oficio_numero }}</td>
                                         <td class="py-3 px-4 text-sm text-gray-600">
                                             {{ $comision->created_at->format('d/m/Y') }}</td>
@@ -143,7 +143,7 @@
                                             </td>
                                         @endif
 
-                                        <td class="py-3 px-4 text-sm font-bold text-blue-900">{{ $comision->dias_comision }}
+                                        <td class="py-3 px-4 text-sm font-bold text-guinda-ceaa">{{ $comision->dias_comision }}
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-600">
                                             <div class="font-bold">{{ $comision->lugar }}</div>
@@ -159,7 +159,7 @@
                                         <td class="py-3 px-4 text-center no-print">
                                             <div class="flex justify-center items-center space-x-2">
                                                 <a href="{{ route('comisiones.show', $comision) }}"
-                                                    class="p-1 text-gray-600 hover:text-[#932C43]" title="Ver PDF">
+                                                    class="p-1 text-gray-600 hover:text-guinda-ceaa" title="Ver PDF">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -171,7 +171,7 @@
                                                 </a>
                                                 @if(Auth::user()->role == 'admin' && $comision->status !== 'Cancelado')
                                                     <a href="{{ route('comisiones.edit', $comision) }}"
-                                                        class="p-1 text-blue-600 hover:text-blue-800" title="Editar">
+                                                        class="p-1 text-guinda-ceaa hover:text-guinda-ceaa-hover" title="Editar">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round"
