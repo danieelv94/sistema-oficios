@@ -27,7 +27,7 @@ class OficioController extends Controller
     {
         $oficios = Oficio::where(function ($query) {
             $query->whereNull('estatus')
-                  ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado']);
+                  ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado', 'Cancelado']);
         })
         ->latest()
         ->paginate(10);
@@ -46,7 +46,7 @@ class OficioController extends Controller
     {
         $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
         $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
-        $request->merge(['numero_oficio' => $siguienteConsecutivo]);
+        $request->merge(['numero_oficio' => (string)$siguienteConsecutivo]);
 
         $request->validate([
             'numero_oficio' => 'required|string|max:255',
@@ -146,15 +146,26 @@ class OficioController extends Controller
         return redirect()->route('oficios.show', $oficio)->with('success', 'Nuevas áreas añadidas correctamente.');
     }
 
-    public function eliminarTurno($pivote_id)
+    public function cancelarTurno(Request $request, $pivote_id)
     {
-        if (Auth::user()->role !== 'admin') {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'correspondencia'])) {
             return back()->with('error', 'No tienes permiso para realizar esta acción.');
         }
 
-        DB::table('area_oficio')->where('id', $pivote_id)->delete();
+        $request->validate([
+            'motivo_cancelacion' => 'required|string',
+        ]);
 
-        return back()->with('success', 'Turno eliminado correctamente.');
+        DB::table('area_oficio')
+            ->where('id', $pivote_id)
+            ->update([
+                'estatus' => 'Cancelado',
+                'motivo_cancelacion' => $request->motivo_cancelacion,
+                'updated_at' => now()
+            ]);
+
+        return back()->with('success', 'El turno ha sido cancelado correctamente.');
     }
 
     public function asignar(Request $request, Oficio $oficio)
@@ -503,5 +514,29 @@ class OficioController extends Controller
         $oficio->update($data);
 
         return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio actualizado correctamente.');
+    }
+
+    public function cancelar(Request $request, Oficio $oficio)
+    {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'correspondencia'])) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+
+        $request->validate([
+            'motivo_cancelacion' => 'required|string',
+        ]);
+
+        $oficio->update([
+            'estatus' => 'Cancelado',
+            'motivo_cancelacion' => $request->motivo_cancelacion
+        ]);
+
+        // Actualizamos el estatus de sus áreas turnadas si existen a 'Cancelado'
+        DB::table('area_oficio')
+            ->where('oficio_id', $oficio->id)
+            ->update(['estatus' => 'Cancelado']);
+
+        return redirect()->route('oficios.index')->with('success', 'El oficio ha sido cancelado correctamente.');
     }
 }

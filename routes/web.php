@@ -36,7 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('oficios', OficioController::class)->except(['index']);
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');
     Route::put('/oficios/{oficio}/asignar', [OficioController::class, 'asignar'])->name('oficios.asignar');
-    Route::delete('/oficios/turno/{pivote_id}', [OficioController::class, 'eliminarTurno'])->name('oficios.eliminarTurno');
+    Route::put('/oficios/{oficio}/cancelar', [OficioController::class, 'cancelar'])->name('oficios.cancelar');
+    Route::put('/oficios/turno/{pivote_id}/cancelar', [OficioController::class, 'cancelarTurno'])->name('oficios.cancelarTurno');
     Route::get('/oficios/{oficio}/generar', [OficioController::class, 'generarOficio'])->name('oficios.generar');
 
     // --- Administración de Usuarios (Admins) ---

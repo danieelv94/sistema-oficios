@@ -25,6 +25,7 @@ class Oficio extends Model
         'localidad',
         'observaciones',
         'pdf_path',
+        'motivo_cancelacion',
     ];
 
     /**
@@ -34,7 +35,7 @@ class Oficio extends Model
     {
         // Cambiamos a string 'area_oficio' para que Laravel sepa que es una tabla
         return $this->belongsToMany(Area::class, 'area_oficio', 'oficio_id', 'area_id')
-            ->withPivot('id', 'user_id', 'instruccion', 'estatus', 'folio_interno', 'consecutivo', 'anio')
+            ->withPivot('id', 'user_id', 'instruccion', 'estatus', 'folio_interno', 'consecutivo', 'anio', 'motivo_cancelacion')
             ->withTimestamps();
     }
 

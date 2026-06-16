@@ -5,6 +5,16 @@
                 {{ __('Expediente de Oficio') }}: <span class="text-guinda-ceaa">{{ $oficio->numero_oficio }}</span>
             </h2>
             <div class="flex space-x-3">
+                {{-- Botón para regresar a la Bandeja de Dirección y Seguimiento --}}
+                @if(in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']))
+                    <a href="{{ route('oficios.gestion') }}"
+                        class="inline-flex items-center px-4 py-2 bg-gris-oscuro hover:bg-guinda-ceaa border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest shadow-md transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                        </svg>
+                        Bandeja de Dirección y Seguimiento
+                    </a>
+                @endif
                 @if($oficio->pdf_path)
                     <a href="{{ asset('storage/' . $oficio->pdf_path) }}" target="_blank"
                         class="inline-flex items-center px-4 py-2 bg-red-700 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-red-800 shadow-md transition">
@@ -34,8 +44,24 @@
         </div>
     </x-slot>
 
-    <div class="py-12 bg-gray-50">
+    <div class="py-12 bg-gray-50" x-data="{ showCancelTurnModal: false, cancelTurnPivoteId: null, cancelAreaName: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+            {{-- BANNER DE CANCELACIÓN --}}
+            @if($oficio->estatus == 'Cancelado')
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl shadow-sm flex items-start gap-3 border border-red-100">
+                    <div class="flex-shrink-0 mt-0.5">
+                        <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-black text-red-800 uppercase tracking-widest">Oficio Cancelado</h3>
+                        <p class="mt-1 text-xs text-red-700 font-bold uppercase text-[10px]">Motivo de Cancelación:</p>
+                        <p class="mt-0.5 text-sm text-red-700 italic">"{{ $oficio->motivo_cancelacion ?? 'No se especificó motivo.' }}"</p>
+                    </div>
+                </div>
+            @endif
 
             {{-- INFORMACIÓN PRINCIPAL --}}
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border-t-4 border-guinda-ceaa">
@@ -152,15 +178,16 @@
                                                         {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
                                                         {{ $area->pivot->estatus == 'Notificado' ? 'bg-dorado-ocre/10 text-dorado-ocre' : '' }}
                                                         {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                        {{ $area->pivot->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
                                                     ">
                                                 {{ $area->pivot->estatus }}
                                             </span>
-                                            @if(Auth::user()->role == 'admin')
-                                                <form action="{{ route('oficios.eliminarTurno', $area->pivot->id) }}" method="POST">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" onclick="return confirm('¿Eliminar este turno?')"
-                                                        class="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded font-bold uppercase hover:bg-red-800 transition">Eliminar</button>
-                                                </form>
+                                            @if(in_array(Auth::user()->role, ['admin', 'correspondencia']) && $area->pivot->estatus !== 'Cancelado')
+                                                <button type="button" 
+                                                    @click="showCancelTurnModal = true; cancelTurnPivoteId = {{ $area->pivot->id }}; cancelAreaName = '{{ $area->name }}'"
+                                                    class="text-[9px] bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded font-bold uppercase transition">
+                                                    Cancelar
+                                                </button>
                                             @endif
                                         </div>
                                         <p class="text-xs text-gray-600"><span
@@ -170,6 +197,11 @@
                                                 class="font-bold uppercase text-gray-400">Responsable:</span> <span
                                                 class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span>
                                         </p>
+                                        @if($area->pivot->estatus == 'Cancelado')
+                                            <p class="text-xs text-red-700 mt-1 font-medium bg-red-50 p-2 rounded border border-red-100 max-w-xl">
+                                                <span class="font-bold uppercase text-[10px]">Motivo de Cancelación:</span> "{{ $area->pivot->motivo_cancelacion ?? 'No se especificó motivo.' }}"
+                                            </p>
+                                        @endif
                                         @if($area->pivot->folio_interno)
                                             <p class="text-xs text-gray-600 mt-1"><span
                                                     class="font-bold uppercase text-gray-400">Folio Interno:</span> <span
@@ -203,8 +235,7 @@
                                             </form>
                                         @endif
 
-                                        {{-- Formulario Asignación --}}
-                                        @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado')
+                                        @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
                                             <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
                                                 class="flex items-center space-x-2 flex-wrap gap-y-1"
                                                 x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">
@@ -318,6 +349,70 @@
                 @endif
             @endif
 
+        </div>
+
+        {{-- MODAL DE CANCELACIÓN DE TURNO --}}
+        <div x-show="showCancelTurnModal" 
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-4" 
+             style="display: none;" 
+             x-init="$el.style.display = 'flex'"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm transition-opacity" @click="showCancelTurnModal = false"></div>
+
+            <div class="relative w-full max-w-lg mx-auto z-[100000] transform transition-all shadow-2xl"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                <div class="bg-white rounded-xl overflow-hidden border-t-8 border-red-600">
+                    <div class="p-5 border-b border-gray-100 flex items-center">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black uppercase tracking-tight text-gray-800">
+                            Cancelar Turnado de Área
+                        </h3>
+                    </div>
+
+                    <form :action="'/oficios/turno/' + cancelTurnPivoteId + '/cancelar'" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <div class="p-6">
+                            <p class="text-sm font-bold text-gray-700 mb-3 uppercase">
+                                ¿Está seguro que desea cancelar el turnado al área: <span class="text-red-600 font-black" x-text="cancelAreaName"></span>?
+                            </p>
+                            <div>
+                                <label class="block font-bold text-[10px] text-gray-400 uppercase mb-2">Explicación del Motivo de Cancelación</label>
+                                <textarea name="motivo_cancelacion" required rows="4" 
+                                    placeholder="Escriba aquí el motivo detallado de la cancelación de este turno..."
+                                    class="w-full text-xs rounded-lg border-gray-300 focus:ring-red-500 focus:border-red-500 p-3"
+                                    x-init="$watch('showCancelTurnModal', value => { if(!value) $el.value = '' })"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="p-5 bg-gray-50 border-t border-gray-100 flex justify-end space-x-3">
+                            <button type="button" @click="showCancelTurnModal = false"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2.5 rounded-lg text-xs font-black uppercase transition">
+                                Cerrar
+                            </button>
+                            <button type="submit"
+                                class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase transition shadow-md hover:shadow-lg">
+                                Confirmar Cancelación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
