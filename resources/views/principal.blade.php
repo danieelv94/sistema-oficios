@@ -45,8 +45,8 @@
                     </a>
                 @endif
 
-                {{-- Entrada de Correspondencia (Solo Correspondencia y Admin) --}}
-                @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
+                {{-- Entrada de Correspondencia (Solo Correspondencia, Admin y Director de Gestión Institucional) --}}
+                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
                     <a href="{{ route('oficios.index') }}"
                         class="group bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition flex items-center gap-6 border border-gray-100">
                         <div

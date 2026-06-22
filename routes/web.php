@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/oficios/reporte-diario', [App\Http\Controllers\OficioController::class, 'reporteDiario'])
         ->name('oficios.reporteDiario');
 
+    // Reporte Diario de Entradas (Debe declararse antes del recurso)
+    Route::get('/oficios/reporte-entradas', [App\Http\Controllers\OficioController::class, 'reporteEntradas'])
+        ->name('oficios.reporteEntradas');
+
     // --- Módulo de Oficios ---
     Route::resource('oficios', OficioController::class)->except(['index']);
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');

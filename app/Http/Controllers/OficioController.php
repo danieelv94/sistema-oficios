@@ -22,15 +22,43 @@ class OficioController extends Controller
         return view('principal', compact('totalOficios', 'pendientesArea', 'misTareas'));
     }
 
-    // 2. Este método SOLO carga la tabla para el Admin/Recepcionista (Pendientes de Turnar)
-    public function index()
+    // 2. Este método carga la tabla de correspondencia recibida (Entrada de Correspondencia)
+    public function index(Request $request)
     {
-        $oficios = Oficio::where(function ($query) {
-            $query->whereNull('estatus')
-                  ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado', 'Cancelado']);
-        })
-        ->latest()
-        ->paginate(10);
+        $user = Auth::user();
+
+        // Seguridad: Solo admin, correspondencia, o jefe_area de Gestión Institucional (area_id = 2)
+        if ($user->role !== 'admin' && $user->role !== 'correspondencia' && !($user->role == 'jefe_area' && $user->area_id == 2)) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        $query = Oficio::query();
+
+        // Búsqueda por número, remitente o asunto
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_oficio', 'like', "%{$search}%")
+                  ->orWhere('remitente', 'like', "%{$search}%")
+                  ->orWhere('asunto', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtro por estatus. Por defecto es 'Pendiente' (Pendiente de Turnar)
+        $estatus = $request->input('estatus', 'Pendiente');
+        if ($estatus !== 'Todos') {
+            if ($estatus === 'Pendiente') {
+                $query->where(function ($q) {
+                    $q->whereNull('estatus')
+                      ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado']);
+                });
+            } else {
+                $query->where('estatus', $estatus);
+            }
+        }
+
+        // Ordenamos por número de oficio de forma descendente (consecutivo)
+        $oficios = $query->orderByRaw('CAST(numero_oficio AS UNSIGNED) DESC')->paginate(10);
 
         return view('oficios.index', compact('oficios'));
     }
@@ -326,6 +354,32 @@ class OficioController extends Controller
             ->first();
 
         return view('oficios.reporte', compact('turnos', 'fecha', 'directorGestion'));
+    }
+
+    public function reporteEntradas(Request $request)
+    {
+        $user = Auth::user();
+
+        // Seguridad: Solo admin, correspondencia, o jefe_area de Gestión Institucional (area_id = 2)
+        if ($user->role !== 'admin' && $user->role !== 'correspondencia' && !($user->role == 'jefe_area' && $user->area_id == 2)) {
+            abort(403, 'No tienes permiso para ver esta sección.');
+        }
+
+        // Obtener rango de fechas. Por defecto es HOY en ambos extremos.
+        $fechaInicio = $request->input('fecha_inicio', \Carbon\Carbon::today()->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', \Carbon\Carbon::today()->format('Y-m-d'));
+
+        // Obtener todos los oficios registrados en el rango de fechas (sea cual sea su estatus)
+        $oficios = Oficio::whereDate('created_at', '>=', $fechaInicio)
+            ->whereDate('created_at', '<=', $fechaFin)
+            ->orderByRaw('CAST(numero_oficio AS UNSIGNED) ASC')
+            ->get();
+
+        $directorGestion = \App\Models\User::where('area_id', 2)
+            ->where('role', 'jefe_area')
+            ->first();
+
+        return view('oficios.reporte_entradas', compact('oficios', 'fechaInicio', 'fechaFin', 'directorGestion'));
     }
 
     public function seguimiento(Request $request)

@@ -23,17 +23,62 @@
                     <div class="flex justify-between items-center mb-6">
                         <div>
                             <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight">Correspondencia Recibida</h3>
-                            <p class="text-xs text-gray-400 font-bold uppercase mt-1">Buzón central de oficios y documentos pendientes de asignación</p>
+                            <p class="text-xs text-gray-400 font-bold uppercase mt-1">Buzón central de oficios y documentos registrados</p>
                         </div>
-                        @if(in_array(Auth::user()->role, ['admin', 'recepcionista']))
-                            <a href="{{ route('oficios.create') }}"
-                                class="bg-guinda-ceaa text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase hover:bg-guinda-ceaa-hover shadow-md hover:shadow-lg transition duration-200 transform hover:scale-102 flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                        <div class="flex items-center gap-3">
+                            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
+                                <a href="{{ route('oficios.reporteEntradas') }}"
+                                    class="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase shadow-md hover:shadow-lg transition duration-200 transform hover:scale-102 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>
+                                    Reporte Diario
+                                </a>
+                            @endif
+                            @if(in_array(Auth::user()->role, ['admin', 'recepcionista', 'correspondencia']))
+                                <a href="{{ route('oficios.create') }}"
+                                    class="bg-guinda-ceaa text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase hover:bg-guinda-ceaa-hover shadow-md hover:shadow-lg transition duration-200 transform hover:scale-102 flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Nuevo Oficio
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Filtros y Buscador Premium --}}
+                    <div class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <form action="{{ route('oficios.index') }}" method="GET" class="w-full flex flex-col sm:flex-row gap-3">
+                            <div class="relative flex-grow">
+                                <input type="text" name="search" value="{{ request('search') }}" 
+                                    placeholder="Buscar por número de oficio, remitente o asunto..." 
+                                    class="w-full text-xs rounded-lg border-gray-300 focus:ring-guinda-ceaa focus:border-guinda-ceaa pl-8 py-2">
+                                <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                Nuevo Oficio
-                            </a>
-                        @endif
+                            </div>
+
+                            <select name="estatus" onchange="this.form.submit()" 
+                                class="text-xs rounded-lg border-gray-300 focus:ring-guinda-ceaa focus:border-guinda-ceaa py-2">
+                                <option value="Todos" {{ request('estatus', 'Pendiente') == 'Todos' ? 'selected' : '' }}>-- Todos los Estados --</option>
+                                <option value="Pendiente" {{ request('estatus', 'Pendiente') == 'Pendiente' ? 'selected' : '' }}>Pendiente de Turnar</option>
+                                <option value="Turnado" {{ request('estatus') == 'Turnado' ? 'selected' : '' }}>Turnado</option>
+                                <option value="En Proceso" {{ request('estatus') == 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
+                                <option value="Atendido" {{ request('estatus') == 'Atendido' ? 'selected' : '' }}>Atendido</option>
+                                <option value="Solventado" {{ request('estatus') == 'Solventado' ? 'selected' : '' }}>Solventado</option>
+                                <option value="Cancelado" {{ request('estatus') == 'Cancelado' ? 'selected' : '' }}>Cancelado</option>
+                            </select>
+
+                            <button type="submit" class="bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-xs font-black uppercase px-5 py-2 rounded-lg transition shadow-sm">
+                                Buscar
+                            </button>
+                            @if(request()->filled('search') || request('estatus', 'Pendiente') !== 'Pendiente')
+                                <a href="{{ route('oficios.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-black uppercase px-4 py-2 rounded-lg transition text-center flex items-center justify-center">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </form>
                     </div>
 
                     <div class="overflow-x-auto rounded-xl border border-gray-100">
@@ -43,6 +88,7 @@
                                     <th class="px-6 py-4 tracking-wider">Número de Oficio</th>
                                     <th class="px-6 py-4 tracking-wider">Remitente</th>
                                     <th class="px-6 py-4 tracking-wider">Asunto</th>
+                                    <th class="px-6 py-4 tracking-wider text-center">Estatus</th>
                                     <th class="px-6 py-4 tracking-wider text-center">Acción</th>
                                 </tr>
                             </thead>
@@ -52,18 +98,40 @@
                                         <td class="px-6 py-4 font-bold text-gray-900">{{ $oficio->numero_oficio }}</td>
                                         <td class="px-6 py-4 text-gray-700 font-medium">{{ $oficio->remitente }}</td>
                                         <td class="px-6 py-4 text-gray-500 max-w-xs truncate">{{ $oficio->asunto }}</td>
+                                        
+                                        {{-- Estatus Badge --}}
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
+                                                {{ (is_null($oficio->estatus) || $oficio->estatus == 'Recibido') ? 'bg-blue-100 text-blue-700' : '' }}
+                                                {{ $oficio->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                {{ $oficio->estatus == 'En Proceso' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                {{ $oficio->estatus == 'Atendido' ? 'bg-purple-100 text-purple-700' : '' }}
+                                                {{ $oficio->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                {{ $oficio->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
+                                            ">
+                                                {{ $oficio->estatus ?? 'Pendiente' }}
+                                            </span>
+                                            @if($oficio->estatus == 'Cancelado' && $oficio->motivo_cancelacion)
+                                                <p class="text-[9px] text-red-500 mt-1 font-bold italic line-clamp-2 max-w-[150px] mx-auto" title="{{ $oficio->motivo_cancelacion }}">
+                                                    Motivo: {{ $oficio->motivo_cancelacion }}
+                                                </p>
+                                            @endif
+                                        </td>
+
                                         <td class="px-6 py-4 text-center space-x-2 whitespace-nowrap">
-                                            <a href="{{ route('oficios.vistaTurnado', $oficio->id) }}"
-                                                class="inline-block bg-guinda-ceaa text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa-hover transition duration-150 hover:shadow-sm">
-                                                Turnar
-                                            </a>
+                                            @if(empty($oficio->estatus) || $oficio->estatus == 'Recibido')
+                                                <a href="{{ route('oficios.vistaTurnado', $oficio->id) }}"
+                                                    class="inline-block bg-guinda-ceaa text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa-hover transition duration-150 hover:shadow-sm">
+                                                    Turnar
+                                                </a>
+                                            @endif
                                             @if(in_array(Auth::user()->role, ['admin', 'correspondencia', 'recepcionista']))
                                                 <a href="{{ route('oficios.edit', $oficio->id) }}"
                                                     class="inline-block bg-gris-oscuro text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa transition duration-150 hover:shadow-sm">
                                                     Editar
                                                 </a>
                                             @endif
-                                            @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
+                                            @if($oficio->estatus !== 'Cancelado' && in_array(Auth::user()->role, ['admin', 'correspondencia']))
                                                 <button type="button" @click="showCancelModal = true; cancelOficioId = {{ $oficio->id }}; cancelOficioNumero = '{{ $oficio->numero_oficio }}'"
                                                     class="inline-block bg-red-600 text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-red-700 transition duration-150 hover:shadow-sm">
                                                     Cancelar
@@ -73,7 +141,7 @@
                                      </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">
+                                        <td colspan="5" class="px-6 py-12 text-center text-gray-400 italic">
                                             No se encontraron oficios registrados.
                                         </td>
                                     </tr>
@@ -83,7 +151,7 @@
                     </div>
 
                     <div class="mt-6">
-                        {{ $oficios->links() }}
+                        {{ $oficios->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
