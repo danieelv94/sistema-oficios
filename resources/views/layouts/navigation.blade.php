@@ -241,7 +241,7 @@
                         </svg>
                         <span>Módulo Avisos</span>
                     </div>
-                    @if(in_array(Auth::user()->role, ['admin', 'secretaria_area']))
+                    @if(in_array(Auth::user()->role, ['admin', 'secretaria_area', 'jefe_area']))
                         <a href="{{ route('avisos.index') }}"
                             class="block pl-10 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-white transition">
                             Historial Avisos
