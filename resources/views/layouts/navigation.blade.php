@@ -146,7 +146,7 @@
 
                     <div x-show="openDropdownAvisos && openSidebar" x-transition
                         class="pl-11 space-y-1 bg-gray-950 rounded-md py-1">
-                        @if(in_array(Auth::user()->role, ['admin', 'secretaria_area']))
+                        @if(in_array(Auth::user()->role, ['admin', 'secretaria_area', 'jefe_area']))
                             <a href="{{ route('avisos.index') }}"
                                 class="block py-2 text-xs font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('avisos.index') ? 'text-white font-bold' : '' }}">
                                 Historial Avisos
