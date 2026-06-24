@@ -7,6 +7,8 @@ use App\Models\Area;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class OficioController extends Controller
 {
@@ -162,11 +164,35 @@ class OficioController extends Controller
 
         foreach ($request->areas as $index => $area_id) {
             if ($area_id) {
+                $instruccion = $request->instrucciones[$index];
+
                 // Usamos attach para añadir sin borrar lo anterior
                 $oficio->areas()->attach($area_id, [
-                    'instruccion' => $request->instrucciones[$index],
+                    'instruccion' => $instruccion,
                     'estatus' => 'Turnado'
                 ]);
+
+                // Notificar a secretaria_area del área turnada
+                $secretarias = User::where('area_id', $area_id)
+                    ->where('role', 'secretaria_area')
+                    ->get();
+
+                foreach ($secretarias as $secretaria) {
+                    $data = [
+                        'oficio' => $oficio,
+                        'instruccion' => $instruccion,
+                        'usuario' => $secretaria,
+                    ];
+
+                    try {
+                        Mail::send('emails.oficio_turnado', $data, function ($message) use ($secretaria, $oficio) {
+                            $message->to($secretaria->email)
+                                ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Turnado - No. ' . $oficio->numero_oficio);
+                        });
+                    } catch (\Exception $e) {
+                        Log::error("Error al enviar correo de oficio turnado a {$secretaria->email}: " . $e->getMessage());
+                    }
+                }
             }
         }
 
@@ -240,6 +266,27 @@ class OficioController extends Controller
             ->update($updateData);
 
         $oficio->update(['estatus' => 'En Proceso']);
+
+        // Notificar al usuario asignado por correo
+        $assignedUser = User::find($request->user_id);
+        if ($assignedUser) {
+            $folioInterno = $updateData['folio_interno'] ?? $areaOficio->folio_interno;
+            $data = [
+                'usuario' => $assignedUser,
+                'oficio' => $oficio,
+                'folio_interno' => $folioInterno,
+                'instruccion' => $areaOficio->instruccion,
+            ];
+
+            try {
+                Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                    $message->to($assignedUser->email)
+                        ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Asignado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                });
+            } catch (\Exception $e) {
+                Log::error("Error al enviar correo de oficio asignado a {$assignedUser->email}: " . $e->getMessage());
+            }
+        }
 
         return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio asignado y estatus actualizado.');
     }
