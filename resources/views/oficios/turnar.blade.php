@@ -2,7 +2,19 @@
     <div class="py-12 bg-gray-50">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-guinda-ceaa">
-                <h2 class="text-xl font-black uppercase mb-6">Turnar Oficio: {{ $oficio->numero_oficio }}</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-black uppercase">Turnar Oficio: {{ $oficio->numero_oficio }}</h2>
+                    @if($oficio->pdf_path)
+                        <a href="{{ asset('storage/' . $oficio->pdf_path) }}" target="_blank"
+                            class="inline-flex items-center px-4 py-2 bg-red-700 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-red-800 shadow-md transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Ver PDF
+                        </a>
+                    @endif
+                </div>
 
                 <form action="{{ route('oficios.turnar', $oficio) }}" method="POST"
                     x-data="{ turnos: [{area_id: '', instruccion: ''}] }">

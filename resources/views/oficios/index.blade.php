@@ -95,9 +95,13 @@
                             <tbody class="divide-y divide-gray-100 bg-white">
                                 @forelse($oficios as $oficio)
                                     <tr class="hover:bg-gray-50/80 transition duration-150">
-                                        <td class="px-6 py-4 font-bold text-gray-900">{{ $oficio->numero_oficio }}</td>
+                                        <td class="px-6 py-4 font-bold text-gray-900">
+                                            <a href="{{ route('oficios.show', $oficio->id) }}" class="hover:underline text-guinda-ceaa font-black" title="Ver detalles del oficio">
+                                                {{ $oficio->numero_oficio }}
+                                            </a>
+                                        </td>
                                         <td class="px-6 py-4 text-gray-700 font-medium">{{ $oficio->remitente }}</td>
-                                        <td class="px-6 py-4 text-gray-500 max-w-xs truncate">{{ $oficio->asunto }}</td>
+                                        <td class="px-6 py-4 text-gray-500 max-w-xs truncate" title="{{ $oficio->asunto }}">{{ $oficio->asunto }}</td>
                                         
                                         {{-- Estatus Badge --}}
                                         <td class="px-6 py-4 text-center">
@@ -119,6 +123,13 @@
                                         </td>
 
                                         <td class="px-6 py-4 text-center space-x-2 whitespace-nowrap">
+                                            @if($oficio->pdf_path)
+                                                <a href="{{ asset('storage/' . $oficio->pdf_path) }}" target="_blank"
+                                                    class="inline-block bg-red-700 text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-red-800 transition duration-150 hover:shadow-sm"
+                                                    title="Ver PDF original">
+                                                    PDF
+                                                </a>
+                                            @endif
                                             @if(empty($oficio->estatus) || $oficio->estatus == 'Recibido')
                                                 <a href="{{ route('oficios.vistaTurnado', $oficio->id) }}"
                                                     class="inline-block bg-guinda-ceaa text-white px-4 py-2 rounded-lg font-black uppercase text-[10px] tracking-wider hover:bg-guinda-ceaa-hover transition duration-150 hover:shadow-sm">
