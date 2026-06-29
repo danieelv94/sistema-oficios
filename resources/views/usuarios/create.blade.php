@@ -78,7 +78,7 @@
                                 <select name="subarea_id" id="subarea_id" x-model="selectedSubarea"
                                     class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                     :required="selectedRole === 'subdirector'">
-                                    <option value="">-- Selecciona una Subdirección --</option>
+                                    <option value="">-- Ninguna (Pertenece directamente al Director) --</option>
                                     <template x-for="sub in subareas" :key="sub.id">
                                         <option :value="sub.id" 
                                                 :disabled="selectedRole === 'subdirector' && isSubdirectorOccupied(sub.id)"
@@ -87,6 +87,10 @@
                                         </option>
                                     </template>
                                 </select>
+                            </div>
+
+                            <div x-show="selectedArea !== '' && subareas.length === 0" class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500">
+                                <span class="font-bold text-gray-700">Nota:</span> Esta dirección no cuenta con subdirecciones. El personal pertenecerá directamente al Director (Jefe de Área).
                             </div>
 
                             <div>

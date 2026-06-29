@@ -93,6 +93,55 @@ $htmlSeguimiento = $responseSeguimiento->render();
 $hasSubareasInTracking = strpos($htmlSeguimiento, 'Subdirección de Informática y Transparencia:') !== false;
 echo "5. Tracking page displays subarea name for turn? " . ($hasSubareasInTracking ? 'SÍ ✅' : 'NO ❌') . "\n";
 
+// === Test 3: Direct User Assignment ===
+echo "\n=== Test 3: Direct User Assignment ===\n";
+
+// Find or create a direct user in Area 2 (Management area)
+$directUser = User::where('area_id', 2)->whereNull('subarea_id')->where('role', 'user')->first();
+$tempDirectUser = false;
+if (!$directUser) {
+    $directUser = User::create([
+        'name' => 'Temp Direct Operative',
+        'email' => 'temp_direct_op@ceaa.gob.mx',
+        'password' => bcrypt('password'),
+        'role' => 'user',
+        'area_id' => 2,
+        'subarea_id' => null
+    ]);
+    $tempDirectUser = true;
+}
+
+// Prepare request for assigning
+$requestAssign = new \Illuminate\Http\Request();
+$requestAssign->merge([
+    'pivote_id' => 41,
+    'subarea_ids' => ['user_' . $directUser->id]
+]);
+
+// Call asignar
+$controller->asignar($requestAssign, $oficio);
+
+// Check if assignment exists
+$assignment = SubareaOficio::where('area_oficio_id', 41)
+    ->whereNull('subarea_id')
+    ->where('user_id', $directUser->id)
+    ->first();
+
+echo "6. Direct user assignment record created in DB? " . ($assignment ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+// Render show view and verify "Atención Directa" is shown
+$responseShow = $controller->show(new \Illuminate\Http\Request(), $oficio);
+$htmlShow = $responseShow->render();
+
+$hasAtencionDirecta = strpos($htmlShow, 'Atención Directa:') !== false && strpos($htmlShow, $directUser->name) !== false;
+echo "7. Show view displays Atención Directa text? " . ($hasAtencionDirecta ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+// Clean up Test 3
+SubareaOficio::where('area_oficio_id', 41)->delete();
+if ($tempDirectUser) {
+    $directUser->delete();
+}
+
 // Cleanup database
 SubareaOficio::where('area_oficio_id', $pivotId)->delete();
 if ($correspondenciaUser->name === 'Temp Correspondencia') {

@@ -150,6 +150,7 @@ class OficioController extends Controller
         // Cargamos las subdirecciones asignadas (subarea_oficio) por cada area_oficio
         $subareaOficiosPorArea = [];
         $subareasDisponiblesPorArea = [];
+        $personalDirectoDisponiblesPorArea = [];
         $personalPorSubarea = [];
         foreach ($oficio->areas as $areaTurnada) {
             $pivoteId = $areaTurnada->pivot->id;
@@ -163,6 +164,17 @@ class OficioController extends Controller
             $subareasDisponiblesPorArea[$pivoteId] = \App\Models\Subarea::where('area_id', $areaTurnada->id)
                 ->whereNotIn('id', $subareasAsignadasIds)
                 ->get();
+
+            // Personal directo (sin subdirección) de esta Dirección
+            $assignedUserIds = $subareaOficios->whereNull('subarea_id')->pluck('user_id')->toArray();
+            $queryDirecto = User::where('area_id', $areaTurnada->id)
+                ->where('role', 'user')
+                ->whereNull('subarea_id')
+                ->orderBy('name', 'asc');
+            if (!empty($assignedUserIds)) {
+                $queryDirecto->whereNotIn('id', $assignedUserIds);
+            }
+            $personalDirectoDisponiblesPorArea[$pivoteId] = $queryDirecto->get();
 
             // Personal operativo por subdirección para delegación del subdirector
             foreach ($subareaOficios as $so) {
@@ -211,7 +223,7 @@ class OficioController extends Controller
 
         return view('oficios.show', compact(
             'oficio', 'areasDisponibles', 'personalPorArea', 'turnosParaMostrar', 'mode', 'respuestas',
-            'subareaOficiosPorArea', 'subareasDisponiblesPorArea', 'personalPorSubarea'
+            'subareaOficiosPorArea', 'subareasDisponiblesPorArea', 'personalPorSubarea', 'personalDirectoDisponiblesPorArea'
         ));
     }
 
@@ -296,10 +308,8 @@ class OficioController extends Controller
             return back()->with('error', 'Registro de turno no encontrado.');
         }
 
-        $hasSubareas = \App\Models\Subarea::where('area_id', $areaOficio->area_id)->exists();
-
-        // --- Caso 1: Área CON subdirecciones → asignar a subdirecciones vía checkboxes o al Director ---
-        if ($hasSubareas && $request->has('subarea_ids')) {
+        // --- Caso 1: Asignar a destinatarios vía checkboxes (subdirecciones, Director o personal directo) ---
+        if ($request->has('subarea_ids')) {
             $request->validate([
                 'subarea_ids' => 'required|array|min:1',
                 'pivote_id' => 'required|exists:area_oficio,id',
@@ -366,6 +376,49 @@ class OficioController extends Controller
                             });
                         } catch (\Exception $e) {
                             Log::error("Error al enviar correo a director {$director->email}: " . $e->getMessage());
+                        }
+                    }
+                } elseif (strpos($subareaId, 'user_') === 0) {
+                    $userId = (int) str_replace('user_', '', $subareaId);
+                    
+                    // Evitar duplicados
+                    $exists = \App\Models\SubareaOficio::where('area_oficio_id', $pivoteId)
+                        ->whereNull('subarea_id')
+                        ->where('user_id', $userId)
+                        ->exists();
+                    if ($exists) {
+                        continue;
+                    }
+
+                    $user = User::find($userId);
+                    if (!$user || $user->area_id != $areaOficio->area_id) {
+                        continue; // Seguridad: solo personal de la misma área
+                    }
+
+                    \App\Models\SubareaOficio::create([
+                        'area_oficio_id' => $pivoteId,
+                        'subarea_id' => null,
+                        'user_id' => $userId,
+                        'instruccion' => $areaOficio->instruccion,
+                        'estatus' => 'Asignado',
+                    ]);
+
+                    // Notificar al usuario por correo
+                    if ($user) {
+                        $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
+                        $data = [
+                            'usuario' => $user,
+                            'oficio' => $oficio,
+                            'folio_interno' => $folioInterno,
+                            'instruccion' => $areaOficio->instruccion,
+                        ];
+                        try {
+                            Mail::send('emails.oficio_asignado', $data, function ($message) use ($user, $oficio, $folioInterno) {
+                                $message->to($user->email)
+                                    ->subject('[' . $oficio->prioridad . '] Oficio asignado a su atención - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                            });
+                        } catch (\Exception $e) {
+                            Log::error("Error al enviar correo a usuario {$user->email}: " . $e->getMessage());
                         }
                     }
                 } else {

@@ -118,21 +118,16 @@
                     </div>
                     @foreach($turnosParaMostrar as $area)
                         @php
-                            $hasSubareas = \App\Models\Subarea::where('area_id', $area->id)->exists();
-                            if ($hasSubareas) {
-                                $mySubareaOficiosQuery = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id);
-                                if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
-                                    $mySubareaOficiosQuery->where('subarea_id', Auth::user()->subarea_id);
-                                } else {
-                                    $mySubareaOficiosQuery->where('user_id', Auth::id());
-                                }
-                                $mySubareaOficios = $mySubareaOficiosQuery->get();
+                            $mySubareaOficiosQuery = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id);
+                            if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
+                                $mySubareaOficiosQuery->where('subarea_id', Auth::user()->subarea_id);
                             } else {
-                                $mySubareaOficios = collect();
+                                $mySubareaOficiosQuery->where('user_id', Auth::id());
                             }
+                            $mySubareaOficios = $mySubareaOficiosQuery->get();
                         @endphp
 
-                        @if($hasSubareas)
+                        @if($mySubareaOficios->isNotEmpty())
                             @foreach($mySubareaOficios as $mySubareaOficio)
                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                                     <div class="flex-1">
@@ -327,18 +322,28 @@
                                             <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Folio Interno:</span> <span class="font-bold text-gris-oscuro">{{ $area->pivot->folio_interno }}</span></p>
                                         @endif
 
-                                        @if($hasSubareas)
-                                            {{-- Renderizar asignaciones de subdirección en modo gestion --}}
+                                        @if($subareaAssignments->isNotEmpty())
+                                            {{-- Renderizar asignaciones de subdirección o personal directo en modo gestion --}}
                                             <div class="mt-4 space-y-2 pl-4 border-l-2 border-gray-200">
-                                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Subdirecciones Asignadas:</p>
-                                                @forelse($subareaAssignments as $subareaOficio)
+                                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Destinatarios Asignados:</p>
+                                                @foreach($subareaAssignments as $subareaOficio)
                                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-2 rounded border border-gray-150 text-xs shadow-sm gap-2">
                                                         <div>
-                                                            <span class="font-bold text-gray-800">{{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}</span>
-                                                            @if($subareaOficio->user)
-                                                                <span class="text-gray-500 font-medium"> (Responsable: {{ $subareaOficio->user->name }})</span>
-                                                            @else
-                                                                <span class="text-gray-400 italic"> (Sin delegar)</span>
+                                                            <span class="font-bold text-gray-800">
+                                                                @if($subareaOficio->subarea)
+                                                                    {{ $subareaOficio->subarea->name }}
+                                                                @elseif($subareaOficio->user && $subareaOficio->user->role === 'jefe_area')
+                                                                    Director (Jefe de Área)
+                                                                @else
+                                                                    Atención Directa: {{ $subareaOficio->user->name ?? 'N/A' }}
+                                                                @endif
+                                                            </span>
+                                                            @if($subareaOficio->subarea)
+                                                                @if($subareaOficio->user)
+                                                                    <span class="text-gray-500 font-medium"> (Responsable: {{ $subareaOficio->user->name }})</span>
+                                                                @else
+                                                                    <span class="text-gray-400 italic"> (Sin delegar)</span>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                         <div class="flex items-center gap-2">
@@ -351,9 +356,7 @@
                                                             </span>
                                                         </div>
                                                     </div>
-                                                @empty
-                                                    <p class="text-xs text-gray-400 italic">Ninguna subdirección asignada aún.</p>
-                                                @endforelse
+                                                @endforeach
                                             </div>
                                         @else
                                             <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Responsable:</span> <span class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span></p>
@@ -383,84 +386,48 @@
                                             </form>
                                         @endif
 
-                                        @if($hasSubareas)
-                                            {{-- Formulario para asignar a subdirecciones (checkboxes) o Director --}}
-                                            @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
-                                                @php
-                                                    $isDirectorAssigned = $subareaAssignments->contains(fn($sa) => is_null($sa->subarea_id));
-                                                @endphp
-                                                @if(count($subareasDisponibles) > 0 || !$isDirectorAssigned)
-                                                    <form action="{{ route('oficios.asignar', $oficio) }}" method="POST" class="flex flex-col gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-md w-full max-w-sm">
-                                                        @csrf @method('PUT')
-                                                        <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
-                                                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Asignar Destinatarios:</p>
-                                                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                                                            @if(!$isDirectorAssigned)
-                                                                <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
-                                                                    <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
-                                                                    <div class="text-left">
-                                                                        <p class="text-[11px] font-black text-gray-800">Director (Jefe de Área)</p>
-                                                                        <p class="text-[9px] text-gray-400">Atención directa por parte del titular</p>
-                                                                    </div>
-                                                                </label>
-                                                            @endif
-                                                            @foreach($subareasDisponibles as $subarea)
-                                                                <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
-                                                                    <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
-                                                                    <div class="text-left">
-                                                                        <p class="text-[11px] font-black text-gray-800">{{ $subarea->name }}</p>
-                                                                        <p class="text-[9px] text-gray-400">Delegar trabajo a esta subdirección</p>
-                                                                    </div>
-                                                                </label>
-                                                            @endforeach
-                                                        </div>
-                                                        <button type="submit" class="w-full bg-gris-oscuro hover:bg-guinda-ceaa text-white py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition shadow-sm hover:shadow-md">
-                                                            Confirmar Asignación
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            @endif
-                                        @else
-                                            {{-- Formulario original de un solo responsable para áreas sin subdirecciones --}}
-                                            @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
-                                                <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
-                                                    class="flex items-center space-x-2 flex-wrap gap-y-1"
-                                                    x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">
+                                        {{-- Formulario para asignar a subdirecciones, Director o Personal Directo --}}
+                                        @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
+                                            @php
+                                                $isDirectorAssigned = $subareaAssignments->contains(fn($sa) => is_null($sa->subarea_id) && $sa->user && $sa->user->role === 'jefe_area');
+                                                $directosDisponibles = $personalDirectoDisponiblesPorArea[$area->pivot->id] ?? collect();
+                                            @endphp
+                                            @if(count($subareasDisponibles) > 0 || !$isDirectorAssigned || count($directosDisponibles) > 0)
+                                                <form action="{{ route('oficios.asignar', $oficio) }}" method="POST" class="flex flex-col gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-md w-full max-w-sm">
                                                     @csrf @method('PUT')
                                                     <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
-                                                    <select name="user_id"
-                                                        class="text-xs rounded border-gray-300 focus:ring-gris-oscuro disabled:bg-gray-100 disabled:text-gray-500"
-                                                        :disabled="!isEditing" required>
-                                                        <option value="">Asignar a...</option>
-                                                        @foreach($personalPorArea[$area->id] ?? [] as $persona)
-                                                            <option value="{{ $persona->id }}" {{ $area->pivot->user_id == $persona->id ? 'selected' : '' }}>
-                                                                {{ $persona->name }}
-                                                                @if($persona->role === 'jefe_area')
-                                                                    - Director
-                                                                @elseif($persona->subarea)
-                                                                    - {{ $persona->subarea->name }}
-                                                                @elseif($persona->cargo)
-                                                                    - {{ $persona->cargo }}
-                                                                @endif
-                                                            </option>
+                                                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Asignar Destinatarios:</p>
+                                                    <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                                                        @if(!$isDirectorAssigned)
+                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
+                                                                <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                <div class="text-left">
+                                                                    <p class="text-[11px] font-black text-gray-800">Director (Jefe de Área)</p>
+                                                                    <p class="text-[9px] text-gray-400">Atención directa por parte del titular</p>
+                                                                </div>
+                                                            </label>
+                                                        @endif
+                                                        @foreach($subareasDisponibles as $subarea)
+                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
+                                                                <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                <div class="text-left">
+                                                                    <p class="text-[11px] font-black text-gray-800">{{ $subarea->name }}</p>
+                                                                    <p class="text-[9px] text-gray-400">Delegar trabajo a esta subdirección</p>
+                                                                </div>
+                                                            </label>
                                                         @endforeach
-                                                    </select>
-
-                                                    <button type="submit" x-show="isEditing"
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                        Asignar
-                                                    </button>
-
-                                                    @if($area->pivot->user_id)
-                                                        <button type="button" x-show="isEditing" @click="isEditing = false"
-                                                            class="bg-gray-400 hover:bg-gray-500 text-white px-2 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                            Cancelar
-                                                        </button>
-                                                    @endif
-
-                                                    <button type="button" x-show="!isEditing" @click="isEditing = true"
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                        Reasignar
+                                                        @foreach($directosDisponibles as $directo)
+                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
+                                                                <input type="checkbox" name="subarea_ids[]" value="user_{{ $directo->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                <div class="text-left">
+                                                                    <p class="text-[11px] font-black text-gray-800">{{ $directo->name }}</p>
+                                                                    <p class="text-[9px] text-gray-400">Personal adscrito directamente a Dirección</p>
+                                                                </div>
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                    <button type="submit" class="w-full bg-gris-oscuro hover:bg-guinda-ceaa text-white py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition shadow-sm hover:shadow-md">
+                                                        Confirmar Asignación
                                                     </button>
                                                 </form>
                                             @endif
