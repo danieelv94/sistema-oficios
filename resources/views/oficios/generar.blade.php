@@ -202,10 +202,38 @@
                 Turnado A:</h2>
             @forelse($turnosParaImprimir as $area)
                 @php
-                    $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
                     $subareasAsignadas = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
                         ->with('subarea', 'user')
                         ->get();
+
+                    $displayInstruccion = $area->pivot->instruccion;
+                    $displayDestinatarioName = 'Responsable del Área';
+                    $displayDestinatarioCargo = null;
+
+                    if (isset($subareaOficio) && $subareaOficio) {
+                        $displayInstruccion = $subareaOficio->instruccion;
+                        if ($subareaOficio->user) {
+                            $displayDestinatarioName = ($subareaOficio->user->prof ? $subareaOficio->user->prof . ' ' : '') . $subareaOficio->user->name;
+                            $displayDestinatarioCargo = $subareaOficio->user->cargo ?: ($subareaOficio->subarea ? $subareaOficio->subarea->name : 'Personal');
+                        } elseif ($subareaOficio->subarea) {
+                            $subdirector = \App\Models\User::where('subarea_id', $subareaOficio->subarea_id)
+                                ->where('role', 'subdirector')
+                                ->first();
+                            if ($subdirector) {
+                                $displayDestinatarioName = ($subdirector->prof ? $subdirector->prof . ' ' : '') . $subdirector->name;
+                                $displayDestinatarioCargo = $subdirector->cargo ?: $subareaOficio->subarea->name;
+                            } else {
+                                $displayDestinatarioName = $subareaOficio->subarea->name;
+                                $displayDestinatarioCargo = 'Responsable de la Subdirección';
+                            }
+                        }
+                    } else {
+                        $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
+                        if ($userAsignado) {
+                            $displayDestinatarioName = ($userAsignado->prof ? $userAsignado->prof . ' ' : '') . $userAsignado->name;
+                            $displayDestinatarioCargo = $userAsignado->cargo;
+                        }
+                    }
                 @endphp
                 <div class="mb-4 pl-4 border-l-4 border-guinda-ceaa bg-white">
                     <div class="flex justify-between items-start">
@@ -216,18 +244,12 @@
                         @endif
                     </div>
                     <p class="text-xs text-gray-600 mt-1"><strong class="text-gray-800 uppercase">Instrucción:</strong>
-                        <span class="font-black text-guinda-ceaa">{{ $area->pivot->instruccion }}</span></p>
+                        <span class="font-black text-guinda-ceaa">{{ $displayInstruccion }}</span></p>
                     <p class="text-xs text-gray-600 mt-1">
                         <strong class="text-gray-800 uppercase">Destinatario (Para Atención):</strong>
-                        @if($userAsignado)
-                            <span class="font-black text-gray-900">{{ $userAsignado->prof }} {{ $userAsignado->name }}</span>
-                            @if($userAsignado->cargo)
-                                <span class="block text-[10px] text-gray-500 font-semibold mt-0.5">{{ $userAsignado->cargo }}</span>
-                            @else
-                                <span class="block text-[10px] text-gray-400 italic mt-0.5">Personal CEAA</span>
-                            @endif
-                        @else
-                            <span class="font-bold text-gray-500 italic">Responsable del Área</span>
+                        <span class="font-black text-gray-900">{{ $displayDestinatarioName }}</span>
+                        @if($displayDestinatarioCargo)
+                            <span class="block text-[10px] text-gray-500 font-semibold mt-0.5">{{ $displayDestinatarioCargo }}</span>
                         @endif
                     </p>
 

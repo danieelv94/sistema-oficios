@@ -147,7 +147,7 @@
                                                 </button>
                                             </form>
                                         @elseif($mySubareaOficio->estatus == 'Notificado')
-                                            <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-3 flex-wrap">
                                                 <span
                                                     class="bg-dorado-ocre/10 text-dorado-ocre px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,16 +160,38 @@
                                                     class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
                                                     Atender
                                                 </a>
+                                                @if($area->pivot->folio_interno)
+                                                    <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id, 'subarea_oficio_id' => $mySubareaOficio->id]) }}"
+                                                        target="_blank"
+                                                        class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102 flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                        </svg>
+                                                        Imprimir
+                                                    </a>
+                                                @endif
                                             </div>
                                         @elseif($mySubareaOficio->estatus == 'Solventado')
-                                            <span
-                                                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                        d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Atendido / Solventado
-                                            </span>
+                                            <div class="flex items-center gap-3">
+                                                <span
+                                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                            d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Atendido / Solventado
+                                                </span>
+                                                @if($area->pivot->folio_interno)
+                                                    <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id, 'subarea_oficio_id' => $mySubareaOficio->id]) }}"
+                                                        target="_blank"
+                                                        class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102 flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                        </svg>
+                                                        Imprimir
+                                                    </a>
+                                                @endif
+                                            </div>
                                         @endif
 
                                         {{-- Formulario de delegación para el Subdirector dentro de su subdirección --}}
@@ -354,6 +376,16 @@
                                                             ">
                                                                 {{ $subareaOficio->estatus }}
                                                             </span>
+                                                            @if($area->pivot->folio_interno)
+                                                                <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id, 'subarea_oficio_id' => $subareaOficio->id]) }}"
+                                                                    target="_blank"
+                                                                    title="Imprimir Turno Destinatario"
+                                                                    class="text-gray-400 hover:text-gris-oscuro transition">
+                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                                    </svg>
+                                                                </a>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -399,31 +431,88 @@
                                                     <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Asignar Destinatarios:</p>
                                                     <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                                                         @if(!$isDirectorAssigned)
-                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
-                                                                <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
-                                                                <div class="text-left">
-                                                                    <p class="text-[11px] font-black text-gray-800">Director (Jefe de Área)</p>
-                                                                    <p class="text-[9px] text-gray-400">Atención directa por parte del titular</p>
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                                <label class="flex items-center cursor-pointer">
+                                                                    <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">Director (Jefe de Área)</p>
+                                                                        <p class="text-[9px] text-gray-400">Atención directa por parte del titular</p>
+                                                                    </div>
+                                                                </label>
+                                                                <div>
+                                                                    <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
+                                                                    <select name="instruccion_director"
+                                                                        class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                        <option value="">-- Usar instrucción del Oficio --</option>
+                                                                        <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
+                                                                        <option value="Atender conforme a lo especificado" {{ $area->pivot->instruccion == 'Atender conforme a lo especificado' ? 'selected' : '' }}>2. Atender conforme a lo especificado</option>
+                                                                        <option value="Verificar antes de contestar oficio" {{ $area->pivot->instruccion == 'Verificar antes de contestar oficio' ? 'selected' : '' }}>3. Verificar antes de contestar oficio</option>
+                                                                        <option value="Conocimiento y Efectos" {{ $area->pivot->instruccion == 'Conocimiento y Efectos' ? 'selected' : '' }}>4. Conocimiento y Efectos</option>
+                                                                        <option value="Enviar a organismos Operadores" {{ $area->pivot->instruccion == 'Enviar a organismos Operadores' ? 'selected' : '' }}>5. Enviar a organismos Operadores</option>
+                                                                        <option value="Asistir e Informar" {{ $area->pivot->instruccion == 'Asistir e Informar' ? 'selected' : '' }}>6. Asistir e Informar</option>
+                                                                        <option value="Estudio y Opinion" {{ $area->pivot->instruccion == 'Estudio y Opinion' ? 'selected' : '' }}>7. Estudio y Opinion</option>
+                                                                        <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
+                                                                        <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
+                                                                        <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                    </select>
                                                                 </div>
-                                                            </label>
+                                                            </div>
                                                         @endif
                                                         @foreach($subareasDisponibles as $subarea)
-                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
-                                                                <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
-                                                                <div class="text-left">
-                                                                    <p class="text-[11px] font-black text-gray-800">{{ $subarea->name }}</p>
-                                                                    <p class="text-[9px] text-gray-400">Delegar trabajo a esta subdirección</p>
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                                <label class="flex items-center cursor-pointer">
+                                                                    <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">{{ $subarea->name }}</p>
+                                                                        <p class="text-[9px] text-gray-400">Delegar trabajo a esta subdirección</p>
+                                                                    </div>
+                                                                </label>
+                                                                <div>
+                                                                    <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
+                                                                    <select name="instruccion_{{ $subarea->id }}"
+                                                                        class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                        <option value="">-- Usar instrucción del Oficio --</option>
+                                                                        <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
+                                                                        <option value="Atender conforme a lo especificado" {{ $area->pivot->instruccion == 'Atender conforme a lo especificado' ? 'selected' : '' }}>2. Atender conforme a lo especificado</option>
+                                                                        <option value="Verificar antes de contestar oficio" {{ $area->pivot->instruccion == 'Verificar antes de contestar oficio' ? 'selected' : '' }}>3. Verificar antes de contestar oficio</option>
+                                                                        <option value="Conocimiento y Efectos" {{ $area->pivot->instruccion == 'Conocimiento y Efectos' ? 'selected' : '' }}>4. Conocimiento y Efectos</option>
+                                                                        <option value="Enviar a organismos Operadores" {{ $area->pivot->instruccion == 'Enviar a organismos Operadores' ? 'selected' : '' }}>5. Enviar a organismos Operadores</option>
+                                                                        <option value="Asistir e Informar" {{ $area->pivot->instruccion == 'Asistir e Informar' ? 'selected' : '' }}>6. Asistir e Informar</option>
+                                                                        <option value="Estudio y Opinion" {{ $area->pivot->instruccion == 'Estudio y Opinion' ? 'selected' : '' }}>7. Estudio y Opinion</option>
+                                                                        <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
+                                                                        <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
+                                                                        <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                    </select>
                                                                 </div>
-                                                            </label>
+                                                            </div>
                                                         @endforeach
                                                         @foreach($directosDisponibles as $directo)
-                                                            <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
-                                                                <input type="checkbox" name="subarea_ids[]" value="user_{{ $directo->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
-                                                                <div class="text-left">
-                                                                    <p class="text-[11px] font-black text-gray-800">{{ $directo->name }}</p>
-                                                                    <p class="text-[9px] text-gray-400">Personal adscrito directamente a Dirección</p>
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                                <label class="flex items-center cursor-pointer">
+                                                                    <input type="checkbox" name="subarea_ids[]" value="user_{{ $directo->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">{{ $directo->name }}</p>
+                                                                        <p class="text-[9px] text-gray-400">Personal adscrito directamente a Dirección</p>
+                                                                    </div>
+                                                                </label>
+                                                                <div>
+                                                                    <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
+                                                                    <select name="instruccion_user_{{ $directo->id }}"
+                                                                        class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                        <option value="">-- Usar instrucción del Oficio --</option>
+                                                                        <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
+                                                                        <option value="Atender conforme a lo especificado" {{ $area->pivot->instruccion == 'Atender conforme a lo especificado' ? 'selected' : '' }}>2. Atender conforme a lo especificado</option>
+                                                                        <option value="Verificar antes de contestar oficio" {{ $area->pivot->instruccion == 'Verificar antes de contestar oficio' ? 'selected' : '' }}>3. Verificar antes de contestar oficio</option>
+                                                                        <option value="Conocimiento y Efectos" {{ $area->pivot->instruccion == 'Conocimiento y Efectos' ? 'selected' : '' }}>4. Conocimiento y Efectos</option>
+                                                                        <option value="Enviar a organismos Operadores" {{ $area->pivot->instruccion == 'Enviar a organismos Operadores' ? 'selected' : '' }}>5. Enviar a organismos Operadores</option>
+                                                                        <option value="Asistir e Informar" {{ $area->pivot->instruccion == 'Asistir e Informar' ? 'selected' : '' }}>6. Asistir e Informar</option>
+                                                                        <option value="Estudio y Opinion" {{ $area->pivot->instruccion == 'Estudio y Opinion' ? 'selected' : '' }}>7. Estudio y Opinion</option>
+                                                                        <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
+                                                                        <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
+                                                                        <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                    </select>
                                                                 </div>
-                                                            </label>
+                                                            </div>
                                                         @endforeach
                                                     </div>
                                                     <button type="submit" class="w-full bg-gris-oscuro hover:bg-guinda-ceaa text-white py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition shadow-sm hover:shadow-md">

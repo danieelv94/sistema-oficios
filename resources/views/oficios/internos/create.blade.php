@@ -97,25 +97,6 @@
                                 </select>
                             </div>
 
-                            {{-- Instrucción --}}
-                            <div>
-                                <x-label for="instruccion" :value="__('Instrucción')" />
-                                <select name="instruccion" id="instruccion" required
-                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-xs">
-                                    <option value="">-- Seleccione Instrucción --</option>
-                                    <option value="Contestar con firma del Director" {{ old('instruccion') == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
-                                    <option value="Atender conforme a lo especificado" {{ old('instruccion') == 'Atender conforme a lo especificado' ? 'selected' : '' }}>2. Atender conforme a lo especificado</option>
-                                    <option value="Verificar antes de contestar oficio" {{ old('instruccion') == 'Verificar antes de contestar oficio' ? 'selected' : '' }}>3. Verificar antes de contestar oficio</option>
-                                    <option value="Conocimiento y Efectos" {{ old('instruccion') == 'Conocimiento y Efectos' || !old('instruccion') ? 'selected' : '' }}>4. Conocimiento y Efectos</option>
-                                    <option value="Enviar a organismos Operadores" {{ old('instruccion') == 'Enviar a organismos Operadores' ? 'selected' : '' }}>5. Enviar a organismos Operadores</option>
-                                    <option value="Asistir e Informar" {{ old('instruccion') == 'Asistir e Informar' ? 'selected' : '' }}>6. Asistir e Informar</option>
-                                    <option value="Estudio y Opinion" {{ old('instruccion') == 'Estudio y Opinion' ? 'selected' : '' }}>7. Estudio y Opinion</option>
-                                    <option value="Enviado de manera oficial" {{ old('instruccion') == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
-                                    <option value="Asesoria" {{ old('instruccion') == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
-                                    <option value="Informar" {{ old('instruccion') == 'Informar' ? 'selected' : '' }}>10. Informar</option>
-                                </select>
-                            </div>
-
                             {{-- Fecha del Oficio --}}
                             <div>
                                 <x-label for="fecha_recepcion" :value="__('Fecha del Oficio')" />
@@ -123,7 +104,7 @@
                             </div>
 
                             {{-- Fecha Límite de Atención (Opcional) --}}
-                            <div>
+                            <div class="md:col-span-2">
                                 <x-label for="fecha_limite" :value="__('Fecha Límite (Opcional)')" />
                                 <x-input id="fecha_limite" class="block mt-1 w-full text-xs" type="date" name="fecha_limite" :value="old('fecha_limite')" />
                             </div>

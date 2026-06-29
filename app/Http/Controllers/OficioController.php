@@ -352,11 +352,12 @@ class OficioController extends Controller
                         ->where('role', 'jefe_area')
                         ->first();
 
+                    $instruccion = $request->input('instruccion_director') ?: $areaOficio->instruccion;
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => null,
                         'user_id' => $director ? $director->id : null,
-                        'instruccion' => $areaOficio->instruccion,
+                        'instruccion' => $instruccion,
                         'estatus' => 'Asignado',
                     ]);
 
@@ -367,7 +368,7 @@ class OficioController extends Controller
                             'usuario' => $director,
                             'oficio' => $oficio,
                             'folio_interno' => $folioInterno,
-                            'instruccion' => $areaOficio->instruccion,
+                            'instruccion' => $instruccion,
                         ];
                         try {
                             Mail::send('emails.oficio_asignado', $data, function ($message) use ($director, $oficio, $folioInterno) {
@@ -395,11 +396,12 @@ class OficioController extends Controller
                         continue; // Seguridad: solo personal de la misma área
                     }
 
+                    $instruccion = $request->input('instruccion_user_' . $userId) ?: $areaOficio->instruccion;
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => null,
                         'user_id' => $userId,
-                        'instruccion' => $areaOficio->instruccion,
+                        'instruccion' => $instruccion,
                         'estatus' => 'Asignado',
                     ]);
 
@@ -410,7 +412,7 @@ class OficioController extends Controller
                             'usuario' => $user,
                             'oficio' => $oficio,
                             'folio_interno' => $folioInterno,
-                            'instruccion' => $areaOficio->instruccion,
+                            'instruccion' => $instruccion,
                         ];
                         try {
                             Mail::send('emails.oficio_asignado', $data, function ($message) use ($user, $oficio, $folioInterno) {
@@ -440,11 +442,12 @@ class OficioController extends Controller
                         ->whereIn('role', ['subdirector', 'admin'])
                         ->first();
 
+                    $instruccion = $request->input('instruccion_' . $subareaId) ?: $areaOficio->instruccion;
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => $subareaId,
                         'user_id' => null, // El subdirector lo asignará después
-                        'instruccion' => $areaOficio->instruccion,
+                        'instruccion' => $instruccion,
                         'estatus' => 'Asignado',
                     ]);
 
@@ -455,7 +458,7 @@ class OficioController extends Controller
                             'usuario' => $subdirector,
                             'oficio' => $oficio,
                             'folio_interno' => $folioInterno,
-                            'instruccion' => $areaOficio->instruccion,
+                            'instruccion' => $instruccion,
                         ];
                         try {
                             Mail::send('emails.oficio_asignado', $data, function ($message) use ($subdirector, $oficio, $folioInterno) {
@@ -604,7 +607,12 @@ class OficioController extends Controller
             });
         }
 
-        return view('oficios.generar', compact('oficio', 'turnosParaImprimir'));
+        $subareaOficio = null;
+        if ($request->filled('subarea_oficio_id')) {
+            $subareaOficio = \App\Models\SubareaOficio::with(['subarea', 'user'])->find($request->subarea_oficio_id);
+        }
+
+        return view('oficios.generar', compact('oficio', 'turnosParaImprimir', 'subareaOficio'));
     }
     public function gestion(Request $request)
     {
@@ -1157,7 +1165,6 @@ class OficioController extends Controller
             'asunto' => 'required|string',
             'fecha_recepcion' => 'required|date',
             'prioridad' => 'required|string',
-            'instruccion' => 'required|string|max:255',
             'archivo_pdf' => 'required|file|mimes:pdf|max:10240',
             'observaciones' => 'nullable|string',
             'remitente' => 'required|string|max:255',
@@ -1209,7 +1216,7 @@ class OficioController extends Controller
         DB::table('area_oficio')->insert([
             'oficio_id' => $oficio->id,
             'area_id' => $areaCaptura->id,
-            'instruccion' => $request->instruccion,
+            'instruccion' => 'Correspondencia Interna Recibida',
             'estatus' => 'Notificado', // Queda recibido para que puedan asignarlo de inmediato
             'folio_interno' => $folio,
             'consecutivo' => $nextConsecutivo,
