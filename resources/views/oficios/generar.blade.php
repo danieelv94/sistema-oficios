@@ -266,41 +266,7 @@
             </section>
         @endif
 
-        {{-- Línea de firmas físicas (Acuse de Recibido en Papel) --}}
-        @php
-            $hasSubareasAsignadas = false;
-            $primerOperativoSubarea = null;
-            foreach ($turnosParaImprimir as $area) {
-                $sub = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
-                    ->whereNotNull('user_id')
-                    ->first();
-                if ($sub) {
-                    $primerOperativoSubarea = $sub->user;
-                    $hasSubareasAsignadas = true;
-                    break;
-                }
-            }
-        @endphp
-        @if(collect($turnosParaImprimir)->contains(fn($area) => !empty($area->pivot->user_id)) || $hasSubareasAsignadas)
-            <div class="mt-20 flex justify-center text-center text-xs">
-                <div>
-                    <p class="font-bold uppercase text-gray-600 text-[10px]">Acuse de Recibido</p>
-                    <div class="signature-line"></div>
-                    @php
-                        if ($primerOperativoSubarea) {
-                            $operativo = $primerOperativoSubarea;
-                        } else {
-                            $primerTurno = collect($turnosParaImprimir)->first(fn($area) => !empty($area->pivot->user_id));
-                            $operativo = $primerTurno ? \App\Models\User::find($primerTurno->pivot->user_id) : null;
-                        }
-                    @endphp
-                    <p class="font-bold text-gray-800">
-                        {{ $operativo ? $operativo->prof . ' ' . $operativo->name : 'Operativo Asignado' }}</p>
-                    <p class="text-[9px] text-gray-400 uppercase font-semibold leading-tight">
-                        {{ $operativo && $operativo->cargo ? $operativo->cargo : 'Personal CEAA' }}</p>
-                </div>
-            </div>
-        @endif
+
 
         {{-- Pie de Página Fijo e Institucional --}}
         <div class="footer-oficio-fijo">

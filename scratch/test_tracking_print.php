@@ -59,7 +59,7 @@ $hasSignatureLine = strpos($html, 'Acuse de Recibido') !== false;
 
 echo "2. Print view displays assigned subarea? " . ($hasSubareaInPrint ? 'SÍ ✅' : 'NO ❌') . "\n";
 echo "3. Print view displays subarea instruction? " . ($hasAssignedUserInPrint ? 'SÍ ✅' : 'NO ❌') . "\n";
-echo "4. Print view displays signature line for subarea? " . ($hasSignatureLine ? 'SÍ ✅' : 'NO ❌') . "\n";
+echo "4. Print view signature line is removed? " . (!$hasSignatureLine ? 'SÍ ✅' : 'NO ❌') . "\n";
 
 // === Test 1b: Print view with MULTIPLE areas (should HIDE subareas/folios) ===
 echo "\n=== Test 1b: Print view with MULTIPLE areas (should HIDE subareas/folios) ===\n";
