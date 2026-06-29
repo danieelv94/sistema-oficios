@@ -47,6 +47,7 @@ $file = UploadedFile::fake()->create('oficio_interno_test.pdf', 100, 'applicatio
 $request = new \Illuminate\Http\Request();
 $request->merge([
     'area_origen_id' => 3, // Sent by Area 3 (Planeación)
+    'numero_origen' => '12/2026',
     'asunto' => 'Asunto de prueba de correspondencia interna entre áreas.',
     'fecha_recepcion' => date('Y-m-d'),
     'prioridad' => 'Ordinaria',
@@ -66,6 +67,7 @@ $createdOficio = Oficio::where('tipo_correspondencia', 'Interna')
 if ($createdOficio) {
     echo "1. Oficio record created successfully? SÍ ✅\n";
     echo "   Folio / Numero Oficio: {$createdOficio->numero_oficio}\n";
+    echo "   Numero Oficio Dependencia (Emisor): {$createdOficio->numero_oficio_dependencia}\n";
     echo "   Remitente: {$createdOficio->remitente}\n";
     echo "   Tipo: {$createdOficio->tipo_correspondencia}\n";
 

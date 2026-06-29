@@ -87,6 +87,18 @@
                                 <x-input id="remitente" class="block mt-1 w-full text-xs" type="text" name="remitente" x-model="remitente" required />
                             </div>
 
+                            {{-- Número de Oficio del Emisor (Origen) --}}
+                            <div>
+                                <x-label for="numero_origen" :value="__('Número de Oficio del Emisor (Origen)')" />
+                                <div class="flex items-center mt-1">
+                                    <span class="inline-flex items-center px-3 py-2.5 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 font-bold text-xs uppercase" x-text="origenPrefix">
+                                        ...-INT-
+                                    </span>
+                                    <x-input id="numero_origen" class="block w-full text-xs rounded-r-md rounded-l-none" type="text" name="numero_origen" :value="old('numero_origen')" placeholder="Ej. 12/2026" required />
+                                </div>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Ingresa el consecutivo del oficio que recibiste</p>
+                            </div>
+
                             {{-- Prioridad --}}
                             <div>
                                 <x-label for="prioridad" :value="__('Prioridad')" />
@@ -104,7 +116,7 @@
                             </div>
 
                             {{-- Fecha Límite de Atención (Opcional) --}}
-                            <div class="md:col-span-2">
+                            <div>
                                 <x-label for="fecha_limite" :value="__('Fecha Límite (Opcional)')" />
                                 <x-input id="fecha_limite" class="block mt-1 w-full text-xs" type="date" name="fecha_limite" :value="old('fecha_limite')" />
                             </div>
@@ -168,6 +180,13 @@
                         return this.areasData[this.selectedArea].folio;
                     }
                     return '--';
+                },
+
+                get origenPrefix() {
+                    if (this.selectedOrigenArea && this.areasData[this.selectedOrigenArea]) {
+                        return this.areasData[this.selectedOrigenArea].prefijo + '-INT-';
+                    }
+                    return '...-INT-';
                 },
 
                 init() {

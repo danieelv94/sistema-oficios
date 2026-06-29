@@ -74,7 +74,7 @@
                             <p class="font-bold text-gray-800 text-base">{{ $oficio->remitente }}</p>
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-gray-400 uppercase">No. Oficio Dependencia</p>
+                            <p class="text-xs font-bold text-gray-400 uppercase">No. Oficio Dependencia/Area</p>
                             <p class="font-bold text-gray-800">{{ $oficio->numero_oficio_dependencia }}</p>
                         </div>
                         <div>

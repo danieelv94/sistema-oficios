@@ -1126,7 +1126,8 @@ class OficioController extends Controller
                 'id' => $area->id,
                 'name' => $area->name,
                 'folio' => $folio,
-                'remitente' => $remitente
+                'remitente' => $remitente,
+                'prefijo' => $prefijo
             ];
         }
 
@@ -1162,6 +1163,7 @@ class OficioController extends Controller
 
         $request->validate([
             'area_origen_id' => 'required|exists:areas,id',
+            'numero_origen' => 'required|string|max:50',
             'asunto' => 'required|string',
             'fecha_recepcion' => 'required|date',
             'prioridad' => 'required|string',
@@ -1172,6 +1174,7 @@ class OficioController extends Controller
         ]);
 
         $areaCaptura = \App\Models\Area::findOrFail($capturingAreaId);
+        $areaOrigen = \App\Models\Area::findOrFail($areaOrigenId);
 
         // Generar el consecutivo y el folio interno definitivos para el área receptora/capturadora
         $currentYear = now()->year;
@@ -1185,6 +1188,20 @@ class OficioController extends Controller
         $nextConsecutivo = max($maxPivotConsecutivo ?? 0, $maxOficioConsecutivo ?? 0) + 1;
         $prefijo = !empty($areaCaptura->prefijo) ? $areaCaptura->prefijo : 'OIC';
         $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+        // Construir el folio completo del emisor/origen
+        $prefijoOrigen = (!empty($areaOrigen->prefijo) ? $areaOrigen->prefijo : 'OIC') . '-INT-';
+        $folioOrigenCompleto = $prefijoOrigen . $request->numero_origen;
+
+        // Extraer consecutivo y año de origen
+        $consecutivoOrigen = null;
+        $anioOrigen = $currentYear;
+        if (preg_match('/^(\d+)\D+(\d+)$/', $request->numero_origen, $matches)) {
+            $consecutivoOrigen = (int)$matches[1];
+            $anioOrigen = (int)$matches[2];
+        } elseif (is_numeric($request->numero_origen)) {
+            $consecutivoOrigen = (int)$request->numero_origen;
+        }
 
         // Guardar el archivo PDF
         $pdfPath = null;
@@ -1203,13 +1220,13 @@ class OficioController extends Controller
             'fecha_recepcion' => $request->fecha_recepcion,
             'tipo_correspondencia' => 'Interna',
             'prioridad' => $request->prioridad,
-            'numero_oficio_dependencia' => $folio,
+            'numero_oficio_dependencia' => $folioOrigenCompleto,
             'fecha_limite' => $request->fecha_limite,
             'observaciones' => $request->observaciones,
             'pdf_path' => $pdfPath,
             'area_origen_id' => $areaOrigenId,
-            'consecutivo_origen' => null, // ya no es el emisor quien da el consecutivo en la tabla oficios
-            'anio_origen' => $currentYear,
+            'consecutivo_origen' => $consecutivoOrigen,
+            'anio_origen' => $anioOrigen,
         ]);
 
         // Registrar el turno directamente para el área receptora/capturadora
