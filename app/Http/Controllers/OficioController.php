@@ -1157,6 +1157,7 @@ class OficioController extends Controller
             'asunto' => 'required|string',
             'fecha_recepcion' => 'required|date',
             'prioridad' => 'required|string',
+            'instruccion' => 'required|string|max:255',
             'archivo_pdf' => 'required|file|mimes:pdf|max:10240',
             'observaciones' => 'nullable|string',
             'remitente' => 'required|string|max:255',
@@ -1208,7 +1209,7 @@ class OficioController extends Controller
         DB::table('area_oficio')->insert([
             'oficio_id' => $oficio->id,
             'area_id' => $areaCaptura->id,
-            'instruccion' => 'Correspondencia Interna Recibida',
+            'instruccion' => $request->instruccion,
             'estatus' => 'Notificado', // Queda recibido para que puedan asignarlo de inmediato
             'folio_interno' => $folio,
             'consecutivo' => $nextConsecutivo,

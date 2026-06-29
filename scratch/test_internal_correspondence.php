@@ -50,6 +50,7 @@ $request->merge([
     'asunto' => 'Asunto de prueba de correspondencia interna entre áreas.',
     'fecha_recepcion' => date('Y-m-d'),
     'prioridad' => 'Ordinaria',
+    'instruccion' => 'Atender conforme a lo especificado',
     'archivo_pdf' => $file,
     'remitente' => 'Director de Planeación',
     'observaciones' => 'Nota de prueba interna'
