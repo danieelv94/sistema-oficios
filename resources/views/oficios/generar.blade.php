@@ -43,10 +43,10 @@
         }
 
         @media print {
-
             html,
             body {
                 height: 100%;
+                overflow: hidden;
                 background: white;
             }
 
@@ -56,11 +56,15 @@
 
             .printable-area {
                 width: 21.59cm;
+                height: 27.94cm;
                 padding: 1.5cm 2cm !important;
                 margin: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
+                position: relative;
                 box-sizing: border-box;
+                page-break-after: avoid;
+                page-break-before: avoid;
             }
 
             p,
@@ -71,7 +75,10 @@
             }
 
             .footer-oficio-fijo {
-                margin-top: 4rem;
+                position: absolute;
+                bottom: 1.2cm;
+                left: 2cm;
+                right: 2cm;
                 border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex !important;
@@ -85,13 +92,18 @@
                 background: white;
                 margin: 2rem auto;
                 width: 21.59cm;
+                height: 27.94cm;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-                padding: 1.5cm 2cm 3cm;
+                position: relative;
+                padding: 1.5cm 2cm;
                 border-radius: 8px;
             }
 
             .footer-oficio-fijo {
-                margin-top: 4rem;
+                position: absolute;
+                bottom: 1.2cm;
+                left: 2cm;
+                right: 2cm;
                 border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex;
@@ -100,10 +112,18 @@
             }
         }
 
+        .clamp-asunto {
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .signature-line {
             border-top: 1px solid black;
             width: 200px;
-            margin: 2.5rem auto 0.5rem;
+            margin: 2rem auto 0.5rem;
             text-align: center;
         }
     </style>
@@ -168,10 +188,10 @@
         </section>
 
         {{-- Asunto --}}
-        <section class="mb-8">
+        <section class="mb-6">
             <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
                 Asunto:</h2>
-            <p class="text-xs text-gray-700 leading-relaxed italic break-words">
+            <p class="text-xs text-gray-700 leading-relaxed italic break-words clamp-asunto" title="{{ $oficio->asunto }}">
                 "{!! nl2br(e($oficio->asunto)) !!}"
             </p>
         </section>
@@ -191,7 +211,7 @@
                     <div class="flex justify-between items-start">
                         <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
                             {{ $area->name }}</p>
-                        @if($area->pivot->folio_interno)
+                        @if($turnosParaImprimir->count() === 1 && $area->pivot->folio_interno)
                             <span class="text-xs font-bold text-guinda-ceaa">Folio: {{ $area->pivot->folio_interno }}</span>
                         @endif
                     </div>
@@ -211,7 +231,7 @@
                         @endif
                     </p>
 
-                    @if($subareasAsignadas->isNotEmpty())
+                    @if($turnosParaImprimir->count() === 1 && $subareasAsignadas->isNotEmpty())
                         <div class="mt-3 pl-4 border-l-2 border-dorado-ocre space-y-2 bg-gray-50/30 p-2 rounded-lg">
                             <p class="text-[9px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:</p>
                             @foreach($subareasAsignadas as $subareaOficio)

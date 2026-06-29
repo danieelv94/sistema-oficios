@@ -61,6 +61,28 @@ echo "2. Print view displays assigned subarea? " . ($hasSubareaInPrint ? 'SÍ �
 echo "3. Print view displays subarea instruction? " . ($hasAssignedUserInPrint ? 'SÍ ✅' : 'NO ❌') . "\n";
 echo "4. Print view displays signature line for subarea? " . ($hasSignatureLine ? 'SÍ ✅' : 'NO ❌') . "\n";
 
+// === Test 1b: Print view with MULTIPLE areas (should HIDE subareas/folios) ===
+echo "\n=== Test 1b: Print view with MULTIPLE areas (should HIDE subareas/folios) ===\n";
+// Insert temporary turn to Area 3 to make total count = 2
+$tempTurnId = DB::table('area_oficio')->insertGetId([
+    'oficio_id' => 29,
+    'area_id' => 3,
+    'instruccion' => 'Revisar y proceder',
+    'estatus' => 'Turnado'
+]);
+
+$responseMulti = $controller->generarOficio($request, $oficio);
+$htmlMulti = $responseMulti->render();
+
+$hasSubareaInPrintMulti = strpos($htmlMulti, 'Subdirección de Informática y Transparencia') !== false;
+$hasFolioInPrintMulti = strpos($htmlMulti, 'Folio:') !== false;
+
+echo "1. Subareas are hidden on multi-area print? " . (!$hasSubareaInPrintMulti ? 'SÍ ✅' : 'NO ❌') . "\n";
+echo "2. Folio badges are hidden on multi-area print? " . (!$hasFolioInPrintMulti ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+// Delete temporary turn to Area 3
+DB::table('area_oficio')->where('id', $tempTurnId)->delete();
+
 // === Test 2: Tracking / Consola de Monitoreo Global ===
 echo "\n=== Test 2: Consola de Monitoreo Global (seguimiento) ===\n";
 $requestSeguimiento = new \Illuminate\Http\Request();
