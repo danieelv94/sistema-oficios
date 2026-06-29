@@ -183,8 +183,11 @@
             @forelse($turnosParaImprimir as $area)
                 @php
                     $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
+                    $subareasAsignadas = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                        ->with('subarea', 'user')
+                        ->get();
                 @endphp
-                <div class="mb-4 pl-4 border-l-4 border-guinda-ceaa">
+                <div class="mb-4 pl-4 border-l-4 border-guinda-ceaa bg-white">
                     <div class="flex justify-between items-start">
                         <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
                             {{ $area->name }}</p>
@@ -207,6 +210,27 @@
                             <span class="font-bold text-gray-500 italic">Responsable del Área</span>
                         @endif
                     </p>
+
+                    @if($subareasAsignadas->isNotEmpty())
+                        <div class="mt-3 pl-4 border-l-2 border-dorado-ocre space-y-2 bg-gray-50/30 p-2 rounded-lg">
+                            <p class="text-[9px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:</p>
+                            @foreach($subareasAsignadas as $subareaOficio)
+                                <div class="text-[11px] text-gray-700">
+                                    <span class="font-black text-gray-800">
+                                        &bull; {{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}
+                                    </span>
+                                    @if($subareaOficio->user)
+                                        <span class="text-gray-500 font-medium"> - Asignado a: {{ $subareaOficio->user->prof }} {{ $subareaOficio->user->name }}</span>
+                                    @else
+                                        <span class="text-gray-400 italic"> - Sin asignar a personal</span>
+                                    @endif
+                                    @if($subareaOficio->instruccion && $subareaOficio->instruccion !== $area->pivot->instruccion)
+                                        <p class="text-[10px] text-gray-500 pl-3 italic">Instrucción específica: "{{ $subareaOficio->instruccion }}"</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @empty
                 <p class="text-gray-400 italic text-xs">Sin turnos asignados.</p>
@@ -223,14 +247,32 @@
         @endif
 
         {{-- Línea de firmas físicas (Acuse de Recibido en Papel) --}}
-        @if(collect($turnosParaImprimir)->contains(fn($area) => !empty($area->pivot->user_id)))
+        @php
+            $hasSubareasAsignadas = false;
+            $primerOperativoSubarea = null;
+            foreach ($turnosParaImprimir as $area) {
+                $sub = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                    ->whereNotNull('user_id')
+                    ->first();
+                if ($sub) {
+                    $primerOperativoSubarea = $sub->user;
+                    $hasSubareasAsignadas = true;
+                    break;
+                }
+            }
+        @endphp
+        @if(collect($turnosParaImprimir)->contains(fn($area) => !empty($area->pivot->user_id)) || $hasSubareasAsignadas)
             <div class="mt-20 flex justify-center text-center text-xs">
                 <div>
                     <p class="font-bold uppercase text-gray-600 text-[10px]">Acuse de Recibido</p>
                     <div class="signature-line"></div>
                     @php
-                        $primerTurno = collect($turnosParaImprimir)->first(fn($area) => !empty($area->pivot->user_id));
-                        $operativo = $primerTurno ? \App\Models\User::find($primerTurno->pivot->user_id) : null;
+                        if ($primerOperativoSubarea) {
+                            $operativo = $primerOperativoSubarea;
+                        } else {
+                            $primerTurno = collect($turnosParaImprimir)->first(fn($area) => !empty($area->pivot->user_id));
+                            $operativo = $primerTurno ? \App\Models\User::find($primerTurno->pivot->user_id) : null;
+                        }
                     @endphp
                     <p class="font-bold text-gray-800">
                         {{ $operativo ? $operativo->prof . ' ' . $operativo->name : 'Operativo Asignado' }}</p>

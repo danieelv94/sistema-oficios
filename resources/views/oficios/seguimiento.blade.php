@@ -89,10 +89,25 @@
                                         
                                         {{-- Responsable Asignado --}}
                                         <td class="px-6 py-4 text-gray-700">
-                                            @if($turno->operativo_name)
+                                            @if(isset($turno->subareas) && $turno->subareas->isNotEmpty())
+                                                <div class="flex flex-col gap-1.5">
+                                                    @foreach($turno->subareas as $sa)
+                                                        <div class="flex flex-col border-b border-gray-100 pb-1.5 last:border-0 last:pb-0">
+                                                            <span class="font-bold text-[10px] text-green-700 uppercase">
+                                                                {{ $sa->subarea_name ?? 'Director (Jefe de Área)' }}:
+                                                            </span>
+                                                            @if($sa->user_name)
+                                                                <span class="font-semibold text-gray-800 text-[11px]">{{ $sa->user_name }}</span>
+                                                            @else
+                                                                <span class="text-gray-400 italic text-[10px]">Por asignar...</span>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @elseif($turno->operativo_name)
                                                 <div class="flex items-center gap-1.5">
                                                     <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                                    <span class="font-bold">{{ $turno->operativo_name }}</span>
+                                                    <span class="font-bold text-gray-800">{{ $turno->operativo_name }}</span>
                                                 </div>
                                             @else
                                                 <span class="text-gray-400 italic font-medium">Por asignar...</span>

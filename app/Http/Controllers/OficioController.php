@@ -545,7 +545,7 @@ class OficioController extends Controller
             $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($request) {
                 return $area->id == $request->area_id;
             });
-        } elseif ($user->role != 'admin') {
+        } elseif (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
             $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($user) {
                 return $area->id == $user->area_id;
             });
@@ -736,6 +736,16 @@ class OficioController extends Controller
         }
 
         $turnos = $query->orderBy('oficios.created_at', 'desc')->paginate(15);
+
+        // Adjuntar subdirecciones asignadas y su personal
+        foreach ($turnos as $turno) {
+            $turno->subareas = DB::table('subarea_oficio')
+                ->leftJoin('subareas', 'subarea_oficio.subarea_id', '=', 'subareas.id')
+                ->leftJoin('users', 'subarea_oficio.user_id', '=', 'users.id')
+                ->where('subarea_oficio.area_oficio_id', $turno->pivote_id)
+                ->select('subareas.name as subarea_name', 'users.name as user_name', 'subarea_oficio.estatus')
+                ->get();
+        }
 
         return view('oficios.seguimiento', compact('turnos'));
     }
