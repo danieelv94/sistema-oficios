@@ -23,10 +23,40 @@ if (!$correspondenciaUser) {
     ]);
 }
 
+DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+$oficio = Oficio::find(29);
+if (!$oficio) {
+    DB::table('oficios')->insert([
+        'id' => 29,
+        'numero_oficio' => '29-TEST',
+        'remitente' => 'Test Remitente',
+        'municipio' => 'Pachuca',
+        'localidad' => 'Pachuca',
+        'asunto' => 'Test Asunto Oficio 29',
+        'tipo_correspondencia' => 'Externa',
+        'fecha_recepcion' => date('Y-m-d'),
+        'prioridad' => 'Ordinaria',
+        'numero_oficio_dependencia' => 'DEP-29',
+    ]);
+    $oficio = Oficio::find(29);
+}
+$pivot = DB::table('area_oficio')->where('id', 41)->first();
+if (!$pivot) {
+    DB::table('area_oficio')->insert([
+        'id' => 41,
+        'oficio_id' => 29,
+        'area_id' => 2,
+        'estatus' => 'Turnado',
+        'instruccion' => 'Test Instruccion 29',
+        'consecutivo' => 29,
+        'anio' => 2026,
+    ]);
+}
+DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
 echo "=== Test 1: Correspondencia user ({$correspondenciaUser->name}) printing Oficio 29 ===\n";
 Auth::login($correspondenciaUser);
 
-$oficio = Oficio::find(29);
 $controller = new \App\Http\Controllers\OficioController();
 
 $request = new \Illuminate\Http\Request();
@@ -86,7 +116,7 @@ DB::table('area_oficio')->where('id', $tempTurnId)->delete();
 // === Test 2: Tracking / Consola de Monitoreo Global ===
 echo "\n=== Test 2: Consola de Monitoreo Global (seguimiento) ===\n";
 $requestSeguimiento = new \Illuminate\Http\Request();
-$requestSeguimiento->merge(['search' => 'Auditoría 980']);
+$requestSeguimiento->merge(['search' => '29-TEST']);
 $responseSeguimiento = $controller->seguimiento($requestSeguimiento);
 $htmlSeguimiento = $responseSeguimiento->render();
 
@@ -144,6 +174,11 @@ if ($tempDirectUser) {
 
 // Cleanup database
 SubareaOficio::where('area_oficio_id', $pivotId)->delete();
+DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+DB::table('area_oficio')->where('id', 41)->delete();
+DB::table('oficios')->where('id', 29)->delete();
+DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
 if ($correspondenciaUser->name === 'Temp Correspondencia') {
     $correspondenciaUser->delete();
 }

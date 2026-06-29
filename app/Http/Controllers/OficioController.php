@@ -34,7 +34,7 @@ class OficioController extends Controller
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
-        $query = Oficio::where('tipo_correspondencia', 'Externa');
+        $query = Oficio::where('tipo_correspondencia', '!=', 'Interna');
 
         // Búsqueda por número, remitente o asunto
         if ($request->filled('search')) {
@@ -620,7 +620,7 @@ class OficioController extends Controller
 
         // Si es administrador o rol de gestión del área, ve todos los turnos del área.
         // Si es operativo o subdirector, se filtra según la asignación a su subárea o personal.
-        $query = Oficio::where('tipo_correspondencia', 'Externa')->whereHas('areas', function ($query) use ($user) {
+        $query = Oficio::where('tipo_correspondencia', '!=', 'Interna')->whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
             
             if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
@@ -739,7 +739,7 @@ class OficioController extends Controller
         $fechaFin = $request->input('fecha_fin', \Carbon\Carbon::today()->format('Y-m-d'));
 
         // Obtener todos los oficios registrados en el rango de fechas (sea cual sea su estatus)
-        $oficios = Oficio::where('tipo_correspondencia', 'Externa')
+        $oficios = Oficio::where('tipo_correspondencia', '!=', 'Interna')
             ->whereDate('created_at', '>=', $fechaInicio)
             ->whereDate('created_at', '<=', $fechaFin)
             ->orderByRaw('CAST(numero_oficio AS UNSIGNED) ASC')
