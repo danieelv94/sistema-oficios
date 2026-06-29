@@ -123,25 +123,78 @@ class OficioController extends Controller
 
         // Determinamos qué turnos mostrar según el rol del usuario de forma automática
         if (in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) || ($user->role == 'jefe_area' && $user->area_id == 2)) {
-            // El administrador, recepcionista, correspondencia y el jefe de gestión institucional ven todos los turnos del oficio
             $turnosParaMostrar = $oficio->areas;
         } elseif ($user->role == 'jefe_area' || $user->role == 'secretaria_area') {
-            // El jefe o secretaria del área ve los turnos de su área
             $turnosParaMostrar = $oficio->areas->where('id', $user->area_id);
+        } elseif ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+            // El subdirector (o admin con subdirección) ve los turnos de su área si tiene una subarea_oficio asignada
+            $turnosParaMostrar = $oficio->areas->where('id', $user->area_id)->filter(function ($area) use ($user) {
+                // Ve el turno si tiene una subarea_oficio asignada a su subdirección
+                $hasSubareaAssignment = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                    ->where('subarea_id', $user->subarea_id)
+                    ->exists();
+                return $hasSubareaAssignment;
+            });
         } else {
-            // El personal operativo solo ve los turnos asignados a él directamente
+            // El personal operativo solo ve los turnos donde tiene una subarea_oficio asignada directamente a él
             $turnosParaMostrar = $oficio->areas->filter(function ($area) use ($user) {
-                return $area->pivot->user_id == $user->id;
+                return \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                    ->where('user_id', $user->id)
+                    ->exists();
             });
         }
 
         $areasAsignadasIds = $oficio->areas->pluck('id')->toArray();
         $areasDisponibles = Area::whereNotIn('id', $areasAsignadasIds)->get();
 
-        // Cargamos el personal para todas las áreas turnadas para evitar índices indefinidos
+        // Cargamos las subdirecciones asignadas (subarea_oficio) por cada area_oficio
+        $subareaOficiosPorArea = [];
+        $subareasDisponiblesPorArea = [];
+        $personalPorSubarea = [];
+        foreach ($oficio->areas as $areaTurnada) {
+            $pivoteId = $areaTurnada->pivot->id;
+            $subareaOficios = \App\Models\SubareaOficio::where('area_oficio_id', $pivoteId)
+                ->with(['subarea', 'user'])
+                ->get();
+            $subareaOficiosPorArea[$pivoteId] = $subareaOficios;
+
+            // Subdirecciones disponibles para asignar (las que aún no están asignadas)
+            $subareasAsignadasIds = $subareaOficios->pluck('subarea_id')->toArray();
+            $subareasDisponiblesPorArea[$pivoteId] = \App\Models\Subarea::where('area_id', $areaTurnada->id)
+                ->whereNotIn('id', $subareasAsignadasIds)
+                ->get();
+
+            // Personal operativo por subdirección para delegación del subdirector
+            foreach ($subareaOficios as $so) {
+                $personalPorSubarea[$so->id] = User::where('area_id', $areaTurnada->id)
+                    ->where('subarea_id', $so->subarea_id)
+                    ->where(function($q) use ($so) {
+                        $q->where('role', 'user')
+                          ->orWhere('role', 'subdirector')
+                          ->orWhere(function($adminQ) use ($so) {
+                              $adminQ->where('role', 'admin')
+                                     ->where('subarea_id', $so->subarea_id);
+                          });
+                    })
+                    ->get();
+            }
+        }
+
+        // Mantenemos personalPorArea para retrocompatibilidad con áreas sin subdirecciones
         $personalPorArea = [];
         foreach ($oficio->areas as $areaTurnada) {
-            $personalPorArea[$areaTurnada->id] = User::where('area_id', $areaTurnada->id)->get();
+            $hasSubareas = \App\Models\Subarea::where('area_id', $areaTurnada->id)->exists();
+            if (!$hasSubareas) {
+                $query = User::where('area_id', $areaTurnada->id)
+                    ->where(function($q) {
+                        $q->where('role', 'jefe_area')
+                          ->orWhere('role', 'user')
+                          ->orWhere('role', 'admin');
+                    });
+                $personalPorArea[$areaTurnada->id] = $query->get();
+            } else {
+                $personalPorArea[$areaTurnada->id] = collect();
+            }
         }
 
         $idsTurnos = $oficio->areas()->pluck('area_oficio.id');
@@ -149,10 +202,17 @@ class OficioController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Para retrocompatibilidad con la vista
-        $mode = in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) ? 'recepcion' : (in_array($user->role, ['jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo');
+        // Determinamos el modo de visualización
+        if ($request->has('mode')) {
+            $mode = $request->input('mode');
+        } else {
+            $mode = in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) ? 'recepcion' : (in_array($user->role, ['jefe_area', 'secretaria_area', 'subdirector']) ? 'gestion' : 'operativo');
+        }
 
-        return view('oficios.show', compact('oficio', 'areasDisponibles', 'personalPorArea', 'turnosParaMostrar', 'mode', 'respuestas'));
+        return view('oficios.show', compact(
+            'oficio', 'areasDisponibles', 'personalPorArea', 'turnosParaMostrar', 'mode', 'respuestas',
+            'subareaOficiosPorArea', 'subareasDisponiblesPorArea', 'personalPorSubarea'
+        ));
     }
 
     public function turnar(Request $request, Oficio $oficio)
@@ -172,25 +232,25 @@ class OficioController extends Controller
                     'estatus' => 'Turnado'
                 ]);
 
-                // Notificar a secretaria_area del área turnada
-                $secretarias = User::where('area_id', $area_id)
-                    ->where('role', 'secretaria_area')
+                // Notificar a jefe_area del área turnada
+                $jefes = User::where('area_id', $area_id)
+                    ->where('role', 'jefe_area')
                     ->get();
 
-                foreach ($secretarias as $secretaria) {
+                foreach ($jefes as $jefe) {
                     $data = [
                         'oficio' => $oficio,
                         'instruccion' => $instruccion,
-                        'usuario' => $secretaria,
+                        'usuario' => $jefe,
                     ];
 
                     try {
-                        Mail::send('emails.oficio_turnado', $data, function ($message) use ($secretaria, $oficio) {
-                            $message->to($secretaria->email)
+                        Mail::send('emails.oficio_turnado', $data, function ($message) use ($jefe, $oficio) {
+                            $message->to($jefe->email)
                                 ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Turnado - No. ' . $oficio->numero_oficio);
                         });
                     } catch (\Exception $e) {
-                        Log::error("Error al enviar correo de oficio turnado a {$secretaria->email}: " . $e->getMessage());
+                        Log::error("Error al enviar correo de oficio turnado a {$jefe->email}: " . $e->getMessage());
                     }
                 }
             }
@@ -222,24 +282,160 @@ class OficioController extends Controller
         return back()->with('success', 'El turno ha sido cancelado correctamente.');
     }
 
+    /**
+     * Asignar oficio a subdirecciones (crea registros en subarea_oficio).
+     * Para áreas sin subdirecciones, asigna directamente al user_id en area_oficio.
+     */
     public function asignar(Request $request, Oficio $oficio)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'pivote_id' => 'required|exists:area_oficio,id'
-        ]);
+        $currentUser = Auth::user();
+        $pivoteId = $request->input('pivote_id');
 
-        $areaOficio = DB::table('area_oficio')->where('id', $request->pivote_id)->first();
+        $areaOficio = DB::table('area_oficio')->where('id', $pivoteId)->first();
         if (!$areaOficio) {
             return back()->with('error', 'Registro de turno no encontrado.');
         }
+
+        $hasSubareas = \App\Models\Subarea::where('area_id', $areaOficio->area_id)->exists();
+
+        // --- Caso 1: Área CON subdirecciones → asignar a subdirecciones vía checkboxes o al Director ---
+        if ($hasSubareas && $request->has('subarea_ids')) {
+            $request->validate([
+                'subarea_ids' => 'required|array|min:1',
+                'pivote_id' => 'required|exists:area_oficio,id',
+            ]);
+
+            // Generar folio interno de la dirección si no existe
+            if (empty($areaOficio->folio_interno)) {
+                $area = Area::find($areaOficio->area_id);
+                if ($area) {
+                    $currentYear = now()->year;
+                    $ultimoConsecutivo = DB::table('area_oficio')
+                        ->where('area_id', $area->id)
+                        ->where('anio', $currentYear)
+                        ->max('consecutivo');
+                    $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
+                    $prefijo = !empty($area->prefijo) ? $area->prefijo : 'OIC';
+                    $folioInterno = $prefijo . '-INT-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+                    DB::table('area_oficio')->where('id', $pivoteId)->update([
+                        'folio_interno' => $folioInterno,
+                        'consecutivo' => $siguienteConsecutivo,
+                        'anio' => $currentYear,
+                    ]);
+                }
+            }
+
+            // Crear registros en subarea_oficio por cada subdirección seleccionada o Director
+            foreach ($request->subarea_ids as $subareaId) {
+                if ($subareaId === 'director') {
+                    // Evitar duplicados
+                    $exists = \App\Models\SubareaOficio::where('area_oficio_id', $pivoteId)
+                        ->whereNull('subarea_id')
+                        ->exists();
+                    if ($exists) {
+                        continue;
+                    }
+
+                    // Buscar al director titular de esta dirección
+                    $director = User::where('area_id', $areaOficio->area_id)
+                        ->where('role', 'jefe_area')
+                        ->first();
+
+                    \App\Models\SubareaOficio::create([
+                        'area_oficio_id' => $pivoteId,
+                        'subarea_id' => null,
+                        'user_id' => $director ? $director->id : null,
+                        'instruccion' => $areaOficio->instruccion,
+                        'estatus' => 'Asignado',
+                    ]);
+
+                    // Notificar al director por correo
+                    if ($director) {
+                        $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
+                        $data = [
+                            'usuario' => $director,
+                            'oficio' => $oficio,
+                            'folio_interno' => $folioInterno,
+                            'instruccion' => $areaOficio->instruccion,
+                        ];
+                        try {
+                            Mail::send('emails.oficio_asignado', $data, function ($message) use ($director, $oficio, $folioInterno) {
+                                $message->to($director->email)
+                                    ->subject('[' . $oficio->prioridad . '] Oficio asignado a su atención - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                            });
+                        } catch (\Exception $e) {
+                            Log::error("Error al enviar correo a director {$director->email}: " . $e->getMessage());
+                        }
+                    }
+                } else {
+                    $subarea = \App\Models\Subarea::find($subareaId);
+                    if (!$subarea || $subarea->area_id != $areaOficio->area_id) {
+                        continue; // Validación adicional: solo subdirecciones de la misma área
+                    }
+
+                    // Evitar duplicados
+                    $exists = \App\Models\SubareaOficio::where('area_oficio_id', $pivoteId)
+                        ->where('subarea_id', $subareaId)
+                        ->exists();
+                    if ($exists) {
+                        continue;
+                    }
+
+                    // Buscar al subdirector titular de esta subdirección
+                    $subdirector = User::where('subarea_id', $subareaId)
+                        ->whereIn('role', ['subdirector', 'admin'])
+                        ->first();
+
+                    \App\Models\SubareaOficio::create([
+                        'area_oficio_id' => $pivoteId,
+                        'subarea_id' => $subareaId,
+                        'user_id' => null, // El subdirector lo asignará después
+                        'instruccion' => $areaOficio->instruccion,
+                        'estatus' => 'Asignado',
+                    ]);
+
+                    // Notificar al subdirector por correo
+                    if ($subdirector) {
+                        $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
+                        $data = [
+                            'usuario' => $subdirector,
+                            'oficio' => $oficio,
+                            'folio_interno' => $folioInterno,
+                            'instruccion' => $areaOficio->instruccion,
+                        ];
+                        try {
+                            Mail::send('emails.oficio_asignado', $data, function ($message) use ($subdirector, $oficio, $folioInterno) {
+                                $message->to($subdirector->email)
+                                    ->subject('[' . $oficio->prioridad . '] Oficio asignado a su Subdirección - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                            });
+                        } catch (\Exception $e) {
+                            Log::error("Error al enviar correo a subdirector {$subdirector->email}: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
+            // Actualizar estatus del area_oficio
+            DB::table('area_oficio')->where('id', $pivoteId)->update(['estatus' => 'Asignado']);
+            $oficio->update(['estatus' => 'En Proceso']);
+
+            return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio asignado a las subdirecciones seleccionadas.');
+        }
+
+        // --- Caso 2: Área SIN subdirecciones → asignar directamente al user_id (comportamiento original) ---
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'pivote_id' => 'required|exists:area_oficio,id',
+        ]);
+
+        $assignedUser = User::findOrFail($request->user_id);
 
         $updateData = [
             'user_id' => $request->user_id,
             'estatus' => 'Asignado'
         ];
 
-        // Generamos el folio interno si no existe uno previo
         if (empty($areaOficio->folio_interno)) {
             $area = Area::find($areaOficio->area_id);
             if ($area) {
@@ -248,47 +444,81 @@ class OficioController extends Controller
                     ->where('area_id', $area->id)
                     ->where('anio', $currentYear)
                     ->max('consecutivo');
-
                 $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
-
-                // Formato: PREFIJO-INT-CONSECUTIVO/ANIO
                 $prefijo = !empty($area->prefijo) ? $area->prefijo : 'OIC';
                 $folioInterno = $prefijo . '-INT-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
-
                 $updateData['folio_interno'] = $folioInterno;
                 $updateData['consecutivo'] = $siguienteConsecutivo;
                 $updateData['anio'] = $currentYear;
             }
         }
 
-        DB::table('area_oficio')
-            ->where('id', $request->pivote_id)
-            ->update($updateData);
-
+        DB::table('area_oficio')->where('id', $pivoteId)->update($updateData);
         $oficio->update(['estatus' => 'En Proceso']);
 
         // Notificar al usuario asignado por correo
-        $assignedUser = User::find($request->user_id);
-        if ($assignedUser) {
-            $folioInterno = $updateData['folio_interno'] ?? $areaOficio->folio_interno;
-            $data = [
-                'usuario' => $assignedUser,
-                'oficio' => $oficio,
-                'folio_interno' => $folioInterno,
-                'instruccion' => $areaOficio->instruccion,
-            ];
-
-            try {
-                Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
-                    $message->to($assignedUser->email)
-                        ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Asignado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
-                });
-            } catch (\Exception $e) {
-                Log::error("Error al enviar correo de oficio asignado a {$assignedUser->email}: " . $e->getMessage());
-            }
+        $folioInterno = $updateData['folio_interno'] ?? $areaOficio->folio_interno;
+        $data = [
+            'usuario' => $assignedUser,
+            'oficio' => $oficio,
+            'folio_interno' => $folioInterno,
+            'instruccion' => $areaOficio->instruccion,
+        ];
+        try {
+            Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                $message->to($assignedUser->email)
+                    ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Asignado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+            });
+        } catch (\Exception $e) {
+            Log::error("Error al enviar correo de oficio asignado a {$assignedUser->email}: " . $e->getMessage());
         }
 
         return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio asignado y estatus actualizado.');
+    }
+
+    /**
+     * Subdirector delega el oficio a personal de su subdirección dentro de subarea_oficio.
+     */
+    public function asignarSubarea(Request $request, $subareaOficioId)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $subareaOficio = \App\Models\SubareaOficio::findOrFail($subareaOficioId);
+        $currentUser = Auth::user();
+        $assignedUser = User::findOrFail($request->user_id);
+
+        // Validar que el usuario asignado pertenece a la misma subdirección
+        if ($assignedUser->subarea_id !== $subareaOficio->subarea_id) {
+            return back()->with('error', 'Acción no permitida: Solo puede asignar a personal de su propia subdirección.');
+        }
+
+        $subareaOficio->update([
+            'user_id' => $request->user_id,
+        ]);
+
+        // Notificar al personal por correo
+        $areaOficio = DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->first();
+        $oficio = Oficio::find($areaOficio->oficio_id);
+        $folioInterno = $areaOficio->folio_interno;
+
+        $data = [
+            'usuario' => $assignedUser,
+            'oficio' => $oficio,
+            'folio_interno' => $folioInterno,
+            'instruccion' => $subareaOficio->instruccion ?? $areaOficio->instruccion,
+        ];
+        try {
+            Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                $message->to($assignedUser->email)
+                    ->subject('[' . $oficio->prioridad . '] Oficio Delegado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+            });
+        } catch (\Exception $e) {
+            Log::error("Error al enviar correo de delegación a {$assignedUser->email}: " . $e->getMessage());
+        }
+
+        return back()->with('success', 'Oficio delegado a ' . $assignedUser->name . ' correctamente.');
     }
 
 
@@ -328,12 +558,36 @@ class OficioController extends Controller
         $user = Auth::user();
 
         // Si es administrador o rol de gestión del área, ve todos los turnos del área.
-        // Si es operativo, solo ve los turnos asignados a él directamente.
+        // Si es operativo o subdirector, se filtra según la asignación a su subárea o personal.
         $query = Oficio::whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
             
-            if (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
-                $query->where('area_oficio.user_id', $user->id);
+            if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+                $query->where(function($q) use ($user) {
+                    $q->whereExists(function($subQ) use ($user) {
+                        $subQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.subarea_id', $user->subarea_id);
+                    })
+                    ->orWhere('area_oficio.user_id', $user->id)
+                    ->orWhereExists(function ($subQ) use ($user) {
+                        $subQ->select(DB::raw(1))
+                             ->from('users')
+                             ->whereColumn('users.id', 'area_oficio.user_id')
+                             ->where('users.subarea_id', $user->subarea_id);
+                    });
+                });
+            } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                $query->where(function($q) use ($user) {
+                    $q->whereExists(function($subQ) use ($user) {
+                        $subQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.user_id', $user->id);
+                    })
+                    ->orWhere('area_oficio.user_id', $user->id);
+                });
             }
         });
 
@@ -352,6 +606,13 @@ class OficioController extends Controller
                                        $existsQ->select(DB::raw(1))
                                                ->from('users')
                                                ->whereColumn('users.id', 'area_oficio.user_id')
+                                               ->where('users.name', 'like', "%{$search}%");
+                                   })
+                                   ->orWhereExists(function ($existsQ) use ($search) {
+                                       $existsQ->select(DB::raw(1))
+                                               ->from('subarea_oficio')
+                                               ->join('users', 'subarea_oficio.user_id', '=', 'users.id')
+                                               ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                                                ->where('users.name', 'like', "%{$search}%");
                                    });
                           });
@@ -490,8 +751,25 @@ class OficioController extends Controller
         return back()->with('success', 'Se ha confirmado la recepción del oficio correctamente.');
     }
 
-    public function notificarTurno($pivote_id)
+    public function notificarTurno(Request $request, $pivote_id)
     {
+        // Si viene un subarea_oficio_id, actualizamos ese registro
+        if ($request->has('subarea_oficio_id')) {
+            $subareaOficio = \App\Models\SubareaOficio::findOrFail($request->subarea_oficio_id);
+            $subareaOficio->update(['estatus' => 'Notificado']);
+
+            // Verificar si todas las subarea_oficio del area_oficio padre están al menos Notificadas
+            $pendientes = \App\Models\SubareaOficio::where('area_oficio_id', $subareaOficio->area_oficio_id)
+                ->where('estatus', 'Asignado')
+                ->count();
+            if ($pendientes === 0) {
+                DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->update(['estatus' => 'Notificado']);
+            }
+
+            return back()->with('success', 'Has confirmado de notificado para este turno correctamente.');
+        }
+
+        // Comportamiento original para áreas sin subdirecciones
         DB::table('area_oficio')
             ->where('id', $pivote_id)
             ->update([
@@ -501,9 +779,15 @@ class OficioController extends Controller
         return back()->with('success', 'Has confirmado de notificado para este turno correctamente.');
     }
 
-    public function atender($areaOficioId)
+    public function atender(Request $request, $areaOficioId)
     {
         $user = Auth::user();
+
+        // Si viene un subarea_oficio_id, usamos ese contexto
+        $subareaOficio = null;
+        if ($request->has('subarea_oficio_id')) {
+            $subareaOficio = \App\Models\SubareaOficio::findOrFail($request->subarea_oficio_id);
+        }
         
         // Buscamos el registro pivote
         $areaOficio = DB::table('area_oficio')->where('id', $areaOficioId)->first();
@@ -511,18 +795,32 @@ class OficioController extends Controller
             abort(404, 'Turno no encontrado.');
         }
 
-        // Verificamos que pertenezca al usuario logueado o administrador
-        if ($areaOficio->user_id !== $user->id && $user->role !== 'admin') {
+        // Verificar permiso: admin, o asignado directamente, o tiene subarea_oficio asignada
+        $hasPermission = ($user->role === 'admin');
+        if (!$hasPermission && $areaOficio->user_id === $user->id) {
+            $hasPermission = true;
+        }
+        if (!$hasPermission && $subareaOficio) {
+            $hasPermission = ($subareaOficio->user_id === $user->id);
+        }
+        if (!$hasPermission) {
+            // Verificar si tiene alguna subarea_oficio asignada en este area_oficio
+            $hasPermission = \App\Models\SubareaOficio::where('area_oficio_id', $areaOficioId)
+                ->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('subarea_id', $user->subarea_id);
+                })->exists();
+        }
+
+        if (!$hasPermission) {
             abort(403, 'No tienes permiso para atender este turno.');
         }
 
-        // Cargamos el oficio para mostrar la información en la vista
+        // Cargamos el oficio
         $oficio = Oficio::findOrFail($areaOficio->oficio_id);
-
-        // Agregamos una propiedad dinámica para facilitar el acceso en la vista
         $areaOficio->oficio = $oficio;
 
-        return view('oficios.atender', compact('areaOficio'));
+        return view('oficios.atender', compact('areaOficio', 'subareaOficio'));
     }
 
     public function solventar(Request $request, $areaOficioId)
@@ -531,7 +829,8 @@ class OficioController extends Controller
         $request->validate([
             'tipo_respuesta' => 'required|in:Conocimiento,Solventacion',
             'mensaje' => 'required|string',
-            'archivo_evidencia' => 'nullable|file|mimes:pdf|max:5120'
+            'archivo_evidencia' => 'nullable|file|mimes:pdf|max:5120',
+            'subarea_oficio_id' => 'nullable|exists:subarea_oficio,id'
         ]);
 
         // 2. Gestionamos el archivo si existe
@@ -542,25 +841,46 @@ class OficioController extends Controller
 
         // 3. Guardamos en la base de datos
         \App\Models\OficioRespuesta::create([
-            'area_oficio_id' => $areaOficioId, // Este es el ID de la tabla area_oficio
+            'area_oficio_id' => $areaOficioId,
+            'subarea_oficio_id' => $request->input('subarea_oficio_id'),
             'user_id' => Auth::id(),
             'tipo_respuesta' => $request->tipo_respuesta,
             'mensaje' => $request->mensaje,
             'archivo_evidencia' => $path
         ]);
 
-        // 4. Actualizamos el estatus de la asignación a 'Solventado'
-        DB::table('area_oficio')
-            ->where('id', $areaOficioId)
-            ->update(['estatus' => 'Solventado']);
+        // 4. Si tiene subarea_oficio_id, actualizar esa subdirección
+        if ($request->filled('subarea_oficio_id')) {
+            $subareaOficio = \App\Models\SubareaOficio::find($request->subarea_oficio_id);
+            if ($subareaOficio) {
+                $subareaOficio->update(['estatus' => 'Solventado']);
 
-        // 5. Opcional: Actualizar el estatus general del Oficio si todas las áreas asignadas ya solventaron
+                // Verificar si todas las subarea_oficio del area_oficio padre están Solventadas
+                $pendientes = \App\Models\SubareaOficio::where('area_oficio_id', $subareaOficio->area_oficio_id)
+                    ->where('estatus', '!=', 'Solventado')
+                    ->count();
+
+                if ($pendientes === 0) {
+                    DB::table('area_oficio')
+                        ->where('id', $subareaOficio->area_oficio_id)
+                        ->update(['estatus' => 'Solventado']);
+                }
+            }
+        } else {
+            // Comportamiento original para áreas sin subdirecciones
+            DB::table('area_oficio')
+                ->where('id', $areaOficioId)
+                ->update(['estatus' => 'Solventado']);
+        }
+
+        // 5. Verificar si todas las áreas del oficio están solventadas
         $turno = DB::table('area_oficio')->where('id', $areaOficioId)->first();
         if ($turno) {
             $oficioId = $turno->oficio_id;
             $pendientes = DB::table('area_oficio')
                 ->where('oficio_id', $oficioId)
                 ->where('estatus', '!=', 'Solventado')
+                ->where('estatus', '!=', 'Cancelado')
                 ->count();
 
             if ($pendientes === 0) {

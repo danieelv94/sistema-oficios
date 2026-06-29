@@ -8,11 +8,20 @@ class OficioRespuesta extends Model
 {
     protected $fillable = [
         'area_oficio_id',
+        'subarea_oficio_id',
         'user_id',
         'tipo_respuesta',
         'mensaje',
         'archivo_evidencia'
     ];
+
+    /**
+     * La asignación de subdirección a la que pertenece esta respuesta.
+     */
+    public function subareaOficio()
+    {
+        return $this->belongsTo(SubareaOficio::class, 'subarea_oficio_id');
+    }
 
     // Obtener la información del turno (pivote) sin usar un modelo inexistente
     public function getAreaOficioAttribute()

@@ -5,7 +5,14 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="userForm({
+        areas: {{ $areas->toJson() }},
+        occupiedDirectors: {{ json_encode($occupiedDirectors) }},
+        occupiedSubdirectors: {{ json_encode($occupiedSubdirectors) }},
+        selectedArea: '{{ old('area_id', '') }}',
+        selectedSubarea: '{{ old('subarea_id', '') }}',
+        selectedRole: '{{ old('role', 'user') }}'
+    })">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -42,39 +49,57 @@
                             </div>
 
                             <div>
-                                <x-label for="area_id" :value="__('Área')" />
-                                <select name="area_id" id="area_id"
+                                <x-label for="area_id" :value="__('Dirección (Área)')" />
+                                <select name="area_id" id="area_id" x-model="selectedArea"
                                     class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    @foreach($areas as $area)
-                                        <option value="{{ $area->id }}">{{ $area->name }}</option>
-                                    @endforeach
+                                    <option value="">-- Selecciona una Dirección --</option>
+                                    <template x-for="area in areas" :key="area.id">
+                                        <option :value="area.id" x-text="area.name" :selected="area.id == selectedArea"></option>
+                                    </template>
                                 </select>
                             </div>
 
                             <div>
-                                <x-label for="role" :value="__('Nivel de Usuario')" />
-                                <select name="role" id="role"
+                                <x-label for="role" :value="__('Nivel de Usuario (Rol)')" />
+                                <select name="role" id="role" x-model="selectedRole"
                                     class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                    <option value="user">Usuario Normal</option>
-                                    <option value="jefe_area">Jefe de Área</option>
+                                    <option value="user">Usuario Normal (Personal)</option>
+                                    <option value="jefe_area" :disabled="isDirectorOccupied" x-text="isDirectorOccupied ? 'Jefe de Área (Director - OCUPADO)' : 'Jefe de Área (Director)'"></option>
+                                    <option value="subdirector">Subdirector de Área</option>
+                                    <option value="secretaria_area">Secretaria de Área</option>
                                     <option value="admin">Administrador</option>
                                     <option value="recepcionista">Recepcionista</option>
-                                    <option value="secretaria_area">Secretaria de Área</option>
                                     <option value="correspondencia">Correspondencia</option>
                                 </select>
                             </div>
+
+                            <div x-show="subareas.length > 0">
+                                <x-label for="subarea_id" :value="__('Subdirección')" />
+                                <select name="subarea_id" id="subarea_id" x-model="selectedSubarea"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                    :required="selectedRole === 'subdirector'">
+                                    <option value="">-- Selecciona una Subdirección --</option>
+                                    <template x-for="sub in subareas" :key="sub.id">
+                                        <option :value="sub.id" 
+                                                :disabled="selectedRole === 'subdirector' && isSubdirectorOccupied(sub.id)"
+                                                :selected="sub.id == selectedSubarea"
+                                                x-text="selectedRole === 'subdirector' && isSubdirectorOccupied(sub.id) ? sub.name + ' (OCUPADO)' : sub.name">
+                                        </option>
+                                    </template>
+                                </select>
+                            </div>
+
                             <div>
                                 <x-label for="nivel_id" :value="__('Nivel / Puesto')" />
                                 <select name="nivel_id" id="nivel_id"
-                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300">
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     <option value="">Selecciona un nivel...</option>
                                     @foreach($niveles as $nivel)
-                                        <option value="{{ $nivel->id }}">{{ $nivel->nombre }}</option>
+                                        <option value="{{ $nivel->id }}" {{ old('nivel_id') == $nivel->id ? 'selected' : '' }}>{{ $nivel->nombre }}</option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <div class="md:col-span-2"></div>
                             <div>
                                 <x-label for="password" :value="__('Contraseña')" />
                                 <x-input id="password" class="block mt-1 w-full" type="password" name="password"
@@ -88,8 +113,9 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end mt-4">
-                            <x-button class="ml-4">
+                        <div class="flex items-center justify-end mt-6">
+                            <a href="{{ route('usuarios.index') }}" class="text-gray-600 underline text-sm mr-4">Cancelar</a>
+                            <x-button>
                                 {{ __('Crear Usuario') }}
                             </x-button>
                         </div>
@@ -98,4 +124,39 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('userForm', (config) => ({
+                areas: config.areas,
+                occupiedDirectors: config.occupiedDirectors,
+                occupiedSubdirectors: config.occupiedSubdirectors,
+                selectedArea: config.selectedArea || '',
+                selectedSubarea: config.selectedSubarea || '',
+                selectedRole: config.selectedRole || 'user',
+
+                get subareas() {
+                    const area = this.areas.find(a => a.id == this.selectedArea);
+                    return area ? area.subareas : [];
+                },
+
+                get isDirectorOccupied() {
+                    return this.occupiedDirectors.includes(parseInt(this.selectedArea));
+                },
+
+                isSubdirectorOccupied(subareaId) {
+                    return this.occupiedSubdirectors.includes(parseInt(subareaId));
+                },
+
+                init() {
+                    this.$watch('selectedArea', value => {
+                        this.selectedSubarea = '';
+                        if (this.isDirectorOccupied && this.selectedRole === 'jefe_area') {
+                            this.selectedRole = 'user';
+                        }
+                    });
+                }
+            }));
+        });
+    </script>
 </x-app-layout>

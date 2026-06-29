@@ -31,6 +31,7 @@ class User extends Authenticatable
         'password',
         'role',
         'area_id',
+        'subarea_id',
         'no_empleado',
         'nivel_id',
     ];
@@ -58,6 +59,11 @@ class User extends Authenticatable
     public function area()
     {
         return $this->belongsTo(Area::class);
+    }
+
+    public function subarea()
+    {
+        return $this->belongsTo(Subarea::class);
     }
 
     public function nivel()

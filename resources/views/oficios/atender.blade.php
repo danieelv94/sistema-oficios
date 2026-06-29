@@ -60,10 +60,18 @@
                         </div>
 
                         <div class="border-t pt-4 mb-6">
-                            <p class="text-xs font-bold text-dorado-ocre uppercase mb-1">Instrucción de Dirección</p>
-                            <div class="p-4 bg-arena-claro/10 border border-dorado-ocre/20 rounded-lg">
-                                <p class="text-xl font-black text-gray-800 leading-snug">"{{ $areaOficio->instruccion }}"</p>
-                            </div>
+                            @if(isset($subareaOficio) && $subareaOficio)
+                                <p class="text-xs font-bold text-dorado-ocre uppercase mb-1">Subdirección / Instrucción</p>
+                                <div class="p-4 bg-arena-claro/10 border border-dorado-ocre/20 rounded-lg">
+                                    <p class="text-xs font-bold text-gray-500 uppercase mb-1">{{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}</p>
+                                    <p class="text-xl font-black text-gray-800 leading-snug">"{{ $subareaOficio->instruccion ?? $areaOficio->instruccion }}"</p>
+                                </div>
+                            @else
+                                <p class="text-xs font-bold text-dorado-ocre uppercase mb-1">Instrucción de Dirección</p>
+                                <div class="p-4 bg-arena-claro/10 border border-dorado-ocre/20 rounded-lg">
+                                    <p class="text-xl font-black text-gray-800 leading-snug">"{{ $areaOficio->instruccion }}"</p>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="border-t pt-4">
@@ -90,6 +98,9 @@
                         <form action="{{ route('oficios.solventar', $areaOficio->id) }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
+                            @if(isset($subareaOficio) && $subareaOficio)
+                                <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
+                            @endif
 
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Respuesta</label>

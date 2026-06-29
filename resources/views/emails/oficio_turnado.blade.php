@@ -164,7 +164,7 @@
             <p>Notificaciones de Gestión Institucional</p>
         </div>
         <div class="content">
-            <h2 class="greeting">Hola, Secretaria de Área</h2>
+            <h2 class="greeting">Hola, {{ $usuario->name }}</h2>
             <p class="intro">Se ha turnado un nuevo oficio a su área. Por favor, revise los detalles a continuación para asignarlo al personal correspondiente:</p>
             
             <div class="card">

@@ -117,44 +117,165 @@
                         </h3>
                     </div>
                     @foreach($turnosParaMostrar as $area)
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <p class="text-2xl font-bold text-gray-800 leading-snug">"{{ $area->pivot->instruccion }}"</p>
+                        @php
+                            $hasSubareas = \App\Models\Subarea::where('area_id', $area->id)->exists();
+                            if ($hasSubareas) {
+                                $mySubareaOficiosQuery = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id);
+                                if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
+                                    $mySubareaOficiosQuery->where('subarea_id', Auth::user()->subarea_id);
+                                } else {
+                                    $mySubareaOficiosQuery->where('user_id', Auth::id());
+                                }
+                                $mySubareaOficios = $mySubareaOficiosQuery->get();
+                            } else {
+                                $mySubareaOficios = collect();
+                            }
+                        @endphp
 
-                            {{-- Botón Confirmar Notificado para Operativos --}}
-                            @if($area->pivot->estatus == 'Asignado')
-                                <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST">
-                                    @csrf @method('PUT')
-                                    <button type="submit"
-                                        class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
-                                        Confirmar Notificado
-                                    </button>
-                                </form>
-                            @elseif($area->pivot->estatus == 'Notificado')
-                                <div class="flex items-center gap-3">
-                                    <span
-                                        class="bg-dorado-ocre/10 text-dorado-ocre px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        Notificado en el Sistema
-                                    </span>
-                                    <a href="{{ route('oficios.atender', $area->pivot->id) }}"
-                                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
-                                        Atender
-                                    </a>
+                        @if($hasSubareas)
+                            @foreach($mySubareaOficios as $mySubareaOficio)
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                    <div class="flex-1">
+                                        <p class="text-xs font-black text-dorado-ocre uppercase tracking-wider mb-1">{{ $mySubareaOficio->subarea ? $mySubareaOficio->subarea->name : 'Director (Jefe de Área)' }}</p>
+                                        <p class="text-2xl font-bold text-gray-800 leading-snug">"{{ $mySubareaOficio->instruccion ?? $area->pivot->instruccion }}"</p>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap mt-2 sm:mt-0">
+                                        {{-- Botón Confirmar Notificado para Operativos --}}
+                                        @if($mySubareaOficio->estatus == 'Asignado')
+                                            <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST" class="inline-block">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="subarea_oficio_id" value="{{ $mySubareaOficio->id }}">
+                                                <button type="submit"
+                                                    class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                                    Confirmar Notificado
+                                                </button>
+                                            </form>
+                                        @elseif($mySubareaOficio->estatus == 'Notificado')
+                                            <div class="flex items-center gap-3">
+                                                <span
+                                                    class="bg-dorado-ocre/10 text-dorado-ocre px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                            d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Notificado en el Sistema
+                                                </span>
+                                                <a href="{{ route('oficios.atender', [$area->pivot->id, 'subarea_oficio_id' => $mySubareaOficio->id]) }}"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                                    Atender
+                                                </a>
+                                            </div>
+                                        @elseif($mySubareaOficio->estatus == 'Solventado')
+                                            <span
+                                                class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                        d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Atendido / Solventado
+                                            </span>
+                                        @endif
+
+                                        {{-- Formulario de delegación para el Subdirector dentro de su subdirección --}}
+                                        @if((Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) && $mySubareaOficio->estatus !== 'Solventado' && $area->pivot->estatus !== 'Cancelado')
+                                            <form action="{{ route('oficios.asignarSubarea', $mySubareaOficio->id) }}" method="POST" class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-sm">
+                                                @csrf @method('PUT')
+                                                <select name="user_id" class="text-xs rounded border-gray-300 focus:ring-gris-oscuro py-1.5 disabled:bg-gray-150 disabled:text-gray-500" required {{ $mySubareaOficio->user_id ? 'disabled' : '' }}>
+                                                    <option value="">Delegar a personal...</option>
+                                                    @foreach($personalPorSubarea[$mySubareaOficio->id] ?? [] as $persona)
+                                                        <option value="{{ $persona->id }}" {{ $mySubareaOficio->user_id == $persona->id ? 'selected' : '' }}>
+                                                            {{ $persona->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @if(!$mySubareaOficio->user_id)
+                                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm transition">
+                                                        Asignar
+                                                    </button>
+                                                @else
+                                                    <span class="text-green-700 font-bold text-[10px] uppercase bg-green-50 px-2 py-1.5 rounded-lg border border-green-200">Asignado</span>
+                                                @endif
+                                            </form>
+                                        @endif
+                                    </div>
                                 </div>
-                            @elseif($area->pivot->estatus == 'Solventado')
-                                <span
-                                    class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                            d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Atendido / Solventado
-                                </span>
-                            @endif
-                        </div>
+                            @endforeach
+                        @else
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <p class="text-2xl font-bold text-gray-800 leading-snug">"{{ $area->pivot->instruccion }}"</p>
+
+                                @php
+                                    $isSubdirectorCheck = (
+                                        Auth::user()->role === 'subdirector' || 
+                                        (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null && $area->pivot->user_id == Auth::user()->id)
+                                    );
+                                @endphp
+
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap mt-2 sm:mt-0">
+                                    {{-- Botón Confirmar Notificado para Operativos --}}
+                                    @if($area->pivot->estatus == 'Asignado')
+                                        <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST" class="inline-block">
+                                            @csrf @method('PUT')
+                                            <button type="submit"
+                                                class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                                Confirmar Notificado
+                                            </button>
+                                        </form>
+                                    @elseif($area->pivot->estatus == 'Notificado')
+                                        <div class="flex items-center gap-3">
+                                            <span
+                                                class="bg-dorado-ocre/10 text-dorado-ocre px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                        d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Notificado en el Sistema
+                                            </span>
+                                            <a href="{{ route('oficios.atender', $area->pivot->id) }}"
+                                                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase shadow-md transition transform hover:scale-102">
+                                                Atender
+                                            </a>
+                                        </div>
+                                    @elseif($area->pivot->estatus == 'Solventado')
+                                        <span
+                                            class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-black uppercase flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                    d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Atendido / Solventado
+                                        </span>
+                                    @endif
+
+                                    {{-- Formulario de delegación para el Subdirector --}}
+                                    @if($isSubdirectorCheck && $area->pivot->estatus !== 'Solventado' && $area->pivot->estatus !== 'Cancelado')
+                                        <form action="{{ route('oficios.asignar', $oficio) }}" method="POST" class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-sm">
+                                            @csrf @method('PUT')
+                                            <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
+                                            <select name="user_id" class="text-xs rounded border-gray-300 focus:ring-gris-oscuro py-1.5 disabled:bg-gray-150 disabled:text-gray-500" required {{ $area->pivot->user_id ? 'disabled' : '' }}>
+                                                <option value="">Asignar a personal...</option>
+                                                @foreach($personalPorArea[$area->id] ?? [] as $persona)
+                                                    <option value="{{ $persona->id }}" {{ $area->pivot->user_id == $persona->id ? 'selected' : '' }}>
+                                                        {{ $persona->name }}
+                                                        @if($persona->subarea)
+                                                            - {{ $persona->subarea->name }}
+                                                        @endif
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @if(!$area->pivot->user_id)
+                                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm transition">
+                                                    Asignar
+                                                </button>
+                                            @else
+                                                <span class="text-green-700 font-bold text-[10px] uppercase bg-green-50 px-2 py-1.5 rounded-lg border border-green-200">Asignado</span>
+                                            @endif
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
             @endif
@@ -162,24 +283,28 @@
             @if($mode == 'recepcion' || $mode == 'gestion')
                 {{-- SEGUIMIENTO DE TURNOS --}}
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                    <h3 class="text-sm font-black text-gris-oscuro uppercase tracking-widest mb-6 border-b pb-2">Seguimiento
-                        de Turnos y Áreas</h3>
+                    <h3 class="text-sm font-black text-gris-oscuro uppercase tracking-widest mb-6 border-b pb-2">Seguimiento de Turnos y Áreas</h3>
                     <div class="space-y-4">
                         @forelse($turnosParaMostrar as $area)
-                            <div
-                                class="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:border-gris-claro/30 transition shadow-sm">
+                            @php
+                                $hasSubareas = \App\Models\Subarea::where('area_id', $area->id)->exists();
+                                $subareasDisponibles = $subareasDisponiblesPorArea[$area->pivot->id] ?? collect();
+                                $subareaAssignments = $subareaOficiosPorArea[$area->pivot->id] ?? collect();
+                            @endphp
+
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:border-gris-claro/30 transition shadow-sm">
                                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                                     <div class="flex-1">
                                         <div class="flex items-center space-x-3 mb-2 flex-wrap gap-y-1">
                                             <p class="text-lg font-black text-gris-oscuro uppercase">{{ $area->name }}</p>
                                             <span class="inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider
-                                                        {{ $area->pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                                        {{ $area->pivot->estatus == 'Recibido' ? 'bg-gris-claro/20 text-gris-oscuro' : '' }}
-                                                        {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                                        {{ $area->pivot->estatus == 'Notificado' ? 'bg-dorado-ocre/10 text-dorado-ocre' : '' }}
-                                                        {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
-                                                        {{ $area->pivot->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
-                                                    ">
+                                                {{ $area->pivot->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                {{ $area->pivot->estatus == 'Recibido' ? 'bg-gris-claro/20 text-gris-oscuro' : '' }}
+                                                {{ $area->pivot->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                {{ $area->pivot->estatus == 'Notificado' ? 'bg-dorado-ocre/10 text-dorado-ocre' : '' }}
+                                                {{ $area->pivot->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                {{ $area->pivot->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
+                                            ">
                                                 {{ $area->pivot->estatus }}
                                             </span>
                                             @if(in_array(Auth::user()->role, ['admin', 'correspondencia']) && $area->pivot->estatus !== 'Cancelado')
@@ -190,37 +315,60 @@
                                                 </button>
                                             @endif
                                         </div>
-                                        <p class="text-xs text-gray-600"><span
-                                                class="font-bold uppercase text-gray-400">Instrucción:</span>
-                                            {{ $area->pivot->instruccion }}</p>
-                                        <p class="text-xs text-gray-600 mt-1"><span
-                                                class="font-bold uppercase text-gray-400">Responsable:</span> <span
-                                                class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span>
-                                        </p>
+                                        <p class="text-xs text-gray-600"><span class="font-bold uppercase text-gray-400">Instrucción:</span> {{ $area->pivot->instruccion }}</p>
+                                        
                                         @if($area->pivot->estatus == 'Cancelado')
                                             <p class="text-xs text-red-700 mt-1 font-medium bg-red-50 p-2 rounded border border-red-100 max-w-xl">
                                                 <span class="font-bold uppercase text-[10px]">Motivo de Cancelación:</span> "{{ $area->pivot->motivo_cancelacion ?? 'No se especificó motivo.' }}"
                                             </p>
                                         @endif
+                                        
                                         @if($area->pivot->folio_interno)
-                                            <p class="text-xs text-gray-600 mt-1"><span
-                                                    class="font-bold uppercase text-gray-400">Folio Interno:</span> <span
-                                                    class="font-bold text-gris-oscuro">{{ $area->pivot->folio_interno }}</span>
-                                            </p>
+                                            <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Folio Interno:</span> <span class="font-bold text-gris-oscuro">{{ $area->pivot->folio_interno }}</span></p>
                                         @endif
-                                        @if($area->pivot->user_id)
-                                            <div class="mt-1">
-                                                <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id]) }}"
-                                                    target="_blank"
-                                                    class="inline-flex items-center text-[10px] font-bold text-gris-oscuro hover:underline bg-gris-claro/10 px-2.5 py-1 rounded-md">
-                                                    <svg class="w-3.5 h-3.5 mr-1 text-gris-oscuro" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                                    </svg>
-                                                    Imprimir Turno
-                                                </a>
+
+                                        @if($hasSubareas)
+                                            {{-- Renderizar asignaciones de subdirección en modo gestion --}}
+                                            <div class="mt-4 space-y-2 pl-4 border-l-2 border-gray-200">
+                                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Subdirecciones Asignadas:</p>
+                                                @forelse($subareaAssignments as $subareaOficio)
+                                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-2 rounded border border-gray-150 text-xs shadow-sm gap-2">
+                                                        <div>
+                                                            <span class="font-bold text-gray-800">{{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}</span>
+                                                            @if($subareaOficio->user)
+                                                                <span class="text-gray-500 font-medium"> (Responsable: {{ $subareaOficio->user->name }})</span>
+                                                            @else
+                                                                <span class="text-gray-400 italic"> (Sin delegar)</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
+                                                                {{ $subareaOficio->estatus == 'Asignado' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                                {{ $subareaOficio->estatus == 'Notificado' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                                {{ $subareaOficio->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                            ">
+                                                                {{ $subareaOficio->estatus }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                @empty
+                                                    <p class="text-xs text-gray-400 italic">Ninguna subdirección asignada aún.</p>
+                                                @endforelse
                                             </div>
+                                        @else
+                                            <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Responsable:</span> <span class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span></p>
+                                            @if($area->pivot->user_id)
+                                                <div class="mt-1">
+                                                    <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id]) }}"
+                                                        target="_blank"
+                                                        class="inline-flex items-center text-[10px] font-bold text-gris-oscuro hover:underline bg-gris-claro/10 px-2.5 py-1 rounded-md">
+                                                        <svg class="w-3.5 h-3.5 mr-1 text-gris-oscuro" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                                        </svg>
+                                                        Imprimir Turno
+                                                    </a>
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                     <div class="flex flex-col md:flex-row items-end md:items-center gap-3 mt-4 md:mt-0">
@@ -235,42 +383,87 @@
                                             </form>
                                         @endif
 
-                                        @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
-                                            <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
-                                                class="flex items-center space-x-2 flex-wrap gap-y-1"
-                                                x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">
-                                                @csrf @method('PUT')
-                                                <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
-                                                <select name="user_id"
-                                                    class="text-xs rounded border-gray-300 focus:ring-gris-oscuro disabled:bg-gray-100 disabled:text-gray-500"
-                                                    :disabled="!isEditing" required>
-                                                    <option value="">Asignar a...</option>
-                                                    @foreach($personalPorArea[$area->id] as $persona)
-                                                        <option value="{{ $persona->id }}" {{ $area->pivot->user_id == $persona->id ? 'selected' : '' }}>{{ $persona->name }}</option>
-                                                    @endforeach
-                                                </select>
-
-                                                {{-- Botón Asignar (solo visible cuando está editando) --}}
-                                                <button type="submit" x-show="isEditing"
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                    Asignar
-                                                </button>
-
-                                                {{-- Botón Cancelar (solo visible cuando está editando y ya tiene un usuario
-                                                asignado) --}}
-                                                @if($area->pivot->user_id)
-                                                    <button type="button" x-show="isEditing" @click="isEditing = false"
-                                                        class="bg-gray-400 hover:bg-gray-500 text-white px-2 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                        Cancelar
-                                                    </button>
+                                        @if($hasSubareas)
+                                            {{-- Formulario para asignar a subdirecciones (checkboxes) o Director --}}
+                                            @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
+                                                @php
+                                                    $isDirectorAssigned = $subareaAssignments->contains(fn($sa) => is_null($sa->subarea_id));
+                                                @endphp
+                                                @if(count($subareasDisponibles) > 0 || !$isDirectorAssigned)
+                                                    <form action="{{ route('oficios.asignar', $oficio) }}" method="POST" class="flex flex-col gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-md w-full max-w-sm">
+                                                        @csrf @method('PUT')
+                                                        <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
+                                                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Asignar Destinatarios:</p>
+                                                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                                                            @if(!$isDirectorAssigned)
+                                                                <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
+                                                                    <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">Director (Jefe de Área)</p>
+                                                                        <p class="text-[9px] text-gray-400">Atención directa por parte del titular</p>
+                                                                    </div>
+                                                                </label>
+                                                            @endif
+                                                            @foreach($subareasDisponibles as $subarea)
+                                                                <label class="flex items-center p-2 rounded-lg border border-gray-150 hover:border-dorado-ocre hover:bg-arena-claro/5 transition cursor-pointer">
+                                                                    <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">{{ $subarea->name }}</p>
+                                                                        <p class="text-[9px] text-gray-400">Delegar trabajo a esta subdirección</p>
+                                                                    </div>
+                                                                </label>
+                                                            @endforeach
+                                                        </div>
+                                                        <button type="submit" class="w-full bg-gris-oscuro hover:bg-guinda-ceaa text-white py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition shadow-sm hover:shadow-md">
+                                                            Confirmar Asignación
+                                                        </button>
+                                                    </form>
                                                 @endif
+                                            @endif
+                                        @else
+                                            {{-- Formulario original de un solo responsable para áreas sin subdirecciones --}}
+                                            @if((Auth::user()->role == 'admin' || (in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']) && Auth::user()->area_id == $area->id)) && $area->pivot->estatus !== 'Turnado' && $area->pivot->estatus !== 'Cancelado')
+                                                <form action="{{ route('oficios.asignar', $oficio) }}" method="POST"
+                                                    class="flex items-center space-x-2 flex-wrap gap-y-1"
+                                                    x-data="{ isEditing: {{ $area->pivot->user_id ? 'false' : 'true' }} }">
+                                                    @csrf @method('PUT')
+                                                    <input type="hidden" name="pivote_id" value="{{ $area->pivot->id }}">
+                                                    <select name="user_id"
+                                                        class="text-xs rounded border-gray-300 focus:ring-gris-oscuro disabled:bg-gray-100 disabled:text-gray-500"
+                                                        :disabled="!isEditing" required>
+                                                        <option value="">Asignar a...</option>
+                                                        @foreach($personalPorArea[$area->id] ?? [] as $persona)
+                                                            <option value="{{ $persona->id }}" {{ $area->pivot->user_id == $persona->id ? 'selected' : '' }}>
+                                                                {{ $persona->name }}
+                                                                @if($persona->role === 'jefe_area')
+                                                                    - Director
+                                                                @elseif($persona->subarea)
+                                                                    - {{ $persona->subarea->name }}
+                                                                @elseif($persona->cargo)
+                                                                    - {{ $persona->cargo }}
+                                                                @endif
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
 
-                                                {{-- Botón Reasignar (solo visible cuando no está editando) --}}
-                                                <button type="button" x-show="!isEditing" @click="isEditing = true"
-                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
-                                                    Reasignar
-                                                </button>
-                                            </form>
+                                                    <button type="submit" x-show="isEditing"
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
+                                                        Asignar
+                                                    </button>
+
+                                                    @if($area->pivot->user_id)
+                                                        <button type="button" x-show="isEditing" @click="isEditing = false"
+                                                            class="bg-gray-400 hover:bg-gray-500 text-white px-2 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
+                                                            Cancelar
+                                                        </button>
+                                                    @endif
+
+                                                    <button type="button" x-show="!isEditing" @click="isEditing = true"
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[10px] font-black uppercase transition shadow-sm">
+                                                        Reasignar
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @endif
                                     </div>
                                 </div>
@@ -439,6 +632,11 @@
                             class="inline-block px-2 py-0.5 mt-1 text-[9px] font-black uppercase {{ $respuesta->tipo_respuesta == 'Solventacion' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600' }}">
                             {{ $respuesta->tipo_respuesta }}
                         </span>
+                        @if($respuesta->subareaOficio)
+                            <span class="inline-block px-2 py-0.5 mt-1 text-[9px] font-black uppercase bg-blue-100 text-blue-700">
+                                {{ $respuesta->subareaOficio->subarea ? $respuesta->subareaOficio->subarea->name : 'Director (Jefe de Área)' }}
+                            </span>
+                        @endif
                         <p class="mt-2 text-sm text-gray-700 italic">"{{ $respuesta->mensaje }}"</p>
 
                         @if($respuesta->archivo_evidencia)
