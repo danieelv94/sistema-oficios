@@ -114,6 +114,19 @@
                     <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Comisión</span>
                 </a>
 
+                <!-- Link: Correspondencia Interna -->
+                @if(Auth::user()->area_id || Auth::user()->role == 'admin')
+                    <a href="{{ route('oficios.internos.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('oficios.internos.*') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('oficios.internos.*') ? 'text-white' : '' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Internos</span>
+                    </a>
+                @endif
+
                 <!-- Link: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('tickets.*') ? 'bg-guinda-ceaa text-white' : '' }}">
@@ -220,6 +233,18 @@
                     </svg>
                     <span>Oficios Comisión</span>
                 </a>
+
+                <!-- Enlace: Correspondencia Interna -->
+                @if(Auth::user()->area_id || Auth::user()->role == 'admin')
+                    <a href="{{ route('oficios.internos.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Oficios Internos</span>
+                    </a>
+                @endif
 
                 <!-- Enlace: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"

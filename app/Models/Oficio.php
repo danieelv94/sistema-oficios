@@ -26,7 +26,18 @@ class Oficio extends Model
         'observaciones',
         'pdf_path',
         'motivo_cancelacion',
+        'area_origen_id',
+        'consecutivo_origen',
+        'anio_origen',
     ];
+
+    /**
+     * El área de origen desde la que se mandó este oficio interno.
+     */
+    public function areaOrigen()
+    {
+        return $this->belongsTo(Area::class, 'area_origen_id');
+    }
 
     /**
      * Las áreas a las que este oficio fue turnado.

@@ -36,6 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/oficios/reporte-entradas', [App\Http\Controllers\OficioController::class, 'reporteEntradas'])
         ->name('oficios.reporteEntradas');
 
+    // --- Módulo de Oficios Internos ---
+    Route::get('/oficios/internos', [OficioController::class, 'internosIndex'])->name('oficios.internos.index');
+    Route::get('/oficios/internos/crear', [OficioController::class, 'internosCreate'])->name('oficios.internos.create');
+    Route::post('/oficios/internos', [OficioController::class, 'internosStore'])->name('oficios.internos.store');
+
     // --- Módulo de Oficios ---
     Route::resource('oficios', OficioController::class)->except(['index']);
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');

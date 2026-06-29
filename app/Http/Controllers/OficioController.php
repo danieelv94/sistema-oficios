@@ -34,7 +34,7 @@ class OficioController extends Controller
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
-        $query = Oficio::query();
+        $query = Oficio::where('tipo_correspondencia', 'Externa');
 
         // Búsqueda por número, remitente o asunto
         if ($request->filled('search')) {
@@ -218,7 +218,7 @@ class OficioController extends Controller
         if ($request->has('mode')) {
             $mode = $request->input('mode');
         } else {
-            $mode = in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) ? 'recepcion' : (in_array($user->role, ['jefe_area', 'secretaria_area', 'subdirector']) ? 'gestion' : 'operativo');
+            $mode = in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) ? 'recepcion' : (in_array($user->role, ['jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo');
         }
 
         return view('oficios.show', compact(
@@ -612,7 +612,7 @@ class OficioController extends Controller
 
         // Si es administrador o rol de gestión del área, ve todos los turnos del área.
         // Si es operativo o subdirector, se filtra según la asignación a su subárea o personal.
-        $query = Oficio::whereHas('areas', function ($query) use ($user) {
+        $query = Oficio::where('tipo_correspondencia', 'Externa')->whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
             
             if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
@@ -731,7 +731,8 @@ class OficioController extends Controller
         $fechaFin = $request->input('fecha_fin', \Carbon\Carbon::today()->format('Y-m-d'));
 
         // Obtener todos los oficios registrados en el rango de fechas (sea cual sea su estatus)
-        $oficios = Oficio::whereDate('created_at', '>=', $fechaInicio)
+        $oficios = Oficio::where('tipo_correspondencia', 'Externa')
+            ->whereDate('created_at', '>=', $fechaInicio)
             ->whereDate('created_at', '<=', $fechaFin)
             ->orderByRaw('CAST(numero_oficio AS UNSIGNED) ASC')
             ->get();
@@ -1022,5 +1023,200 @@ class OficioController extends Controller
             ->update(['estatus' => 'Cancelado']);
 
         return redirect()->route('oficios.index')->with('success', 'El oficio ha sido cancelado correctamente.');
+    }
+
+    public function internosIndex(Request $request)
+    {
+        $user = Auth::user();
+
+        // Si no es admin y no tiene área, abortar
+        if ($user->role !== 'admin' && !$user->area_id) {
+            abort(403, 'No tienes una Dirección/Área asignada para ver esta sección.');
+        }
+
+        $query = Oficio::where('tipo_correspondencia', 'Interna')->with('areaOrigen');
+
+        $areaId = $user->area_id;
+        $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos
+
+        if ($user->role !== 'admin') {
+            if ($filtroTipo === 'Enviados') {
+                $query->where('area_origen_id', $areaId);
+            } elseif ($filtroTipo === 'Recibidos') {
+                $query->whereHas('areas', function ($q) use ($areaId) {
+                    $q->where('areas.id', $areaId);
+                });
+            } else {
+                // Todos los internos de su área (enviados o recibidos)
+                $query->where(function ($q) use ($areaId) {
+                    $q->where('area_origen_id', $areaId)
+                      ->orWhereHas('areas', function ($areaQ) use ($areaId) {
+                          $areaQ->where('areas.id', $areaId);
+                      });
+                });
+            }
+        } else {
+            // Admin ve todos
+            if ($filtroTipo === 'Enviados' && $request->filled('area_origen_id')) {
+                $query->where('area_origen_id', $request->area_origen_id);
+            } elseif ($filtroTipo === 'Recibidos' && $request->filled('area_destino_id')) {
+                $query->whereHas('areas', function ($q) use ($request) {
+                    $q->where('areas.id', $request->area_destino_id);
+                });
+            }
+        }
+
+        // Búsqueda por número de oficio, remitente o asunto
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_oficio', 'like', "%{$search}%")
+                  ->orWhere('remitente', 'like', "%{$search}%")
+                  ->orWhere('asunto', 'like', "%{$search}%");
+            });
+        }
+
+        $oficios = $query->orderBy('created_at', 'desc')->paginate(10);
+        $areas = \App\Models\Area::all();
+
+        return view('oficios.internos.index', compact('oficios', 'filtroTipo', 'areas'));
+    }
+
+    public function internosCreate()
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        if ($user->role !== 'admin' && !$user->area_id) {
+            return back()->with('error', 'El usuario no tiene una Dirección asignada.');
+        }
+
+        $areas = \App\Models\Area::all();
+        $currentYear = now()->year;
+
+        // Precalculamos los folios y remitentes por defecto para cada área (cuando actúa como Capturadora/Receptora o como Emisora)
+        $areasData = [];
+        foreach ($areas as $area) {
+            $maxPivotConsecutivo = DB::table('area_oficio')
+                ->where('area_id', $area->id)
+                ->where('anio', $currentYear)
+                ->max('consecutivo');
+            $maxOficioConsecutivo = Oficio::where('area_origen_id', $area->id)
+                ->where('anio_origen', $currentYear)
+                ->max('consecutivo_origen');
+            $nextConsecutivo = max($maxPivotConsecutivo ?? 0, $maxOficioConsecutivo ?? 0) + 1;
+            $prefijo = !empty($area->prefijo) ? $area->prefijo : 'OIC';
+            $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+            $director = User::where('area_id', $area->id)->where('role', 'jefe_area')->first();
+            $remitente = $director ? ($director->prof ? $director->prof . ' ' : '') . $director->name : '';
+
+            $areasData[$area->id] = [
+                'id' => $area->id,
+                'name' => $area->name,
+                'folio' => $folio,
+                'remitente' => $remitente
+            ];
+        }
+
+        // Determinar el área capturadora/receptora (la que se queda con el consecutivo y el folio)
+        $capturingAreaId = $user->role === 'admin' ? old('area_captura_id', 2) : $user->area_id; // por defecto Gestión Institucional si es admin
+        $areaCaptura = \App\Models\Area::find($capturingAreaId);
+
+        // Folio generado para el área capturadora
+        $siguienteFolio = $areasData[$capturingAreaId]['folio'] ?? '';
+
+        return view('oficios.internos.create', compact('areas', 'areaCaptura', 'siguienteFolio', 'areasData'));
+    }
+
+    public function internosStore(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+        
+        // Área receptora/capturadora (la que genera el folio)
+        $capturingAreaId = $user->role === 'admin' ? $request->area_captura_id : $user->area_id;
+        // Área emisora/origen (la que mandó el oficio)
+        $areaOrigenId = $request->area_origen_id;
+
+        if (!$capturingAreaId) {
+            return back()->with('error', 'No se ha determinado la Dirección de Destino/Captura.')->withInput();
+        }
+        if (!$areaOrigenId) {
+            return back()->with('error', 'No se ha determinado la Dirección de Origen/Emisora.')->withInput();
+        }
+
+        $request->validate([
+            'area_origen_id' => 'required|exists:areas,id',
+            'asunto' => 'required|string',
+            'fecha_recepcion' => 'required|date',
+            'prioridad' => 'required|string',
+            'archivo_pdf' => 'required|file|mimes:pdf|max:10240',
+            'observaciones' => 'nullable|string',
+            'remitente' => 'required|string|max:255',
+            'fecha_limite' => 'nullable|date',
+        ]);
+
+        $areaCaptura = \App\Models\Area::findOrFail($capturingAreaId);
+
+        // Generar el consecutivo y el folio interno definitivos para el área receptora/capturadora
+        $currentYear = now()->year;
+        $maxPivotConsecutivo = DB::table('area_oficio')
+            ->where('area_id', $areaCaptura->id)
+            ->where('anio', $currentYear)
+            ->max('consecutivo');
+        $maxOficioConsecutivo = Oficio::where('area_origen_id', $areaCaptura->id)
+            ->where('anio_origen', $currentYear)
+            ->max('consecutivo_origen');
+        $nextConsecutivo = max($maxPivotConsecutivo ?? 0, $maxOficioConsecutivo ?? 0) + 1;
+        $prefijo = !empty($areaCaptura->prefijo) ? $areaCaptura->prefijo : 'OIC';
+        $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+        // Guardar el archivo PDF
+        $pdfPath = null;
+        if ($request->hasFile('archivo_pdf')) {
+            $pdfPath = $request->file('archivo_pdf')->store('oficios_pdf', 'public');
+        }
+
+        // Crear el Oficio
+        $oficio = Oficio::create([
+            'numero_oficio' => $folio,
+            'remitente' => $request->remitente,
+            'municipio' => 'Pachuca de Soto',
+            'localidad' => 'Pachuca de Soto',
+            'asunto' => $request->asunto,
+            'estatus' => 'Turnado', // Ya está recibido e ingresado
+            'fecha_recepcion' => $request->fecha_recepcion,
+            'tipo_correspondencia' => 'Interna',
+            'prioridad' => $request->prioridad,
+            'numero_oficio_dependencia' => $folio,
+            'fecha_limite' => $request->fecha_limite,
+            'observaciones' => $request->observaciones,
+            'pdf_path' => $pdfPath,
+            'area_origen_id' => $areaOrigenId,
+            'consecutivo_origen' => null, // ya no es el emisor quien da el consecutivo en la tabla oficios
+            'anio_origen' => $currentYear,
+        ]);
+
+        // Registrar el turno directamente para el área receptora/capturadora
+        DB::table('area_oficio')->insert([
+            'oficio_id' => $oficio->id,
+            'area_id' => $areaCaptura->id,
+            'instruccion' => 'Correspondencia Interna Recibida',
+            'estatus' => 'Notificado', // Queda recibido para que puedan asignarlo de inmediato
+            'folio_interno' => $folio,
+            'consecutivo' => $nextConsecutivo,
+            'anio' => $currentYear,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('oficios.internos.index')->with('success', 'Oficio interno registrado correctamente con el folio receptor de tu área: ' . $folio);
     }
 }
