@@ -2328,6 +2328,9 @@ select {
 .opacity-90 {
   opacity: 0.9;
 }
+.opacity-\[0\.08\] {
+  opacity: 0.08;
+}
 .mix-blend-multiply {
   mix-blend-mode: multiply;
 }

@@ -147,6 +147,13 @@
     {{-- Hoja de Volante de Turno (Imprimible) --}}
     <div class="printable-area relative">
 
+        @if($oficio->estatus === 'Cancelado' || ($turnosParaImprimir->count() === 1 && $turnosParaImprimir->first()->pivot->estatus === 'Cancelado'))
+            <div class="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
+                <p style="font-size: 10rem;"
+                    class="font-black text-red-500 opacity-[0.08] transform -rotate-45 select-none uppercase">CANCELADO</p>
+            </div>
+        @endif
+
         {{-- Logotipo Oficial CEAA --}}
         <div class="flex justify-end mb-6 text-right">
             <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">

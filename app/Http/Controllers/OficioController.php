@@ -601,10 +601,17 @@ class OficioController extends Controller
             $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($request) {
                 return $area->id == $request->area_id;
             });
-        } elseif (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
-            $turnosParaImprimir = $oficio->areas->filter(function ($area) use ($user) {
-                return $area->id == $user->area_id;
+        } else {
+            // Si se imprimen todos los turnos masivamente, omitir los que estén cancelados
+            $turnosParaImprimir = $oficio->areas->filter(function ($area) {
+                return $area->pivot->estatus !== 'Cancelado';
             });
+
+            if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+                $turnosParaImprimir = $turnosParaImprimir->filter(function ($area) use ($user) {
+                    return $area->id == $user->area_id;
+                });
+            }
         }
 
         $subareaOficio = null;

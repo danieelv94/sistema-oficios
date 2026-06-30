@@ -113,6 +113,27 @@ echo "2. Folio badges are hidden on multi-area print? " . (!$hasFolioInPrintMult
 // Delete temporary turn to Area 3
 DB::table('area_oficio')->where('id', $tempTurnId)->delete();
 
+// === Test 1c: Cancelled Turn test ===
+echo "\n=== Test 1c: Cancelled Turn test (watermark and print exclusion) ===\n";
+// Cancel the main turn (Area 2, ID 41)
+DB::table('area_oficio')->where('id', 41)->update(['estatus' => 'Cancelado']);
+
+// Print specifically for Area 2 (should show CANCELADO watermark)
+$requestSingleCancelled = new \Illuminate\Http\Request();
+$requestSingleCancelled->merge(['area_id' => 2]);
+$htmlSingleCancelled = $controller->generarOficio($requestSingleCancelled, $oficio)->render();
+$hasWatermark = strpos($htmlSingleCancelled, 'CANCELADO') !== false;
+echo "1. Watermark CANCELADO visible on specific cancelled print? " . ($hasWatermark ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+// Print mass (should exclude Area 2 because it is cancelled, leaving 0 printouts)
+$requestMass = new \Illuminate\Http\Request();
+$htmlMass = $controller->generarOficio($requestMass, $oficio)->render();
+$hasArea2InMass = strpos($htmlMass, 'Dirección de Gestión Institucional') !== false;
+echo "2. Cancelled turn excluded from mass print? " . (!$hasArea2InMass ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+// Revert pivot status to Asignado for the rest of the test
+DB::table('area_oficio')->where('id', 41)->update(['estatus' => 'Asignado']);
+
 // === Test 2: Tracking / Consola de Monitoreo Global ===
 echo "\n=== Test 2: Consola de Monitoreo Global (seguimiento) ===\n";
 $requestSeguimiento = new \Illuminate\Http\Request();
