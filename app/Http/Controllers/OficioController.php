@@ -165,10 +165,10 @@ class OficioController extends Controller
                 ->whereNotIn('id', $subareasAsignadasIds)
                 ->get();
 
-            // Personal directo (sin subdirección) de esta Dirección
+            // Personal directo (sin subdirección) de esta Dirección (incluyendo secretarias de área)
             $assignedUserIds = $subareaOficios->whereNull('subarea_id')->pluck('user_id')->toArray();
             $queryDirecto = User::where('area_id', $areaTurnada->id)
-                ->where('role', 'user')
+                ->whereIn('role', ['user', 'secretaria_area'])
                 ->whereNull('subarea_id')
                 ->orderBy('name', 'asc');
             if (!empty($assignedUserIds)) {
@@ -176,13 +176,12 @@ class OficioController extends Controller
             }
             $personalDirectoDisponiblesPorArea[$pivoteId] = $queryDirecto->get();
 
-            // Personal operativo por subdirección para delegación del subdirector
+            // Personal operativo por subdirección para delegación del subdirector (incluyendo secretarias de área)
             foreach ($subareaOficios as $so) {
                 $personalPorSubarea[$so->id] = User::where('area_id', $areaTurnada->id)
                     ->where('subarea_id', $so->subarea_id)
                     ->where(function($q) use ($so) {
-                        $q->where('role', 'user')
-                          ->orWhere('role', 'subdirector')
+                        $q->whereIn('role', ['user', 'secretaria_area', 'subdirector'])
                           ->orWhere(function($adminQ) use ($so) {
                               $adminQ->where('role', 'admin')
                                      ->where('subarea_id', $so->subarea_id);
@@ -201,6 +200,7 @@ class OficioController extends Controller
                     ->where(function($q) {
                         $q->where('role', 'jefe_area')
                           ->orWhere('role', 'user')
+                          ->orWhere('role', 'secretaria_area')
                           ->orWhere('role', 'admin');
                     });
                 $personalPorArea[$areaTurnada->id] = $query->get();
@@ -904,12 +904,13 @@ class OficioController extends Controller
 
     public function solventar(Request $request, $areaOficioId)
     {
-        // 1. Validamos los datos
         $request->validate([
             'tipo_respuesta' => 'required|in:Conocimiento,Solventacion',
             'mensaje' => 'required|string',
-            'archivo_evidencia' => 'nullable|file|mimes:pdf|max:5120',
+            'archivo_evidencia' => 'required_if:tipo_respuesta,Solventacion|nullable|file|mimes:pdf|max:5120',
             'subarea_oficio_id' => 'nullable|exists:subarea_oficio,id'
+        ], [
+            'archivo_evidencia.required_if' => 'Debe adjuntar obligatoriamente el archivo PDF de evidencia para una solventación o respuesta formal.'
         ]);
 
         // 2. Gestionamos el archivo si existe

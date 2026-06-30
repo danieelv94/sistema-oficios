@@ -96,7 +96,8 @@
                         <h3 class="text-lg font-black text-gray-800 uppercase mb-6">Registrar Respuesta</h3>
 
                         <form action="{{ route('oficios.solventar', $areaOficio->id) }}" method="POST"
-                            enctype="multipart/form-data">
+                            enctype="multipart/form-data"
+                            x-data="{ tipoRespuesta: '{{ old('tipo_respuesta', 'Conocimiento') }}' }">
                             @csrf
                             @if(isset($subareaOficio) && $subareaOficio)
                                 <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
@@ -104,20 +105,22 @@
 
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo de Respuesta</label>
-                                <select name="tipo_respuesta" class="w-full rounded border-gray-300 text-sm focus:ring-dorado-ocre focus:border-dorado-ocre">
-                                    <option value="Conocimiento">Solo Conocimiento</option>
-                                    <option value="Solventacion">Solventación / Respuesta Formal</option>
+                                <select name="tipo_respuesta" x-model="tipoRespuesta" class="w-full rounded border-gray-300 text-sm focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                    <option value="Conocimiento" {{ old('tipo_respuesta') == 'Conocimiento' ? 'selected' : '' }}>Solo Conocimiento</option>
+                                    <option value="Solventacion" {{ old('tipo_respuesta') == 'Solventacion' ? 'selected' : '' }}>Solventación / Respuesta Formal</option>
                                 </select>
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Mensaje de Acción</label>
                                 <textarea name="mensaje" class="w-full rounded border-gray-300 text-sm focus:ring-dorado-ocre focus:border-dorado-ocre" rows="4"
-                                    placeholder="Detalle las acciones realizadas o los comentarios referentes al turno..." required></textarea>
+                                    placeholder="Detalle las acciones realizadas o los comentarios referentes al turno..." required>{{ old('mensaje') }}</textarea>
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Adjuntar Evidencia (PDF)</label>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">
+                                    Adjuntar Evidencia (PDF) <span x-show="tipoRespuesta === 'Solventacion'" class="text-red-500 font-extrabold">(Obligatorio)</span>
+                                </label>
                                 <div class="mt-1 flex justify-center px-4 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 hover:bg-arena-claro/20 transition-colors cursor-pointer relative group"
                                     onclick="document.getElementById('archivo_evidencia').click()">
                                     <div class="space-y-2 text-center">
@@ -131,12 +134,16 @@
                                         <div class="text-sm text-gray-600">
                                             <span class="font-black text-dorado-ocre uppercase text-[10px] tracking-widest">Seleccionar PDF</span>
                                             <input id="archivo_evidencia" name="archivo_evidencia" type="file" class="hidden"
-                                                accept=".pdf" onchange="handleFileSelect(this)">
+                                                accept=".pdf" onchange="handleFileSelect(this)" :required="tipoRespuesta === 'Solventacion'">
                                         </div>
                                         <p id="file-name-hint" class="text-[9px] text-gray-400 uppercase font-bold mt-1">Ningún archivo cargado</p>
                                     </div>
                                 </div>
-                                <p class="text-[8px] text-gray-400 italic text-center leading-tight mt-2">Opcional para solventación o conocimiento. Máximo 5MB.</p>
+                                <p class="text-[8px] text-gray-400 italic text-center leading-tight mt-2">
+                                    <span x-show="tipoRespuesta === 'Solventacion'" class="font-bold text-red-500">Obligatorio para solventación.</span>
+                                    <span x-show="tipoRespuesta !== 'Solventacion'">Opcional para conocimiento.</span>
+                                    Máximo 5MB.
+                                </p>
                             </div>
 
                             <div class="flex flex-col gap-3">

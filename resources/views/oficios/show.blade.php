@@ -105,7 +105,23 @@
                 </div>
             </div>
 
-            @if($mode == 'operativo')
+            @php
+                $hasMyAssignments = false;
+                foreach ($turnosParaMostrar as $t) {
+                    $checkQuery = \App\Models\SubareaOficio::where('area_oficio_id', $t->pivot->id);
+                    if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
+                        $checkQuery->where('subarea_id', Auth::user()->subarea_id);
+                    } else {
+                        $checkQuery->where('user_id', Auth::id());
+                    }
+                    if ($checkQuery->exists()) {
+                        $hasMyAssignments = true;
+                        break;
+                    }
+                }
+            @endphp
+
+            @if($mode == 'operativo' || $hasMyAssignments)
                 {{-- MODO OPERATIVO --}}
                 <div class="bg-white overflow-hidden shadow-lg sm:rounded-lg p-8 border-l-8 border-dorado-ocre">
                     <div class="flex items-center mb-4">
@@ -491,7 +507,7 @@
                                                                 <label class="flex items-center cursor-pointer">
                                                                     <input type="checkbox" name="subarea_ids[]" value="user_{{ $directo->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
                                                                     <div class="text-left">
-                                                                        <p class="text-[11px] font-black text-gray-800">{{ $directo->name }}</p>
+                                                                        <p class="text-[11px] font-black text-gray-800">{{ $directo->name }} ({{ $directo->role === 'secretaria_area' ? 'Secretaría de Área' : 'Operativo Directo' }})</p>
                                                                         <p class="text-[9px] text-gray-400">Personal adscrito directamente a Dirección</p>
                                                                     </div>
                                                                 </label>

@@ -88,7 +88,6 @@
                                     <th class="px-6 py-4 tracking-wider">Número de Oficio</th>
                                     <th class="px-6 py-4 tracking-wider">Remitente</th>
                                     <th class="px-6 py-4 tracking-wider">Asunto</th>
-                                    <th class="px-6 py-4 tracking-wider text-center">Estatus</th>
                                     <th class="px-6 py-4 tracking-wider text-center">Acción</th>
                                 </tr>
                             </thead>
@@ -103,24 +102,6 @@
                                         <td class="px-6 py-4 text-gray-700 font-medium">{{ $oficio->remitente }}</td>
                                         <td class="px-6 py-4 text-gray-500 max-w-xs truncate" title="{{ $oficio->asunto }}">{{ $oficio->asunto }}</td>
                                         
-                                        {{-- Estatus Badge --}}
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
-                                                {{ (is_null($oficio->estatus) || $oficio->estatus == 'Recibido') ? 'bg-blue-100 text-blue-700' : '' }}
-                                                {{ $oficio->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
-                                                {{ $oficio->estatus == 'En Proceso' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                                {{ $oficio->estatus == 'Atendido' ? 'bg-purple-100 text-purple-700' : '' }}
-                                                {{ $oficio->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
-                                                {{ $oficio->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
-                                            ">
-                                                {{ $oficio->estatus ?? 'Pendiente' }}
-                                            </span>
-                                            @if($oficio->estatus == 'Cancelado' && $oficio->motivo_cancelacion)
-                                                <p class="text-[9px] text-red-500 mt-1 font-bold italic line-clamp-2 max-w-[150px] mx-auto" title="{{ $oficio->motivo_cancelacion }}">
-                                                    Motivo: {{ $oficio->motivo_cancelacion }}
-                                                </p>
-                                            @endif
-                                        </td>
 
                                         <td class="px-6 py-4 text-center space-x-2 whitespace-nowrap">
                                             @if($oficio->pdf_path)
