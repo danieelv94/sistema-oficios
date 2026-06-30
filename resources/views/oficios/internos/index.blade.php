@@ -35,21 +35,26 @@
 
                     {{-- Filtros y Buscador --}}
                     <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
-                        {{-- Tabs de Filtro --}}
-                        <div class="flex border-b border-gray-200">
-                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Todos']) }}"
-                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                Todos
-                            </a>
-                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
-                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                Enviados
-                            </a>
-                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Recibidos']) }}"
-                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Recibidos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                Recibidos
-                            </a>
-                        </div>
+                        @if(Auth::user()->role === 'admin')
+                            {{-- Tabs de Filtro --}}
+                            <div class="flex border-b border-gray-200">
+                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Todos']) }}"
+                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                    Todos
+                                </a>
+                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
+                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                    Enviados
+                                </a>
+                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Recibidos']) }}"
+                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Recibidos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                    Recibidos
+                                </a>
+                            </div>
+                        @else
+                            {{-- Elemento vacío para mantener el flex alignment si no es admin --}}
+                            <div></div>
+                        @endif
 
                         {{-- Formulario de búsqueda --}}
                         <form action="{{ route('oficios.internos.index') }}" method="GET" class="flex gap-2 flex-1 md:max-w-md">

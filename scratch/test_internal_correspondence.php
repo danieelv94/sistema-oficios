@@ -47,7 +47,7 @@ $file = UploadedFile::fake()->create('oficio_interno_test.pdf', 100, 'applicatio
 $request = new \Illuminate\Http\Request();
 $request->merge([
     'area_origen_id' => 3, // Sent by Area 3 (Planeación)
-    'numero_origen' => '12/2026',
+    'numero_origen' => 'DPE-INT-12/2026',
     'asunto' => 'Asunto de prueba de correspondencia interna entre áreas.',
     'fecha_recepcion' => date('Y-m-d'),
     'prioridad' => 'Ordinaria',

@@ -90,13 +90,8 @@
                             {{-- Número de Oficio del Emisor (Origen) --}}
                             <div>
                                 <x-label for="numero_origen" :value="__('Número de Oficio del Emisor (Origen)')" />
-                                <div class="flex items-center mt-1">
-                                    <span class="inline-flex items-center px-3 py-2.5 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 font-bold text-xs uppercase" x-text="origenPrefix">
-                                        ...-INT-
-                                    </span>
-                                    <x-input id="numero_origen" class="block w-full text-xs rounded-r-md rounded-l-none" type="text" name="numero_origen" :value="old('numero_origen')" placeholder="Ej. 12/2026" required />
-                                </div>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Ingresa el consecutivo del oficio que recibiste</p>
+                                <x-input id="numero_origen" class="block mt-1 w-full text-xs" type="text" name="numero_origen" :value="old('numero_origen')" placeholder="Ej. DGI-INT-12/2026" required />
+                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Ingresa el número de oficio completo del emisor</p>
                             </div>
 
                             {{-- Prioridad --}}

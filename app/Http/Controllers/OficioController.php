@@ -1048,23 +1048,12 @@ class OficioController extends Controller
         $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos
 
         if ($user->role !== 'admin') {
-            if ($filtroTipo === 'Enviados') {
-                $query->where('area_origen_id', $areaId);
-            } elseif ($filtroTipo === 'Recibidos') {
-                $query->whereHas('areas', function ($q) use ($areaId) {
-                    $q->where('areas.id', $areaId);
-                });
-            } else {
-                // Todos los internos de su área (enviados o recibidos)
-                $query->where(function ($q) use ($areaId) {
-                    $q->where('area_origen_id', $areaId)
-                      ->orWhereHas('areas', function ($areaQ) use ($areaId) {
-                          $areaQ->where('areas.id', $areaId);
-                      });
-                });
-            }
+            // El usuario común solo puede ver los oficios internos capturados por su propia área
+            $query->whereHas('areas', function ($q) use ($areaId) {
+                $q->where('areas.id', $areaId);
+            });
         } else {
-            // Admin ve todos
+            // Admin ve todos y puede filtrar
             if ($filtroTipo === 'Enviados' && $request->filled('area_origen_id')) {
                 $query->where('area_origen_id', $request->area_origen_id);
             } elseif ($filtroTipo === 'Recibidos' && $request->filled('area_destino_id')) {
@@ -1189,17 +1178,19 @@ class OficioController extends Controller
         $prefijo = !empty($areaCaptura->prefijo) ? $areaCaptura->prefijo : 'OIC';
         $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
-        // Construir el folio completo del emisor/origen
-        $prefijoOrigen = (!empty($areaOrigen->prefijo) ? $areaOrigen->prefijo : 'OIC') . '-INT-';
-        $folioOrigenCompleto = $prefijoOrigen . $request->numero_origen;
+        // El folio completo del emisor/origen es directamente lo que escribió el usuario
+        $folioOrigenCompleto = $request->numero_origen;
 
-        // Extraer consecutivo y año de origen
+        // Extraer consecutivo y año de origen si es posible
         $consecutivoOrigen = null;
         $anioOrigen = $currentYear;
-        if (preg_match('/^(\d+)\D+(\d+)$/', $request->numero_origen, $matches)) {
+        if (preg_match('/-INT-(\d+)\/(\d+)/', $request->numero_origen, $matches)) {
             $consecutivoOrigen = (int)$matches[1];
             $anioOrigen = (int)$matches[2];
-        } elseif (is_numeric($request->numero_origen)) {
+        } elseif (preg_match('/(\d+)\D+(\d+)/', $request->numero_origen, $matches)) {
+            $consecutivoOrigen = (int)$matches[1];
+            $anioOrigen = (int)$matches[2];
+        } elseif (preg_match('/(\d+)/', $request->numero_origen, $matches)) {
             $consecutivoOrigen = (int)$request->numero_origen;
         }
 
