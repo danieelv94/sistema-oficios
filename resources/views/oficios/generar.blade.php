@@ -57,7 +57,7 @@
             .printable-area {
                 width: 21.59cm;
                 height: 27.94cm;
-                padding: 1.5cm 2cm !important;
+                padding: 1cm 1.5cm !important;
                 margin: 0 !important;
                 border: none !important;
                 box-shadow: none !important;
@@ -76,9 +76,9 @@
 
             .footer-oficio-fijo {
                 position: absolute;
-                bottom: 1.2cm;
-                left: 2cm;
-                right: 2cm;
+                bottom: 0.8cm;
+                left: 1.5cm;
+                right: 1.5cm;
                 border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex !important;
@@ -95,15 +95,15 @@
                 height: 27.94cm;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
                 position: relative;
-                padding: 1.5cm 2cm;
+                padding: 1cm 1.5cm;
                 border-radius: 8px;
             }
 
             .footer-oficio-fijo {
                 position: absolute;
-                bottom: 1.2cm;
-                left: 2cm;
-                right: 2cm;
+                bottom: 0.8cm;
+                left: 1.5cm;
+                right: 1.5cm;
                 border-top: 1px solid #691B31;
                 padding-top: 0.4cm;
                 display: flex;
@@ -155,28 +155,28 @@
         @endif
 
         {{-- Logotipo Oficial CEAA --}}
-        <div class="flex justify-end mb-6 text-right">
-            <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">
+        <div class="flex justify-end mb-2 text-right">
+            <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 7.2cm; height: 1.9cm;">
         </div>
 
-        <p class="font-bold text-guinda-ceaa text-lg uppercase mb-2 tracking-wider">Turno Interno</p>
+        <p class="font-bold text-guinda-ceaa text-base uppercase mb-1 tracking-wider">Turno Interno</p>
 
-        <div class="text-right mb-8">
-            <p class="text-xs text-gray-500 uppercase font-semibold">Fecha de Emisión</p>
-            <p class="font-bold text-sm text-gray-800">{{ now()->format('d/m/Y') }}</p>
-            <p class="text-xs text-gray-500 uppercase font-semibold mt-1">No. Oficio Interno</p>
-            <p class="font-bold text-base text-gray-900">{{ $oficio->numero_oficio }}</p>
+        <div class="text-right mb-3">
+            <p class="text-[10px] text-gray-500 uppercase font-semibold">Fecha de Emisión</p>
+            <p class="font-bold text-xs text-gray-800">{{ now()->format('d/m/Y') }}</p>
+            <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">No. Oficio Interno</p>
+            <p class="font-bold text-sm text-gray-900">{{ $oficio->numero_oficio }}</p>
             @if($turnosParaImprimir->count() === 1 && $turnosParaImprimir->first()->pivot->folio_interno)
-                <p class="text-xs text-gray-500 uppercase font-semibold mt-1">Folio del Turno</p>
-                <p class="font-bold text-base text-guinda-ceaa">{{ $turnosParaImprimir->first()->pivot->folio_interno }}</p>
+                <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">Folio del Turno</p>
+                <p class="font-bold text-sm text-guinda-ceaa">{{ $turnosParaImprimir->first()->pivot->folio_interno }}</p>
             @endif
         </div>
 
         {{-- Datos de Recepción del Oficio --}}
-        <section class="mb-8 bg-gray-50/50 p-5 rounded-xl border border-gray-100">
-            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
+        <section class="mb-3 bg-gray-50/50 p-3.5 rounded-xl border border-gray-100">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-2 uppercase text-xs tracking-wider">
                 Detalles de la Correspondencia</h2>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-xs text-gray-700">
+            <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-gray-700">
                 <div class="break-words"><strong class="text-gray-900 uppercase">Remitente:</strong>
                     {{ $oficio->remitente }}</div>
                 <div><strong class="text-gray-900 uppercase">No. Oficio Dependencia:</strong>
@@ -195,17 +195,17 @@
         </section>
 
         {{-- Asunto --}}
-        <section class="mb-6">
-            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
+        <section class="mb-3">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-xs tracking-wider">
                 Asunto:</h2>
-            <p class="text-xs text-gray-700 leading-relaxed italic break-words clamp-asunto" title="{{ $oficio->asunto }}">
+            <p class="text-xs text-gray-700 leading-normal italic break-words clamp-asunto" title="{{ $oficio->asunto }}">
                 "{!! nl2br(e($oficio->asunto)) !!}"
             </p>
         </section>
 
         {{-- Destinatario del Turno --}}
-        <section class="mb-8">
-            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-4 uppercase text-xs tracking-wider">
+        <section class="mb-3">
+            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-2 uppercase text-xs tracking-wider">
                 Turnado A:</h2>
             @forelse($turnosParaImprimir as $area)
                 @php
@@ -242,29 +242,29 @@
                         }
                     }
                 @endphp
-                <div class="mb-4 pl-4 border-l-4 border-guinda-ceaa bg-white">
+                <div class="mb-2 pl-3 border-l-2 border-guinda-ceaa bg-white">
                     <div class="flex justify-between items-start">
-                        <p class="text-xs text-gray-600"><strong class="text-gray-800 uppercase">Dirección / Área:</strong>
+                        <p class="text-[11px] text-gray-600"><strong class="text-gray-800 uppercase text-[10px]">Dirección / Área:</strong>
                             {{ $area->name }}</p>
                         @if($turnosParaImprimir->count() === 1 && $area->pivot->folio_interno)
-                            <span class="text-xs font-bold text-guinda-ceaa">Folio: {{ $area->pivot->folio_interno }}</span>
+                            <span class="text-[11px] font-bold text-guinda-ceaa">Folio: {{ $area->pivot->folio_interno }}</span>
                         @endif
                     </div>
-                    <p class="text-xs text-gray-600 mt-1"><strong class="text-gray-800 uppercase">Instrucción:</strong>
+                    <p class="text-[11px] text-gray-600 mt-0.5"><strong class="text-gray-800 uppercase text-[10px]">Instrucción:</strong>
                         <span class="font-black text-guinda-ceaa">{{ $displayInstruccion }}</span></p>
-                    <p class="text-xs text-gray-600 mt-1">
-                        <strong class="text-gray-800 uppercase">Destinatario (Para Atención):</strong>
+                    <p class="text-[11px] text-gray-600 mt-0.5">
+                        <strong class="text-gray-800 uppercase text-[10px]">Destinatario (Para Atención):</strong>
                         <span class="font-black text-gray-900">{{ $displayDestinatarioName }}</span>
                         @if($displayDestinatarioCargo)
-                            <span class="block text-[10px] text-gray-500 font-semibold mt-0.5">{{ $displayDestinatarioCargo }}</span>
+                            <span class="block text-[9px] text-gray-500 font-semibold mt-0.5">{{ $displayDestinatarioCargo }}</span>
                         @endif
                     </p>
 
                     @if($turnosParaImprimir->count() === 1 && $subareasAsignadas->isNotEmpty())
-                        <div class="mt-3 pl-4 border-l-2 border-dorado-ocre space-y-2 bg-gray-50/30 p-2 rounded-lg">
-                            <p class="text-[9px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:</p>
+                        <div class="mt-2 pl-3 border-l border-dorado-ocre space-y-1 bg-gray-50/30 p-1.5 rounded-lg">
+                            <p class="text-[8px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:</p>
                             @foreach($subareasAsignadas as $subareaOficio)
-                                <div class="text-[11px] text-gray-700">
+                                <div class="text-[10px] text-gray-700">
                                     <span class="font-black text-gray-800">
                                         &bull; {{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}
                                     </span>
@@ -274,7 +274,7 @@
                                         <span class="text-gray-400 italic"> - Sin asignar a personal</span>
                                     @endif
                                     @if($subareaOficio->instruccion && $subareaOficio->instruccion !== $area->pivot->instruccion)
-                                        <p class="text-[10px] text-gray-500 pl-3 italic">Instrucción específica: "{{ $subareaOficio->instruccion }}"</p>
+                                        <p class="text-[9px] text-gray-500 pl-2.5 italic">Instrucción específica: "{{ $subareaOficio->instruccion }}"</p>
                                     @endif
                                 </div>
                             @endforeach
@@ -288,10 +288,10 @@
 
         {{-- Observaciones adicionales --}}
         @if($oficio->observaciones)
-            <section class="mb-8">
-                <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-2 mb-2 uppercase text-xs tracking-wider">
+            <section class="mb-3">
+                <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">
                     Observaciones:</h2>
-                <p class="text-xs text-gray-600 break-words">{{ $oficio->observaciones }}</p>
+                <p class="text-[10px] text-gray-600 break-words">{{ $oficio->observaciones }}</p>
             </section>
         @endif
 
