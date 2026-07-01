@@ -1109,10 +1109,7 @@ class OficioController extends Controller
                 ->where('area_id', $area->id)
                 ->where('anio', $currentYear)
                 ->max('consecutivo');
-            $maxOficioConsecutivo = Oficio::where('area_origen_id', $area->id)
-                ->where('anio_origen', $currentYear)
-                ->max('consecutivo_origen');
-            $nextConsecutivo = max($maxPivotConsecutivo ?? 0, $maxOficioConsecutivo ?? 0) + 1;
+            $nextConsecutivo = ($maxPivotConsecutivo ?? 0) + 1;
             $prefijo = !empty($area->prefijo) ? $area->prefijo : 'OIC';
             $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
@@ -1179,10 +1176,7 @@ class OficioController extends Controller
             ->where('area_id', $areaCaptura->id)
             ->where('anio', $currentYear)
             ->max('consecutivo');
-        $maxOficioConsecutivo = Oficio::where('area_origen_id', $areaCaptura->id)
-            ->where('anio_origen', $currentYear)
-            ->max('consecutivo_origen');
-        $nextConsecutivo = max($maxPivotConsecutivo ?? 0, $maxOficioConsecutivo ?? 0) + 1;
+        $nextConsecutivo = ($maxPivotConsecutivo ?? 0) + 1;
         $prefijo = !empty($areaCaptura->prefijo) ? $areaCaptura->prefijo : 'OIC';
         $folio = $prefijo . '-INT-' . str_pad($nextConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
