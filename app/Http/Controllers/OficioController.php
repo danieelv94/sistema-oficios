@@ -250,6 +250,9 @@ class OficioController extends Controller
                     ->get();
 
                 foreach ($jefes as $jefe) {
+                    if (!$jefe->recibir_correos) {
+                        continue;
+                    }
                     $data = [
                         'oficio' => $oficio,
                         'instruccion' => $instruccion,
@@ -362,7 +365,7 @@ class OficioController extends Controller
                     ]);
 
                     // Notificar al director por correo
-                    if ($director) {
+                    if ($director && $director->recibir_correos) {
                         $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
                         $data = [
                             'usuario' => $director,
@@ -406,7 +409,7 @@ class OficioController extends Controller
                     ]);
 
                     // Notificar al usuario por correo
-                    if ($user) {
+                    if ($user && $user->recibir_correos) {
                         $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
                         $data = [
                             'usuario' => $user,
@@ -452,7 +455,7 @@ class OficioController extends Controller
                     ]);
 
                     // Notificar al subdirector por correo
-                    if ($subdirector) {
+                    if ($subdirector && $subdirector->recibir_correos) {
                         $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
                         $data = [
                             'usuario' => $subdirector,
@@ -520,13 +523,15 @@ class OficioController extends Controller
             'folio_interno' => $folioInterno,
             'instruccion' => $areaOficio->instruccion,
         ];
-        try {
-            Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
-                $message->to($assignedUser->email)
-                    ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Asignado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
-            });
-        } catch (\Exception $e) {
-            Log::error("Error al enviar correo de oficio asignado a {$assignedUser->email}: " . $e->getMessage());
+        if ($assignedUser->recibir_correos) {
+            try {
+                Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                    $message->to($assignedUser->email)
+                        ->subject('[' . $oficio->prioridad . '] Nuevo Oficio Asignado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                });
+            } catch (\Exception $e) {
+                Log::error("Error al enviar correo de oficio asignado a {$assignedUser->email}: " . $e->getMessage());
+            }
         }
 
         return redirect()->route('oficios.show', $oficio)->with('success', 'Oficio asignado y estatus actualizado.');
@@ -565,13 +570,15 @@ class OficioController extends Controller
             'folio_interno' => $folioInterno,
             'instruccion' => $subareaOficio->instruccion ?? $areaOficio->instruccion,
         ];
-        try {
-            Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
-                $message->to($assignedUser->email)
-                    ->subject('[' . $oficio->prioridad . '] Oficio Delegado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
-            });
-        } catch (\Exception $e) {
-            Log::error("Error al enviar correo de delegación a {$assignedUser->email}: " . $e->getMessage());
+        if ($assignedUser->recibir_correos) {
+            try {
+                Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                    $message->to($assignedUser->email)
+                        ->subject('[' . $oficio->prioridad . '] Oficio Delegado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                });
+            } catch (\Exception $e) {
+                Log::error("Error al enviar correo de delegación a {$assignedUser->email}: " . $e->getMessage());
+            }
         }
 
         return back()->with('success', 'Oficio delegado a ' . $assignedUser->name . ' correctamente.');

@@ -114,11 +114,13 @@ class TicketController extends Controller
         ]);
 
         // NOTIFICACIÓN AL USUARIO
-        $data = ['ticket' => $ticket];
-        Mail::send('emails.ticket_resuelto', $data, function ($message) use ($ticket) {
-            $message->to($ticket->user->email)
-                ->subject('Ticket Resuelto: ' . $ticket->subject);
-        });
+        if ($ticket->user && $ticket->user->recibir_correos) {
+            $data = ['ticket' => $ticket];
+            Mail::send('emails.ticket_resuelto', $data, function ($message) use ($ticket) {
+                $message->to($ticket->user->email)
+                    ->subject('Ticket Resuelto: ' . $ticket->subject);
+            });
+        }
 
         return redirect()->route('tickets.index')->with('success', 'El ticket ha sido marcado como concluido.');
     }

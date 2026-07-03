@@ -17,12 +17,10 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    // app/Models/User.php
+    protected $attributes = [
+        'recibir_correos' => true,
+    ];
+
     protected $fillable = [
         'name',
         'prof',
@@ -34,6 +32,7 @@ class User extends Authenticatable
         'subarea_id',
         'no_empleado',
         'nivel_id',
+        'recibir_correos',
     ];
 
     /**
@@ -53,6 +52,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'recibir_correos' => 'boolean',
     ];
 
 

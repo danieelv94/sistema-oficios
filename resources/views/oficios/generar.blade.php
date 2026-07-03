@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volante de Turno - {{ $oficio->numero_oficio }}</title>
+    <title> Turno - {{ $oficio->numero_oficio }}</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,6 +43,7 @@
         }
 
         @media print {
+
             html,
             body {
                 height: 100%;
@@ -138,7 +139,7 @@
             class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-bold text-xs uppercase tracking-wider transition">
             &larr; Volver a Expediente
         </a>
-         <button onclick="window.print()"
+        <button onclick="window.print()"
             class="px-6 py-2 bg-guinda-ceaa text-white rounded-lg hover:bg-guinda-ceaa-hover font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition">
             Imprimir Turno
         </button>
@@ -182,7 +183,8 @@
                 <div><strong class="text-gray-900 uppercase">No. Oficio Dependencia:</strong>
                     {{ $oficio->numero_oficio_dependencia }}</div>
                 <div><strong class="text-gray-900 uppercase">Municipio y Localidad:</strong> {{ $oficio->municipio }},
-                    {{ $oficio->localidad }}</div>
+                    {{ $oficio->localidad }}
+                </div>
                 <div><strong class="text-gray-900 uppercase">Tipo:</strong> {{ $oficio->tipo_correspondencia }}</div>
                 <div><strong class="text-gray-900 uppercase">Fecha de Recepción:</strong>
                     {{ \Carbon\Carbon::parse($oficio->fecha_recepcion)->format('d/m/Y') }}</div>
@@ -196,9 +198,11 @@
 
         {{-- Asunto --}}
         <section class="mb-3">
-            <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-xs tracking-wider">
+            <h2
+                class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-xs tracking-wider">
                 Asunto:</h2>
-            <p class="text-xs text-gray-700 leading-normal italic break-words clamp-asunto" title="{{ $oficio->asunto }}">
+            <p class="text-xs text-gray-700 leading-normal italic break-words clamp-asunto"
+                title="{{ $oficio->asunto }}">
                 "{!! nl2br(e($oficio->asunto)) !!}"
             </p>
         </section>
@@ -244,37 +248,45 @@
                 @endphp
                 <div class="mb-2 pl-3 border-l-2 border-guinda-ceaa bg-white">
                     <div class="flex justify-between items-start">
-                        <p class="text-[11px] text-gray-600"><strong class="text-gray-800 uppercase text-[10px]">Dirección / Área:</strong>
+                        <p class="text-[11px] text-gray-600"><strong class="text-gray-800 uppercase text-[10px]">Dirección /
+                                Área:</strong>
                             {{ $area->name }}</p>
                         @if($turnosParaImprimir->count() === 1 && $area->pivot->folio_interno)
                             <span class="text-[11px] font-bold text-guinda-ceaa">Folio: {{ $area->pivot->folio_interno }}</span>
                         @endif
                     </div>
-                    <p class="text-[11px] text-gray-600 mt-0.5"><strong class="text-gray-800 uppercase text-[10px]">Instrucción:</strong>
-                        <span class="font-black text-guinda-ceaa">{{ $displayInstruccion }}</span></p>
+                    <p class="text-[11px] text-gray-600 mt-0.5"><strong
+                            class="text-gray-800 uppercase text-[10px]">Instrucción:</strong>
+                        <span class="font-black text-guinda-ceaa">{{ $displayInstruccion }}</span>
+                    </p>
                     <p class="text-[11px] text-gray-600 mt-0.5">
                         <strong class="text-gray-800 uppercase text-[10px]">Destinatario (Para Atención):</strong>
                         <span class="font-black text-gray-900">{{ $displayDestinatarioName }}</span>
                         @if($displayDestinatarioCargo)
-                            <span class="block text-[9px] text-gray-500 font-semibold mt-0.5">{{ $displayDestinatarioCargo }}</span>
+                            <span
+                                class="block text-[9px] text-gray-500 font-semibold mt-0.5">{{ $displayDestinatarioCargo }}</span>
                         @endif
                     </p>
 
                     @if($turnosParaImprimir->count() === 1 && $subareasAsignadas->isNotEmpty())
                         <div class="mt-2 pl-3 border-l border-dorado-ocre space-y-1 bg-gray-50/30 p-1.5 rounded-lg">
-                            <p class="text-[8px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:</p>
+                            <p class="text-[8px] font-black text-dorado-ocre uppercase tracking-wider">Subdirecciones Asignadas:
+                            </p>
                             @foreach($subareasAsignadas as $subareaOficio)
                                 <div class="text-[10px] text-gray-700">
                                     <span class="font-black text-gray-800">
-                                        &bull; {{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}
+                                        &bull;
+                                        {{ $subareaOficio->subarea ? $subareaOficio->subarea->name : 'Director (Jefe de Área)' }}
                                     </span>
                                     @if($subareaOficio->user)
-                                        <span class="text-gray-500 font-medium"> - Asignado a: {{ $subareaOficio->user->prof }} {{ $subareaOficio->user->name }}</span>
+                                        <span class="text-gray-500 font-medium"> - Asignado a: {{ $subareaOficio->user->prof }}
+                                            {{ $subareaOficio->user->name }}</span>
                                     @else
                                         <span class="text-gray-400 italic"> - Sin asignar a personal</span>
                                     @endif
                                     @if($subareaOficio->instruccion && $subareaOficio->instruccion !== $area->pivot->instruccion)
-                                        <p class="text-[9px] text-gray-500 pl-2.5 italic">Instrucción específica: "{{ $subareaOficio->instruccion }}"</p>
+                                        <p class="text-[9px] text-gray-500 pl-2.5 italic">Instrucción específica:
+                                            "{{ $subareaOficio->instruccion }}"</p>
                                     @endif
                                 </div>
                             @endforeach
@@ -289,7 +301,8 @@
         {{-- Observaciones adicionales --}}
         @if($oficio->observaciones)
             <section class="mb-3">
-                <h2 class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">
+                <h2
+                    class="font-bold text-guinda-ceaa border-b border-gray-200 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">
                     Observaciones:</h2>
                 <p class="text-[10px] text-gray-600 break-words">{{ $oficio->observaciones }}</p>
             </section>

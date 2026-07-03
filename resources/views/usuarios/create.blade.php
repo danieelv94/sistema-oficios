@@ -115,6 +115,13 @@
                                 <x-input id="password_confirmation" class="block mt-1 w-full" type="password"
                                     name="password_confirmation" required />
                             </div>
+
+                            <div class="flex items-center md:col-span-2 mt-2">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="recibir_correos" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 h-5 w-5 mr-2" {{ old('recibir_correos', '1') == '1' ? 'checked' : '' }}>
+                                    <span class="text-xs font-bold text-gray-700 uppercase">Recibir Correos de Notificación</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end mt-6">
