@@ -35,26 +35,25 @@
 
                     {{-- Filtros y Buscador --}}
                     <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
-                        @if(Auth::user()->role === 'admin')
-                            {{-- Tabs de Filtro --}}
-                            <div class="flex border-b border-gray-200">
-                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Todos']) }}"
-                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                    Todos
-                                </a>
-                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
-                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                    Enviados
-                                </a>
-                                <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Recibidos']) }}"
-                                    class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Recibidos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-                                    Recibidos
-                                </a>
-                            </div>
-                        @else
-                            {{-- Elemento vacío para mantener el flex alignment si no es admin --}}
-                            <div></div>
-                        @endif
+                        {{-- Tabs de Filtro --}}
+                        <div class="flex border-b border-gray-200">
+                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Todos']) }}"
+                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                Todos
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
+                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                Enviados
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Recibidos']) }}"
+                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Recibidos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                Recibidos
+                            </a>
+                            <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Solventados']) }}"
+                                class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Solventados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                                Solventados
+                            </a>
+                        </div>
 
                         {{-- Formulario de búsqueda --}}
                         <form action="{{ route('oficios.internos.index') }}" method="GET" class="flex gap-2 flex-1 md:max-w-md">
@@ -91,6 +90,7 @@
                                     <th class="py-3 px-4 text-left">Asunto</th>
                                     <th class="py-3 px-4 text-left">Fecha Oficio</th>
                                     <th class="py-3 px-4 text-center">Prioridad</th>
+                                    <th class="py-3 px-4 text-center">Estatus Turno</th>
                                     <th class="py-3 px-4 text-center">PDF</th>
                                     <th class="py-3 px-4 text-center">Acciones</th>
                                 </tr>
@@ -113,7 +113,7 @@
                                                 @endforeach
                                             </div>
                                         </td>
-                                        <td class="py-3.5 px-4 text-gray-600 whitespace-nowrap">
+                                        <td class="py-3.5 px-4 text-gray-600 max-w-[180px] truncate" title="{{ $oficio->remitente }}">
                                             {{ $oficio->remitente }}
                                         </td>
                                         <td class="py-3.5 px-4 text-gray-600 max-w-xs truncate" title="{{ $oficio->asunto }}">
@@ -123,11 +123,30 @@
                                             {{ \Carbon\Carbon::parse($oficio->fecha_recepcion)->format('d/m/Y') }}
                                         </td>
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase
-                                                {{ $oficio->prioridad == 'Urgente' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }}
-                                            ">
-                                                {{ $oficio->prioridad }}
-                                            </span>
+                                            @if(Auth::user()->role === 'admin' || Auth::user()->role === 'correspondencia' || Auth::user()->role === 'recepcionista')
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
+                                                    {{ $oficio->estatus == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                    {{ $oficio->estatus == 'En Proceso' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                    {{ $oficio->estatus == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
+                                                    {{ $oficio->estatus == 'Notificado' ? 'bg-blue-100 text-blue-700' : '' }}
+                                                    {{ $oficio->estatus == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
+                                                ">
+                                                    {{ $oficio->estatus }}
+                                                </span>
+                                            @else
+                                                @php
+                                                    $miTurno = $oficio->areas->first(fn($a) => $a->id == Auth::user()->area_id);
+                                                    $estatusTurno = $miTurno ? $miTurno->pivot->estatus : $oficio->estatus;
+                                                @endphp
+                                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
+                                                    {{ $estatusTurno == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
+                                                    {{ $estatusTurno == 'Asignado' || $estatusTurno == 'En Proceso' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                                    {{ $estatusTurno == 'Notificado' || $estatusTurno == 'Turnado' ? 'bg-blue-100 text-blue-700' : '' }}
+                                                    {{ $estatusTurno == 'Cancelado' ? 'bg-red-100 text-red-700' : '' }}
+                                                ">
+                                                    {{ $estatusTurno }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
                                             @if($oficio->pdf_path)
@@ -151,7 +170,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="py-8 text-center text-gray-400 italic">
+                                        <td colspan="10" class="py-8 text-center text-gray-400 italic">
                                             No se encontraron oficios internos.
                                         </td>
                                     </tr>

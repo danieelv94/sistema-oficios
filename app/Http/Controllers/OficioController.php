@@ -1060,21 +1060,39 @@ class OficioController extends Controller
         $query = Oficio::where('tipo_correspondencia', 'Interna')->with('areaOrigen');
 
         $areaId = $user->area_id;
-        $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos
+        $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos, Solventados
 
         if ($user->role !== 'admin') {
-            // El usuario común solo puede ver los oficios internos capturados por su propia área
-            $query->whereHas('areas', function ($q) use ($areaId) {
-                $q->where('areas.id', $areaId);
-            });
+            if ($filtroTipo === 'Enviados') {
+                $query->where('area_origen_id', $areaId);
+            } elseif ($filtroTipo === 'Recibidos') {
+                $query->whereHas('areas', function ($q) use ($areaId) {
+                    $q->where('areas.id', $areaId);
+                });
+            } elseif ($filtroTipo === 'Solventados') {
+                $query->whereHas('areas', function ($q) use ($areaId) {
+                    $q->where('areas.id', $areaId)->where('area_oficio.estatus', 'Solventado');
+                });
+            } else { // Todos
+                // Por defecto ven lo que capturan (Recibidos)
+                $query->whereHas('areas', function ($q) use ($areaId) {
+                    $q->where('areas.id', $areaId);
+                });
+            }
         } else {
             // Admin ve todos y puede filtrar
-            if ($filtroTipo === 'Enviados' && $request->filled('area_origen_id')) {
-                $query->where('area_origen_id', $request->area_origen_id);
-            } elseif ($filtroTipo === 'Recibidos' && $request->filled('area_destino_id')) {
-                $query->whereHas('areas', function ($q) use ($request) {
-                    $q->where('areas.id', $request->area_destino_id);
-                });
+            if ($filtroTipo === 'Enviados') {
+                if ($request->filled('area_origen_id')) {
+                    $query->where('area_origen_id', $request->area_origen_id);
+                }
+            } elseif ($filtroTipo === 'Recibidos') {
+                if ($request->filled('area_destino_id')) {
+                    $query->whereHas('areas', function ($q) use ($request) {
+                        $q->where('areas.id', $request->area_destino_id);
+                    });
+                }
+            } elseif ($filtroTipo === 'Solventados') {
+                $query->where('estatus', 'Solventado');
             }
         }
 
