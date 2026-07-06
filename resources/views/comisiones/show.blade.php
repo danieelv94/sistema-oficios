@@ -207,7 +207,7 @@
                             $areaNombre = optional(optional($comision->jefeArea)->area)->name ?? 'Área No Asignada';
                             $areasFemeninas = ['Dirección de Calidad del Agua', 'Dirección Jurídica y Unidad para la Igualdad entre Mujeres y Hombres'];
                             $esFemenino = in_array($areaNombre, $areasFemeninas);
-                            $reemplazos = $esFemenino ? ['Encargada', 'Subdirectora', 'Jefa'] : ['Director', 'Subdirector', 'Jefe'];
+                            $reemplazos = $esFemenino ? ['Directora', 'Subdirectora', 'Jefa'] : ['Director', 'Subdirector', 'Jefe'];
                             $cargo = str_ireplace(['Dirección', 'Subdirección', 'Jefatura'], $reemplazos, $areaNombre);
                         @endphp
                         <p class="font-bold">{{ optional($comision->jefeArea)->prof }}
