@@ -87,7 +87,6 @@
                                             class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-guinda-ceaa"
                                             required>
                                             <option value="Externa" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Externa' ? 'selected' : '' }}>EXTERNA</option>
-                                            <option value="Interna" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Interna' ? 'selected' : '' }}>INTERNA</option>
                                             @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
                                                 <option value="Correo Electronico" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Correo Electronico' ? 'selected' : '' }}>CORREO ELECTRONICO</option>
                                             @endif

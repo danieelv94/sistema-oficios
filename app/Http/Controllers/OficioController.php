@@ -41,8 +41,8 @@ class OficioController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('numero_oficio', 'like', "%{$search}%")
-                  ->orWhere('remitente', 'like', "%{$search}%")
-                  ->orWhere('asunto', 'like', "%{$search}%");
+                    ->orWhere('remitente', 'like', "%{$search}%")
+                    ->orWhere('asunto', 'like', "%{$search}%");
             });
         }
 
@@ -52,7 +52,7 @@ class OficioController extends Controller
             if ($estatus === 'Pendiente') {
                 $query->where(function ($q) {
                     $q->whereNull('estatus')
-                      ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado']);
+                        ->orWhereNotIn('estatus', ['Turnado', 'En Proceso', 'Atendido', 'Solventado']);
                 });
             } else {
                 $query->where('estatus', $estatus);
@@ -76,7 +76,7 @@ class OficioController extends Controller
     {
         $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
         $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
-        $request->merge(['numero_oficio' => (string)$siguienteConsecutivo]);
+        $request->merge(['numero_oficio' => (string) $siguienteConsecutivo]);
 
         $request->validate([
             'numero_oficio' => 'required|string|max:255',
@@ -95,7 +95,7 @@ class OficioController extends Controller
 
         $data = $request->all();
 
-        if (!$request->has('tipo_correspondencia')) {
+        if (!$request->has('tipo_correspondencia') || $request->input('tipo_correspondencia') === 'Interna') {
             $data['tipo_correspondencia'] = 'Externa';
         }
 
@@ -180,12 +180,12 @@ class OficioController extends Controller
             foreach ($subareaOficios as $so) {
                 $personalPorSubarea[$so->id] = User::where('area_id', $areaTurnada->id)
                     ->where('subarea_id', $so->subarea_id)
-                    ->where(function($q) use ($so) {
+                    ->where(function ($q) use ($so) {
                         $q->whereIn('role', ['user', 'secretaria_area', 'subdirector'])
-                          ->orWhere(function($adminQ) use ($so) {
-                              $adminQ->where('role', 'admin')
-                                     ->where('subarea_id', $so->subarea_id);
-                          });
+                            ->orWhere(function ($adminQ) use ($so) {
+                                $adminQ->where('role', 'admin')
+                                    ->where('subarea_id', $so->subarea_id);
+                            });
                     })
                     ->get();
             }
@@ -197,11 +197,11 @@ class OficioController extends Controller
             $hasSubareas = \App\Models\Subarea::where('area_id', $areaTurnada->id)->exists();
             if (!$hasSubareas) {
                 $query = User::where('area_id', $areaTurnada->id)
-                    ->where(function($q) {
+                    ->where(function ($q) {
                         $q->where('role', 'jefe_area')
-                          ->orWhere('role', 'user')
-                          ->orWhere('role', 'secretaria_area')
-                          ->orWhere('role', 'admin');
+                            ->orWhere('role', 'user')
+                            ->orWhere('role', 'secretaria_area')
+                            ->orWhere('role', 'admin');
                     });
                 $personalPorArea[$areaTurnada->id] = $query->get();
             } else {
@@ -222,8 +222,16 @@ class OficioController extends Controller
         }
 
         return view('oficios.show', compact(
-            'oficio', 'areasDisponibles', 'personalPorArea', 'turnosParaMostrar', 'mode', 'respuestas',
-            'subareaOficiosPorArea', 'subareasDisponiblesPorArea', 'personalPorSubarea', 'personalDirectoDisponiblesPorArea'
+            'oficio',
+            'areasDisponibles',
+            'personalPorArea',
+            'turnosParaMostrar',
+            'mode',
+            'respuestas',
+            'subareaOficiosPorArea',
+            'subareasDisponiblesPorArea',
+            'personalPorSubarea',
+            'personalDirectoDisponiblesPorArea'
         ));
     }
 
@@ -384,7 +392,7 @@ class OficioController extends Controller
                     }
                 } elseif (strpos($subareaId, 'user_') === 0) {
                     $userId = (int) str_replace('user_', '', $subareaId);
-                    
+
                     // Evitar duplicados
                     $exists = \App\Models\SubareaOficio::where('area_oficio_id', $pivoteId)
                         ->whereNull('subarea_id')
@@ -636,32 +644,32 @@ class OficioController extends Controller
         // Si es operativo o subdirector, se filtra según la asignación a su subárea o personal.
         $query = Oficio::where('tipo_correspondencia', '!=', 'Interna')->whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
-            
+
             if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
-                $query->where(function($q) use ($user) {
-                    $q->whereExists(function($subQ) use ($user) {
+                $query->where(function ($q) use ($user) {
+                    $q->whereExists(function ($subQ) use ($user) {
                         $subQ->select(DB::raw(1))
                             ->from('subarea_oficio')
                             ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                             ->where('subarea_oficio.subarea_id', $user->subarea_id);
                     })
-                    ->orWhere('area_oficio.user_id', $user->id)
-                    ->orWhereExists(function ($subQ) use ($user) {
-                        $subQ->select(DB::raw(1))
-                             ->from('users')
-                             ->whereColumn('users.id', 'area_oficio.user_id')
-                             ->where('users.subarea_id', $user->subarea_id);
-                    });
+                        ->orWhere('area_oficio.user_id', $user->id)
+                        ->orWhereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('users')
+                                ->whereColumn('users.id', 'area_oficio.user_id')
+                                ->where('users.subarea_id', $user->subarea_id);
+                        });
                 });
             } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
-                $query->where(function($q) use ($user) {
-                    $q->whereExists(function($subQ) use ($user) {
+                $query->where(function ($q) use ($user) {
+                    $q->whereExists(function ($subQ) use ($user) {
                         $subQ->select(DB::raw(1))
                             ->from('subarea_oficio')
                             ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                             ->where('subarea_oficio.user_id', $user->id);
                     })
-                    ->orWhere('area_oficio.user_id', $user->id);
+                        ->orWhere('area_oficio.user_id', $user->id);
                 });
             }
         });
@@ -671,27 +679,27 @@ class OficioController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search, $user) {
                 $q->where('numero_oficio', 'like', "%{$search}%")
-                  ->orWhere('asunto', 'like', "%{$search}%")
-                  ->orWhere('remitente', 'like', "%{$search}%")
-                  ->orWhereHas('areas', function ($sub) use ($search, $user) {
-                      $sub->where('area_id', $user->area_id)
-                          ->where(function ($subQ) use ($search) {
-                              $subQ->where('area_oficio.instruccion', 'like', "%{$search}%")
-                                   ->orWhereExists(function ($existsQ) use ($search) {
-                                       $existsQ->select(DB::raw(1))
-                                               ->from('users')
-                                               ->whereColumn('users.id', 'area_oficio.user_id')
-                                               ->where('users.name', 'like', "%{$search}%");
-                                   })
-                                   ->orWhereExists(function ($existsQ) use ($search) {
-                                       $existsQ->select(DB::raw(1))
-                                               ->from('subarea_oficio')
-                                               ->join('users', 'subarea_oficio.user_id', '=', 'users.id')
-                                               ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
-                                               ->where('users.name', 'like', "%{$search}%");
-                                   });
-                          });
-                  });
+                    ->orWhere('asunto', 'like', "%{$search}%")
+                    ->orWhere('remitente', 'like', "%{$search}%")
+                    ->orWhereHas('areas', function ($sub) use ($search, $user) {
+                        $sub->where('area_id', $user->area_id)
+                            ->where(function ($subQ) use ($search) {
+                                $subQ->where('area_oficio.instruccion', 'like', "%{$search}%")
+                                    ->orWhereExists(function ($existsQ) use ($search) {
+                                        $existsQ->select(DB::raw(1))
+                                            ->from('users')
+                                            ->whereColumn('users.id', 'area_oficio.user_id')
+                                            ->where('users.name', 'like', "%{$search}%");
+                                    })
+                                    ->orWhereExists(function ($existsQ) use ($search) {
+                                        $existsQ->select(DB::raw(1))
+                                            ->from('subarea_oficio')
+                                            ->join('users', 'subarea_oficio.user_id', '=', 'users.id')
+                                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                            ->where('users.name', 'like', "%{$search}%");
+                                    });
+                            });
+                    });
             });
         }
 
@@ -797,12 +805,12 @@ class OficioController extends Controller
         // Búsqueda
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('oficios.numero_oficio', 'like', "%{$search}%")
-                  ->orWhere('oficios.asunto', 'like', "%{$search}%")
-                  ->orWhere('oficios.remitente', 'like', "%{$search}%")
-                  ->orWhere('areas.name', 'like', "%{$search}%")
-                  ->orWhere('users.name', 'like', "%{$search}%");
+                    ->orWhere('oficios.asunto', 'like', "%{$search}%")
+                    ->orWhere('oficios.remitente', 'like', "%{$search}%")
+                    ->orWhere('areas.name', 'like', "%{$search}%")
+                    ->orWhere('users.name', 'like', "%{$search}%");
             });
         }
 
@@ -874,7 +882,7 @@ class OficioController extends Controller
         if ($request->has('subarea_oficio_id')) {
             $subareaOficio = \App\Models\SubareaOficio::findOrFail($request->subarea_oficio_id);
         }
-        
+
         // Buscamos el registro pivote
         $areaOficio = DB::table('area_oficio')->where('id', $areaOficioId)->first();
         if (!$areaOficio) {
@@ -892,9 +900,9 @@ class OficioController extends Controller
         if (!$hasPermission) {
             // Verificar si tiene alguna subarea_oficio asignada en este area_oficio
             $hasPermission = \App\Models\SubareaOficio::where('area_oficio_id', $areaOficioId)
-                ->where(function($q) use ($user) {
+                ->where(function ($q) use ($user) {
                     $q->where('user_id', $user->id)
-                      ->orWhere('subarea_id', $user->subarea_id);
+                        ->orWhere('subarea_id', $user->subarea_id);
                 })->exists();
         }
 
@@ -1013,6 +1021,9 @@ class OficioController extends Controller
         ]);
 
         $data = $request->all();
+        if ($request->input('tipo_correspondencia') === 'Interna') {
+            $data['tipo_correspondencia'] = 'Externa';
+        }
 
         if ($request->hasFile('archivo_pdf')) {
             $path = $request->file('archivo_pdf')->store('oficios_pdf', 'public');
@@ -1101,8 +1112,8 @@ class OficioController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('numero_oficio', 'like', "%{$search}%")
-                  ->orWhere('remitente', 'like', "%{$search}%")
-                  ->orWhere('asunto', 'like', "%{$search}%");
+                    ->orWhere('remitente', 'like', "%{$search}%")
+                    ->orWhere('asunto', 'like', "%{$search}%");
             });
         }
 
@@ -1116,7 +1127,7 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area', 'correspondencia'])) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -1167,7 +1178,7 @@ class OficioController extends Controller
         if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area'])) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
-        
+
         // Área receptora/capturadora (la que genera el folio)
         $capturingAreaId = $user->role === 'admin' ? $request->area_captura_id : $user->area_id;
         // Área emisora/origen (la que mandó el oficio)
@@ -1212,13 +1223,13 @@ class OficioController extends Controller
         $consecutivoOrigen = null;
         $anioOrigen = $currentYear;
         if (preg_match('/-INT-(\d+)\/(\d+)/', $request->numero_origen, $matches)) {
-            $consecutivoOrigen = (int)$matches[1];
-            $anioOrigen = (int)$matches[2];
+            $consecutivoOrigen = (int) $matches[1];
+            $anioOrigen = (int) $matches[2];
         } elseif (preg_match('/(\d+)\D+(\d+)/', $request->numero_origen, $matches)) {
-            $consecutivoOrigen = (int)$matches[1];
-            $anioOrigen = (int)$matches[2];
+            $consecutivoOrigen = (int) $matches[1];
+            $anioOrigen = (int) $matches[2];
         } elseif (preg_match('/(\d+)/', $request->numero_origen, $matches)) {
-            $consecutivoOrigen = (int)$request->numero_origen;
+            $consecutivoOrigen = (int) $request->numero_origen;
         }
 
         // Guardar el archivo PDF
