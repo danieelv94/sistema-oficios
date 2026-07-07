@@ -1175,7 +1175,7 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+        if ($user->role !== 'admin' && !in_array($user->role, ['jefe_area', 'secretaria_area', 'correspondencia'])) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
