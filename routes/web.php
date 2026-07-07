@@ -69,6 +69,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     // --- Órdenes de Comisión ---
+    Route::get('/comisiones/recursos-humanos', [ComisionController::class, 'recursosHumanosIndex'])->name('comisiones.recursos_humanos');
+    Route::post('/comisiones/{comision}/toggle-acuse', [ComisionController::class, 'toggleAcuse'])->name('comisiones.toggle_acuse');
     Route::resource('comisiones', ComisionController::class)->parameters([
         'comisiones' => 'comision'
     ]);

@@ -113,4 +113,77 @@ class ComisionController extends Controller
         $comision->update(['status' => 'Cancelado']);
         return redirect()->route('comisiones.index')->with('success', 'Oficio cancelado.');
     }
+
+    public function recursosHumanosIndex(Request $request)
+    {
+        $user = Auth::user();
+        $isRH = $user->subarea && ($user->subarea->prefijo === 'SRH' || strpos(strtolower($user->subarea->name), 'recursos humanos') !== false);
+        if ($user->role !== 'admin' && !$isRH) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        $filtro = $request->input('filtro', 'Todos'); // Todos, Pendientes, Entregados
+        $query = Comision::with([
+            'user' => function ($q) {
+                $q->withTrashed();
+            },
+            'user.area'
+        ]);
+
+        if ($filtro === 'Pendientes') {
+            $query->where('entregado_acuse', false);
+        } elseif ($filtro === 'Entregados') {
+            $query->where('entregado_acuse', true);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('oficio_numero', 'like', "%{$search}%")
+                  ->orWhere('actividad', 'like', "%{$search}%")
+                  ->orWhere('lugar', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->withTrashed()->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $comisiones = $query->latest()->paginate(15);
+
+        return view('comisiones.recursos_humanos', compact('comisiones', 'filtro'));
+    }
+
+    public function toggleAcuse(Request $request, Comision $comision)
+    {
+        $user = Auth::user();
+        $isRH = $user->subarea && ($user->subarea->prefijo === 'SRH' || strpos(strtolower($user->subarea->name), 'recursos humanos') !== false);
+        if ($user->role !== 'admin' && !$isRH) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'No autorizado'], 403);
+            }
+            abort(403);
+        }
+
+        // Si ya está entregado y no es administrador, impedir desactivarlo
+        if ($comision->entregado_acuse && $user->role !== 'admin') {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Solo el Administrador puede desactivar un acuse ya entregado.'], 403);
+            }
+            abort(403, 'Solo el Administrador puede desactivar un acuse ya entregado.');
+        }
+
+        $comision->update([
+            'entregado_acuse' => !$comision->entregado_acuse
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'entregado' => $comision->entregado_acuse,
+                'message' => $comision->entregado_acuse ? 'Acuse marcado como entregado.' : 'Acuse marcado como pendiente.'
+            ]);
+        }
+
+        return back()->with('success', 'Estatus del acuse actualizado.');
+    }
 }

@@ -116,14 +116,30 @@
                 @endif
                 <!-- Link: Oficios Comisión -->
                 <a href="{{ route('comisiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.*') ? 'bg-guinda-ceaa text-white' : '' }}">
-                    <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.*') ? 'text-white' : '' }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'bg-guinda-ceaa text-white' : '' }}">
+                    <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white' : '' }}"
                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
                     <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Comisión</span>
                 </a>
+
+                @php
+                    $isRHUser = Auth::user()->subarea && (Auth::user()->subarea->prefijo === 'SRH' || strpos(strtolower(Auth::user()->subarea->name), 'recursos humanos') !== false);
+                @endphp
+                @if(Auth::user()->role === 'admin' || $isRHUser)
+                    <!-- Link: Acuses Comisión (RH) -->
+                    <a href="{{ route('comisiones.recursos_humanos') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.recursos_humanos') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white' : '' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Acuses Comisión (RH)</span>
+                    </a>
+                @endif
 
                 <!-- Link: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"
@@ -243,6 +259,18 @@
                     </svg>
                     <span>Oficios Comisión</span>
                 </a>
+
+                @if(Auth::user()->role === 'admin' || $isRHUser)
+                    <!-- Enlace: Acuses Comisión (RH) -->
+                    <a href="{{ route('comisiones.recursos_humanos') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition {{ request()->routeIs('comisiones.recursos_humanos') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 text-gray-400 {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Acuses Comisión (RH)</span>
+                    </a>
+                @endif
 
                 <!-- Enlace: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"
