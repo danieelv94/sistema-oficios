@@ -1063,8 +1063,9 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        // Si no es admin y no tiene área, abortar
-        if ($user->role !== 'admin' && !$user->area_id) {
+        // Si no es admin/correspondencia y no tiene área, abortar
+        $isAdminOrCorrespondencia = in_array($user->role, ['admin', 'correspondencia']);
+        if (!$isAdminOrCorrespondencia && !$user->area_id) {
             abort(403, 'No tienes una Dirección/Área asignada para ver esta sección.');
         }
 
@@ -1073,25 +1074,112 @@ class OficioController extends Controller
         $areaId = $user->area_id;
         $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos, Solventados
 
-        if ($user->role !== 'admin') {
+        if (!$isAdminOrCorrespondencia) {
             if ($filtroTipo === 'Enviados') {
                 $query->where('area_origen_id', $areaId);
             } elseif ($filtroTipo === 'Recibidos') {
-                $query->whereHas('areas', function ($q) use ($areaId) {
+                $query->whereHas('areas', function ($q) use ($areaId, $user) {
                     $q->where('areas.id', $areaId);
+                    
+                    // Restricción para operativos y subdirectores
+                    if (!in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+                        $q->where(function ($sub) use ($user) {
+                            $sub->where('area_oficio.user_id', $user->id)
+                                ->orWhereExists(function ($subQ) use ($user) {
+                                    $subQ->select(DB::raw(1))
+                                        ->from('subarea_oficio')
+                                        ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                        ->where(function ($deepQ) use ($user) {
+                                            $deepQ->where('subarea_oficio.user_id', $user->id);
+                                            if ($user->subarea_id) {
+                                                $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                            }
+                                        });
+                                })
+                                ->orWhereExists(function ($subQ) use ($user) {
+                                    if ($user->subarea_id) {
+                                        $subQ->select(DB::raw(1))
+                                            ->from('users')
+                                            ->whereColumn('users.id', 'area_oficio.user_id')
+                                            ->where('users.subarea_id', $user->subarea_id);
+                                    } else {
+                                        $subQ->select(DB::raw(1))->from('users')->whereRaw('1 = 0');
+                                    }
+                                });
+                        });
+                    }
                 });
             } elseif ($filtroTipo === 'Solventados') {
-                $query->whereHas('areas', function ($q) use ($areaId) {
+                $query->whereHas('areas', function ($q) use ($areaId, $user) {
                     $q->where('areas.id', $areaId)->where('area_oficio.estatus', 'Solventado');
+
+                    // Restricción para operativos y subdirectores
+                    if (!in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+                        $q->where(function ($sub) use ($user) {
+                            $sub->where('area_oficio.user_id', $user->id)
+                                ->orWhereExists(function ($subQ) use ($user) {
+                                    $subQ->select(DB::raw(1))
+                                        ->from('subarea_oficio')
+                                        ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                        ->where(function ($deepQ) use ($user) {
+                                            $deepQ->where('subarea_oficio.user_id', $user->id);
+                                            if ($user->subarea_id) {
+                                                $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                            }
+                                        });
+                                })
+                                ->orWhereExists(function ($subQ) use ($user) {
+                                    if ($user->subarea_id) {
+                                        $subQ->select(DB::raw(1))
+                                            ->from('users')
+                                            ->whereColumn('users.id', 'area_oficio.user_id')
+                                            ->where('users.subarea_id', $user->subarea_id);
+                                    } else {
+                                        $subQ->select(DB::raw(1))->from('users')->whereRaw('1 = 0');
+                                    }
+                                });
+                        });
+                    }
                 });
             } else { // Todos
-                // Por defecto ven lo que capturan (Recibidos)
-                $query->whereHas('areas', function ($q) use ($areaId) {
-                    $q->where('areas.id', $areaId);
+                // Por defecto ven lo que les corresponde de recibidos/enviados
+                $query->where(function ($allQ) use ($areaId, $user) {
+                    $allQ->where('area_origen_id', $areaId)
+                        ->orWhereHas('areas', function ($q) use ($areaId, $user) {
+                            $q->where('areas.id', $areaId);
+
+                            // Restricción para operativos y subdirectores
+                            if (!in_array($user->role, ['jefe_area', 'secretaria_area'])) {
+                                $q->where(function ($sub) use ($user) {
+                                    $sub->where('area_oficio.user_id', $user->id)
+                                        ->orWhereExists(function ($subQ) use ($user) {
+                                            $subQ->select(DB::raw(1))
+                                                ->from('subarea_oficio')
+                                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                                ->where(function ($deepQ) use ($user) {
+                                                    $deepQ->where('subarea_oficio.user_id', $user->id);
+                                                    if ($user->subarea_id) {
+                                                        $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                                    }
+                                                });
+                                        })
+                                        ->orWhereExists(function ($subQ) use ($user) {
+                                            if ($user->subarea_id) {
+                                                $subQ->select(DB::raw(1))
+                                                    ->from('users')
+                                                    ->whereColumn('users.id', 'area_oficio.user_id')
+                                                    ->where('users.subarea_id', $user->subarea_id);
+                                            } else {
+                                                $subQ->select(DB::raw(1))->from('users')->whereRaw('1 = 0');
+                                            }
+                                        });
+                                });
+                            }
+                        });
                 });
             }
         } else {
-            // Admin ve todos y puede filtrar
+            // Admin y correspondencia ven todos y pueden filtrar
             if ($filtroTipo === 'Enviados') {
                 if ($request->filled('area_origen_id')) {
                     $query->where('area_origen_id', $request->area_origen_id);

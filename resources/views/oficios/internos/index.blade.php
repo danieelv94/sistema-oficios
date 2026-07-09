@@ -95,14 +95,32 @@
                                     <th class="py-3 px-4 text-left">Remitente</th>
                                     <th class="py-3 px-4 text-left">Asunto</th>
                                     <th class="py-3 px-4 text-left">Fecha Oficio</th>
-                                    <th class="py-3 px-4 text-center">Prioridad</th>
-                                    <th class="py-3 px-4 text-center">Estatus Turno</th>
-                                    <th class="py-3 px-4 text-center">PDF</th>
                                     <th class="py-3 px-4 text-center">Acciones</th>
+                                    <th class="py-3 px-4 text-center">Estatus</th>
+                                    <th class="py-3 px-4 text-center">Oficio Original</th>
+                                    <th class="py-3 px-4 text-center">PDF</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 text-xs">
                                 @forelse($oficios as $oficio)
+                                    @php
+                                        $miArea = $oficio->areas->first(fn($a) => $a->id == Auth::user()->area_id);
+                                        $pivot = $miArea ? $miArea->pivot : null;
+                                        $subareaOficio = null;
+                                        $hasSubareas = false;
+                                        if ($pivot) {
+                                            $hasSubareas = DB::table('subarea_oficio')->where('area_oficio_id', $pivot->id)->exists();
+                                            if (Auth::user()->subarea_id) {
+                                                $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
+                                                    ->where('subarea_id', Auth::user()->subarea_id)
+                                                    ->first();
+                                            } else {
+                                                $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
+                                                    ->where('user_id', Auth::id())
+                                                    ->first();
+                                            }
+                                        }
+                                    @endphp
                                     <tr class="hover:bg-gray-50/50 transition">
                                         <td class="py-3.5 px-4 font-black text-blue-600 whitespace-nowrap">
                                             {{ $oficio->numero_oficio }}
@@ -131,6 +149,71 @@
                                         <td class="py-3.5 px-4 text-gray-500 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($oficio->fecha_recepcion)->format('d/m/Y') }}
                                         </td>
+                                        <td class="py-3.5 px-4 text-center space-x-1.5 whitespace-nowrap">
+                                            @if($pivot)
+                                                @if(in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']))
+                                                    @if($pivot->estatus == 'Notificado')
+                                                        <form action="{{ route('oficios.recibirTurno', $pivot->id) }}" method="POST" class="inline-block">
+                                                            @csrf @method('PUT')
+                                                            <button type="submit"
+                                                                class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                Confirmar Recibido
+                                                            </button>
+                                                        </form>
+                                                    @elseif(in_array($pivot->estatus, ['Recibido', 'En Proceso', 'Asignado']))
+                                                        <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
+                                                            class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                            Turnar
+                                                        </a>
+                                                    @endif
+                                                @elseif(Auth::user()->role === 'subdirector')
+                                                    @if($subareaOficio)
+                                                        @if($subareaOficio->estatus == 'Asignado')
+                                                            <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
+                                                                @csrf @method('PUT')
+                                                                <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
+                                                                <button type="submit"
+                                                                    class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                    Confirmar Recibido
+                                                                </button>
+                                                            </form>
+                                                        @elseif($subareaOficio->estatus == 'Notificado')
+                                                            <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'operativo']) }}"
+                                                                class="bg-yellow-500 hover:bg-yellow-600 text-black px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                Delegar
+                                                            </a>
+                                                            <a href="{{ route('oficios.atender', [$pivot->id, 'subarea_oficio_id' => $subareaOficio->id]) }}"
+                                                                class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                Atender
+                                                            </a>
+                                                        @endif
+                                                    @endif
+                                                @else
+                                                    @if($subareaOficio)
+                                                        @if($subareaOficio->estatus == 'Asignado')
+                                                            <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
+                                                                @csrf @method('PUT')
+                                                                <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
+                                                                <button type="submit"
+                                                                    class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                    Confirmar Recibido
+                                                                </button>
+                                                            </form>
+                                                        @elseif($subareaOficio->estatus == 'Notificado')
+                                                            <a href="{{ route('oficios.atender', [$pivot->id, 'subarea_oficio_id' => $subareaOficio->id]) }}"
+                                                                class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
+                                                                Atender
+                                                            </a>
+                                                        @endif
+                                                    @endif
+                                                @endif
+                                            @endif
+                                            
+                                            <a href="{{ route('oficios.show', [$oficio, 'mode' => in_array(Auth::user()->role, ['admin', 'recepcionista', 'correspondencia', 'jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo']) }}"
+                                                class="px-2.5 py-1 bg-gray-800 hover:bg-gray-900 text-white rounded-md font-black uppercase text-[9px] transition shadow-sm">
+                                                Expediente
+                                            </a>
+                                        </td>
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             @if(Auth::user()->role === 'admin' || Auth::user()->role === 'correspondencia' || Auth::user()->role === 'recepcionista')
                                                 <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
@@ -144,8 +227,7 @@
                                                 </span>
                                             @else
                                                 @php
-                                                    $miTurno = $oficio->areas->first(fn($a) => $a->id == Auth::user()->area_id);
-                                                    $estatusTurno = $miTurno ? $miTurno->pivot->estatus : $oficio->estatus;
+                                                    $estatusTurno = $pivot ? $pivot->estatus : $oficio->estatus;
                                                 @endphp
                                                 <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
                                                                     {{ $estatusTurno == 'Solventado' ? 'bg-green-100 text-green-700' : '' }}
@@ -156,6 +238,9 @@
                                                     {{ $estatusTurno }}
                                                 </span>
                                             @endif
+                                        </td>
+                                        <td class="py-3.5 px-4 font-mono font-bold text-gray-700 text-center whitespace-nowrap">
+                                            {{ $oficio->numero_oficio_dependencia }}
                                         </td>
                                         <td class="py-3.5 px-4 text-center">
                                             @if($oficio->pdf_path)
@@ -170,12 +255,6 @@
                                             @else
                                                 <span class="text-gray-400 italic text-[10px]">Sin PDF</span>
                                             @endif
-                                        </td>
-                                        <td class="py-3.5 px-4 text-center">
-                                            <a href="{{ route('oficios.show', [$oficio, 'mode' => in_array(Auth::user()->role, ['admin', 'recepcionista', 'correspondencia', 'jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo']) }}"
-                                                class="px-3 py-1 bg-gray-800 text-white rounded text-[10px] font-bold hover:bg-blue-600 transition uppercase tracking-wider shadow-sm">
-                                                Expediente
-                                            </a>
                                         </td>
                                     </tr>
                                 @empty

@@ -108,6 +108,10 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="mt-4">
+                        {{ $ticketsPendientes->links() }}
+                    </div>
                 </div>
             </div>
 
@@ -152,6 +156,10 @@
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ $ticketsConcluidos->links() }}
                     </div>
                 </div>
             </div>

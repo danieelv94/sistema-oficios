@@ -18,12 +18,28 @@ class TicketController extends Controller
 
         if ($user->role == 'admin') {
             // El admin ve todos los tickets, separados por estado y ordenados por antigüedad
-            $ticketsPendientes = Ticket::where('status', 'Pendiente')->with('user.area')->oldest()->get();
-            $ticketsConcluidos = Ticket::where('status', 'Concluido')->with('user.area')->latest()->get();
+            $ticketsPendientes = Ticket::where('status', 'Pendiente')
+                ->with('user.area')
+                ->oldest()
+                ->paginate(10, ['*'], 'page_pendientes')
+                ->withQueryString();
+            $ticketsConcluidos = Ticket::where('status', 'Concluido')
+                ->with('user.area')
+                ->latest()
+                ->paginate(10, ['*'], 'page_concluidos')
+                ->withQueryString();
         } else {
             // Los demás usuarios solo ven sus propios tickets
-            $ticketsPendientes = Ticket::where('user_id', $user->id)->where('status', 'Pendiente')->latest()->get();
-            $ticketsConcluidos = Ticket::where('user_id', $user->id)->where('status', 'Concluido')->latest()->get();
+            $ticketsPendientes = Ticket::where('user_id', $user->id)
+                ->where('status', 'Pendiente')
+                ->latest()
+                ->paginate(10, ['*'], 'page_pendientes')
+                ->withQueryString();
+            $ticketsConcluidos = Ticket::where('user_id', $user->id)
+                ->where('status', 'Concluido')
+                ->latest()
+                ->paginate(10, ['*'], 'page_concluidos')
+                ->withQueryString();
         }
 
         return view('tickets.index', compact('ticketsPendientes', 'ticketsConcluidos'));
