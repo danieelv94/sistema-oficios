@@ -3211,6 +3211,10 @@ select {
     max-width: 28rem;
   }
 
+  .md\:max-w-xl {
+    max-width: 36rem;
+  }
+
   .md\:flex-1 {
     flex: 1 1 0%;
   }

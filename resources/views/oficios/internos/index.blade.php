@@ -61,14 +61,25 @@
 
                         {{-- Formulario de búsqueda --}}
                         <form action="{{ route('oficios.internos.index') }}" method="GET"
-                            class="flex gap-2 flex-1 md:max-w-md">
+                            class="flex gap-2 flex-1 md:max-w-xl">
                             <input type="hidden" name="tipo" value="{{ $filtroTipo }}">
                             <input type="text" name="search" placeholder="Buscar por número, remitente o asunto..."
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-600 focus:border-blue-600 focus:outline-none text-xs"
                                 value="{{ request('search') }}">
+                            
+                            <select name="estatus" onchange="this.form.submit()"
+                                class="text-xs rounded-md border-gray-300 focus:ring-blue-600 focus:border-blue-600 py-2">
+                                <option value="Todos" {{ $filtroEstatus == 'Todos' ? 'selected' : '' }}>-- Todos los Estados --</option>
+                                <option value="Notificado" {{ $filtroEstatus == 'Notificado' ? 'selected' : '' }}>Notificado</option>
+                                <option value="Asignado" {{ $filtroEstatus == 'Asignado' ? 'selected' : '' }}>Asignado</option>
+                                <option value="En Proceso" {{ $filtroEstatus == 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
+                                <option value="Solventado" {{ $filtroEstatus == 'Solventado' ? 'selected' : '' }}>Solventado</option>
+                                <option value="Cancelado" {{ $filtroEstatus == 'Cancelado' ? 'selected' : '' }}>Cancelado</option>
+                            </select>
+
                             <button type="submit"
                                 class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-black transition text-xs font-bold uppercase tracking-wider">Buscar</button>
-                            @if(request('search'))
+                            @if(request('search') || request('estatus', 'Todos') !== 'Todos')
                                 <a href="{{ route('oficios.internos.index', ['tipo' => $filtroTipo]) }}"
                                     class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-xs font-bold uppercase tracking-wider flex items-center justify-center">Limpiar</a>
                             @endif
