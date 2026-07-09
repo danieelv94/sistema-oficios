@@ -59,24 +59,35 @@ class OficioController extends Controller
             }
         }
 
-        // Ordenamos por número de oficio de forma descendente (consecutivo)
-        $oficios = $query->orderByRaw('CAST(numero_oficio AS UNSIGNED) DESC')->paginate(10);
+        // Ordenamos por número de oficio de forma descendente (año y consecutivo)
+        $oficios = $query->orderByRaw("IF(numero_oficio LIKE '%/%', CAST(SUBSTRING_INDEX(numero_oficio, '/', -1) AS UNSIGNED), YEAR(fecha_recepcion)) DESC")
+            ->orderByRaw("CAST(SUBSTRING_INDEX(numero_oficio, '/', 1) AS UNSIGNED) DESC")
+            ->paginate(10);
 
         return view('oficios.index', compact('oficios'));
     }
 
     public function create()
     {
-        $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
-        $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
+        $currentYear = date('Y');
+        $ultimoNumero = Oficio::withTrashed()
+            ->where('numero_oficio', 'like', "%/$currentYear")
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(numero_oficio, '/', 1) AS UNSIGNED)) as max_val")
+            ->value('max_val');
+        $siguienteConsecutivoVal = ($ultimoNumero ?? 0) + 1;
+        $siguienteConsecutivo = $siguienteConsecutivoVal . '/' . $currentYear;
         return view('oficios.create', compact('siguienteConsecutivo'));
     }
 
     public function store(Request $request)
     {
-        $ultimoNumero = Oficio::withTrashed()->selectRaw('MAX(CAST(numero_oficio AS UNSIGNED)) as max_val')->value('max_val');
+        $currentYear = date('Y');
+        $ultimoNumero = Oficio::withTrashed()
+            ->where('numero_oficio', 'like', "%/$currentYear")
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(numero_oficio, '/', 1) AS UNSIGNED)) as max_val")
+            ->value('max_val');
         $siguienteConsecutivo = ($ultimoNumero ?? 0) + 1;
-        $request->merge(['numero_oficio' => (string) $siguienteConsecutivo]);
+        $request->merge(['numero_oficio' => (string) ($siguienteConsecutivo . '/' . $currentYear)]);
 
         $request->validate([
             'numero_oficio' => 'required|string|max:255',
@@ -764,7 +775,8 @@ class OficioController extends Controller
         $oficios = Oficio::where('tipo_correspondencia', '!=', 'Interna')
             ->whereDate('created_at', '>=', $fechaInicio)
             ->whereDate('created_at', '<=', $fechaFin)
-            ->orderByRaw('CAST(numero_oficio AS UNSIGNED) ASC')
+            ->orderByRaw("IF(numero_oficio LIKE '%/%', CAST(SUBSTRING_INDEX(numero_oficio, '/', -1) AS UNSIGNED), YEAR(fecha_recepcion)) ASC")
+            ->orderByRaw("CAST(SUBSTRING_INDEX(numero_oficio, '/', 1) AS UNSIGNED) ASC")
             ->get();
 
         $directorGestion = \App\Models\User::where('area_id', 2)
