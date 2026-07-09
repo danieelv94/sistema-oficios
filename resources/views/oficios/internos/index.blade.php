@@ -121,13 +121,16 @@
                                         $hasSubareas = false;
                                         if ($pivot) {
                                             $hasSubareas = DB::table('subarea_oficio')->where('area_oficio_id', $pivot->id)->exists();
-                                            if (Auth::user()->subarea_id) {
+                                            // 1. Intentar buscar asignación directa al usuario
+                                            $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
+                                                ->where('user_id', Auth::id())
+                                                ->first();
+                                            
+                                            // 2. Si no hay asignación directa al usuario y pertenece a una subárea, buscar asignación grupal a la subárea (donde user_id es null)
+                                            if (!$subareaOficio && Auth::user()->subarea_id) {
                                                 $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
                                                     ->where('subarea_id', Auth::user()->subarea_id)
-                                                    ->first();
-                                            } else {
-                                                $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
-                                                    ->where('user_id', Auth::id())
+                                                    ->whereNull('user_id')
                                                     ->first();
                                             }
                                         }

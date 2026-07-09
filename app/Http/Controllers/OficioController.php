@@ -1105,14 +1105,25 @@ class OficioController extends Controller
                                         ->from('subarea_oficio')
                                         ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                                         ->where(function ($deepQ) use ($user) {
-                                            $deepQ->where('subarea_oficio.user_id', $user->id);
-                                            if ($user->subarea_id) {
-                                                $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                            if ($user->role === 'subdirector') {
+                                                if ($user->subarea_id) {
+                                                    $deepQ->where('subarea_oficio.subarea_id', $user->subarea_id);
+                                                } else {
+                                                    $deepQ->whereRaw('1 = 0');
+                                                }
+                                            } else {
+                                                $deepQ->where('subarea_oficio.user_id', $user->id);
+                                                if ($user->subarea_id) {
+                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
+                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                                            ->whereNull('subarea_oficio.user_id');
+                                                    });
+                                                }
                                             }
                                         });
                                 })
                                 ->orWhereExists(function ($subQ) use ($user) {
-                                    if ($user->subarea_id) {
+                                    if ($user->role === 'subdirector' && $user->subarea_id) {
                                         $subQ->select(DB::raw(1))
                                             ->from('users')
                                             ->whereColumn('users.id', 'area_oficio.user_id')
@@ -1137,14 +1148,25 @@ class OficioController extends Controller
                                         ->from('subarea_oficio')
                                         ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                                         ->where(function ($deepQ) use ($user) {
-                                            $deepQ->where('subarea_oficio.user_id', $user->id);
-                                            if ($user->subarea_id) {
-                                                $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                            if ($user->role === 'subdirector') {
+                                                if ($user->subarea_id) {
+                                                    $deepQ->where('subarea_oficio.subarea_id', $user->subarea_id);
+                                                } else {
+                                                    $deepQ->whereRaw('1 = 0');
+                                                }
+                                            } else {
+                                                $deepQ->where('subarea_oficio.user_id', $user->id);
+                                                if ($user->subarea_id) {
+                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
+                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                                            ->whereNull('subarea_oficio.user_id');
+                                                    });
+                                                }
                                             }
                                         });
                                 })
                                 ->orWhereExists(function ($subQ) use ($user) {
-                                    if ($user->subarea_id) {
+                                    if ($user->role === 'subdirector' && $user->subarea_id) {
                                         $subQ->select(DB::raw(1))
                                             ->from('users')
                                             ->whereColumn('users.id', 'area_oficio.user_id')
@@ -1175,14 +1197,25 @@ class OficioController extends Controller
                                         ->from('subarea_oficio')
                                         ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
                                         ->where(function ($deepQ) use ($user) {
-                                            $deepQ->where('subarea_oficio.user_id', $user->id);
-                                            if ($user->subarea_id) {
-                                                $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                            if ($user->role === 'subdirector') {
+                                                if ($user->subarea_id) {
+                                                    $deepQ->where('subarea_oficio.subarea_id', $user->subarea_id);
+                                                } else {
+                                                    $deepQ->whereRaw('1 = 0');
+                                                }
+                                            } else {
+                                                $deepQ->where('subarea_oficio.user_id', $user->id);
+                                                if ($user->subarea_id) {
+                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
+                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                                            ->whereNull('subarea_oficio.user_id');
+                                                    });
+                                                }
                                             }
                                         });
                                 })
                                 ->orWhereExists(function ($subQ) use ($user) {
-                                    if ($user->subarea_id) {
+                                    if ($user->role === 'subdirector' && $user->subarea_id) {
                                         $subQ->select(DB::raw(1))
                                             ->from('users')
                                             ->whereColumn('users.id', 'area_oficio.user_id')
