@@ -1099,11 +1099,7 @@ class OficioController extends Controller
 
         if (!$isAdminOrCorrespondencia) {
             if ($filtroTipo === 'Enviados') {
-                if (in_array($user->role, ['jefe_area', 'secretaria_area'])) {
-                    $query->where('area_origen_id', $areaId);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                $query->whereRaw('1 = 0');
             } elseif ($filtroTipo === 'Recibidos') {
                 $query->whereHas('areas', function ($q) use ($areaId, $user) {
                     $q->where('areas.id', $areaId);
@@ -1192,11 +1188,8 @@ class OficioController extends Controller
                 });
             } else { // Todos
                 if (in_array($user->role, ['jefe_area', 'secretaria_area'])) {
-                    $query->where(function ($allQ) use ($areaId) {
-                        $allQ->where('area_origen_id', $areaId)
-                            ->orWhereHas('areas', function ($q) use ($areaId) {
-                                $q->where('areas.id', $areaId);
-                            });
+                    $query->whereHas('areas', function ($q) use ($areaId) {
+                        $q->where('areas.id', $areaId);
                     });
                 } else {
                     $query->whereHas('areas', function ($q) use ($areaId, $user) {

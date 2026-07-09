@@ -91,13 +91,31 @@ $pivotIdSolv = DB::table('area_oficio')->insertGetId([
 
 $controller = new \App\Http\Controllers\OficioController();
 
-// 1. Test "Enviados"
-$request = new Request(['tipo' => 'Enviados']);
+// 1. Test "Enviados" (using Admin role, since normal areas do not see Enviados tab)
+$adminUser = User::where('role', 'admin')->first();
+if (!$adminUser) {
+    $adminUser = User::create([
+        'name' => 'Mock Admin Filter Test',
+        'email' => 'mock_admin_filter_' . uniqid() . '@ceaa.gob.mx',
+        'password' => bcrypt('password'),
+        'role' => 'admin',
+    ]);
+}
+Auth::login($adminUser);
+
+$request = new Request(['tipo' => 'Enviados', 'area_origen_id' => $areaId]);
 $response = $controller->internosIndex($request);
 $oficiosData = $response->getData()['oficios'];
 $sentIds = collect($oficiosData->items())->pluck('id')->toArray();
 echo "1. 'Enviados' tab returns the sent oficio? " . (in_array($oficioSent->id, $sentIds) ? 'SÍ ✅' : 'NO ❌') . "\n";
 echo "   Does NOT return the received oficio? " . (!in_array($oficioRecv->id, $sentIds) ? 'SÍ ✅' : 'NO ❌') . "\n";
+
+if (strpos($adminUser->email, 'mock_admin_filter_') === 0) {
+    $adminUser->forceDelete();
+}
+
+// Restore jefe_area login for other filters
+Auth::login($user);
 
 // 2. Test "Recibidos"
 $request = new Request(['tipo' => 'Recibidos']);

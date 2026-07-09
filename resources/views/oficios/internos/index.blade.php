@@ -45,10 +45,12 @@
                                 class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                                 Todos
                             </a>
+                            @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
                             <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
                                 class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                                 Enviados
                             </a>
+                            @endif
                             <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Recibidos']) }}"
                                 class="px-4 py-2 border-b-2 font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Recibidos' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
                                 Recibidos
@@ -195,7 +197,7 @@
                                         </td>
                                         <td class="py-3.5 px-4 text-center space-x-1.5 whitespace-nowrap">
                                             @if($pivot)
-                                                @if(in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']))
+                                                @if(Auth::user()->role === 'jefe_area')
                                                     @if($pivot->estatus == 'Notificado' && $oficio->area_origen_id != Auth::user()->area_id)
                                                         <form action="{{ route('oficios.recibirTurno', $pivot->id) }}" method="POST" class="inline-block">
                                                             @csrf @method('PUT')
