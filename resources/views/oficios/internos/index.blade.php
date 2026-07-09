@@ -129,12 +129,42 @@
                                             {{ $oficio->areaOrigen->name ?? 'Externa' }}
                                         </td>
                                         <td class="py-3.5 px-4 text-gray-600 max-w-xs">
-                                            <div class="flex flex-wrap gap-1">
+                                            <div class="flex flex-col gap-2">
                                                 @foreach($oficio->areas as $destArea)
-                                                    <span
-                                                        class="px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-700 text-[9px] font-semibold rounded uppercase">
-                                                        {{ $destArea->name }}
-                                                    </span>
+                                                    <div class="border-b border-gray-100 last:border-0 pb-1.5 last:pb-0">
+                                                        <span
+                                                            class="px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-700 text-[9px] font-bold rounded uppercase block w-fit">
+                                                            {{ $destArea->name }}
+                                                        </span>
+                                                        
+                                                        {{-- Cargar asignaciones de esta área --}}
+                                                        @php
+                                                            $assignments = DB::table('subarea_oficio')
+                                                                ->leftJoin('subareas', 'subarea_oficio.subarea_id', '=', 'subareas.id')
+                                                                ->leftJoin('users', 'subarea_oficio.user_id', '=', 'users.id')
+                                                                ->where('subarea_oficio.area_oficio_id', $destArea->pivot->id)
+                                                                ->select('subareas.name as subarea_name', 'users.name as user_name')
+                                                                ->get();
+                                                        @endphp
+                                                        @if($assignments->isNotEmpty())
+                                                            <div class="mt-1 pl-2 text-[10px] space-y-0.5 text-gray-500 font-medium">
+                                                                @foreach($assignments as $assignment)
+                                                                    <div class="flex items-center gap-1">
+                                                                        <span class="text-gray-400">↳</span>
+                                                                        @if($assignment->subarea_name && $assignment->user_name)
+                                                                            <span>{{ $assignment->subarea_name }} ({{ $assignment->user_name }})</span>
+                                                                        @elseif($assignment->subarea_name)
+                                                                            <span>{{ $assignment->subarea_name }}</span>
+                                                                        @elseif($assignment->user_name)
+                                                                            <span>{{ $assignment->user_name }}</span>
+                                                                        @endif
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @else
+                                                            <span class="pl-2 text-[9px] text-gray-400 italic block mt-0.5">Pendiente de turnar en área</span>
+                                                        @endif
+                                                    </div>
                                                 @endforeach
                                             </div>
                                         </td>
@@ -152,7 +182,7 @@
                                         <td class="py-3.5 px-4 text-center space-x-1.5 whitespace-nowrap">
                                             @if($pivot)
                                                 @if(in_array(Auth::user()->role, ['jefe_area', 'secretaria_area']))
-                                                    @if($pivot->estatus == 'Notificado')
+                                                    @if($pivot->estatus == 'Notificado' && $oficio->area_origen_id != Auth::user()->area_id)
                                                         <form action="{{ route('oficios.recibirTurno', $pivot->id) }}" method="POST" class="inline-block">
                                                             @csrf @method('PUT')
                                                             <button type="submit"
@@ -160,7 +190,7 @@
                                                                 Confirmar Recibido
                                                             </button>
                                                         </form>
-                                                    @elseif(in_array($pivot->estatus, ['Recibido', 'En Proceso', 'Asignado']))
+                                                    @elseif(in_array($pivot->estatus, ['Recibido', 'En Proceso', 'Asignado']) || ($pivot->estatus == 'Notificado' && $oficio->area_origen_id == Auth::user()->area_id))
                                                         <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'gestion']) }}"
                                                             class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-black uppercase text-[9px] shadow-sm transition">
                                                             Turnar
