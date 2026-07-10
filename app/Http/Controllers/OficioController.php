@@ -1043,9 +1043,6 @@ class OficioController extends Controller
         ]);
 
         $data = $request->all();
-        if ($request->input('tipo_correspondencia') === 'Interna') {
-            $data['tipo_correspondencia'] = 'Externa';
-        }
 
         if ($request->hasFile('archivo_pdf')) {
             $path = $request->file('archivo_pdf')->store('oficios_pdf', 'public');

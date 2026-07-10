@@ -83,14 +83,19 @@
                                     <div>
                                         <label for="tipo_correspondencia"
                                             class="block font-bold text-[10px] text-gray-400 uppercase">Tipo</label>
-                                        <select name="tipo_correspondencia" id="tipo_correspondencia"
-                                            class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-guinda-ceaa"
-                                            required>
-                                            <option value="Externa" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Externa' ? 'selected' : '' }}>EXTERNA</option>
-                                            @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
-                                                <option value="Correo Electronico" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Correo Electronico' ? 'selected' : '' }}>CORREO ELECTRONICO</option>
-                                            @endif
-                                        </select>
+                                        @if($oficio->tipo_correspondencia === 'Interna')
+                                            <input type="text" value="INTERNA" class="block mt-1 w-full rounded border-gray-300 text-xs font-bold bg-gray-100 text-gray-500 cursor-not-allowed focus:ring-0 focus:border-gray-300" readonly>
+                                            <input type="hidden" name="tipo_correspondencia" value="Interna">
+                                        @else
+                                            <select name="tipo_correspondencia" id="tipo_correspondencia"
+                                                class="block mt-1 w-full rounded border-gray-300 text-xs font-bold focus:ring-guinda-ceaa"
+                                                required>
+                                                <option value="Externa" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Externa' ? 'selected' : '' }}>EXTERNA</option>
+                                                @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
+                                                    <option value="Correo Electronico" {{ old('tipo_correspondencia', $oficio->tipo_correspondencia) == 'Correo Electronico' ? 'selected' : '' }}>CORREO ELECTRONICO</option>
+                                                @endif
+                                            </select>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
