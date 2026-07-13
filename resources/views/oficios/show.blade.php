@@ -737,5 +737,58 @@
                 <p class="text-center text-gray-400 italic text-xs">Aún no hay acciones registradas en este oficio.</p>
             @endforelse
         </div>
+    {{-- LÍNEA DE TIEMPO / TRAZABILIDAD COMPLETA --}}
+    <div class="mt-8 bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-guinda-ceaa">
+        <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest mb-6 border-b pb-2">
+            Trazabilidad e Historial de Movimientos
+        </h3>
+
+        <div class="relative pl-6 border-l-2 border-slate-200 space-y-8 ml-4 mr-4">
+            @forelse($historial as $item)
+                <div class="relative">
+                    <!-- Circle indicator -->
+                    <span class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-4 border-white shadow-sm
+                        {{ $item->accion == 'Registrado' ? 'bg-blue-500' : '' }}
+                        {{ $item->accion == 'Turnado' ? 'bg-orange-500' : '' }}
+                        {{ $item->accion == 'Recibido' ? 'bg-emerald-500' : '' }}
+                        {{ $item->accion == 'Asignado' ? 'bg-amber-500' : '' }}
+                        {{ $item->accion == 'Notificado' ? 'bg-sky-500' : '' }}
+                        {{ $item->accion == 'Solventado' ? 'bg-green-600' : '' }}
+                        {{ $item->accion == 'Turno Cancelado' ? 'bg-red-500' : '' }}
+                        {{ $item->accion == 'Cancelado' ? 'bg-red-600' : '' }}
+                    "></span>
+
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded
+                                {{ $item->accion == 'Registrado' ? 'bg-blue-100 text-blue-800' : '' }}
+                                {{ $item->accion == 'Turnado' ? 'bg-orange-100 text-orange-800' : '' }}
+                                {{ $item->accion == 'Recibido' ? 'bg-emerald-100 text-emerald-800' : '' }}
+                                {{ $item->accion == 'Asignado' ? 'bg-amber-100 text-amber-800' : '' }}
+                                {{ $item->accion == 'Notificado' ? 'bg-sky-100 text-sky-800' : '' }}
+                                {{ $item->accion == 'Solventado' ? 'bg-green-100 text-green-800' : '' }}
+                                {{ $item->accion == 'Turno Cancelado' ? 'bg-red-100 text-red-800' : '' }}
+                                {{ $item->accion == 'Cancelado' ? 'bg-red-100 text-red-800' : '' }}
+                            ">
+                                {{ $item->accion }}
+                            </span>
+                            <span class="text-xs font-black text-gray-800">{{ $item->user->name }}</span>
+                            @if($item->area)
+                                <span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold uppercase">{{ $item->area->name }}</span>
+                            @endif
+                            @if($item->subarea)
+                                <span class="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded border border-slate-100 font-semibold">{{ $item->subarea->name }}</span>
+                            @endif
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-400 whitespace-nowrap">
+                            {{ $item->created_at->format('d/m/Y H:i:s') }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ $item->descripcion }}</p>
+                </div>
+            @empty
+                <p class="text-center text-gray-400 italic text-xs py-4">No hay registros de movimientos para este oficio.</p>
+            @endforelse
+        </div>
     </div>
 </x-app-layout>

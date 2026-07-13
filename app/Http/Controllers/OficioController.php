@@ -115,7 +115,13 @@ class OficioController extends Controller
             $data['pdf_path'] = $path;
         }
 
-        Oficio::create($data);
+        $oficio = Oficio::create($data);
+
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Registrado',
+            "El personal de correspondencia registró el oficio externo: {$oficio->numero_oficio} (Origen/Oficio: {$oficio->numero_oficio_dependencia})."
+        );
 
         return redirect()->route('principal')->with('success', 'Oficio y PDF registrados correctamente.');
     }
@@ -232,6 +238,19 @@ class OficioController extends Controller
             $mode = in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) ? 'recepcion' : (in_array($user->role, ['jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo');
         }
 
+        $historialQuery = \App\Models\OficioHistorial::where('oficio_id', $oficio->id)
+            ->with(['user', 'area', 'subarea'])
+            ->orderBy('created_at', 'asc');
+
+        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+            $historialQuery->where(function($q) use ($user) {
+                $q->whereNull('area_id')
+                  ->orWhere('area_id', $user->area_id);
+            });
+        }
+
+        $historial = $historialQuery->get();
+
         return view('oficios.show', compact(
             'oficio',
             'areasDisponibles',
@@ -242,7 +261,8 @@ class OficioController extends Controller
             'subareaOficiosPorArea',
             'subareasDisponiblesPorArea',
             'personalPorSubarea',
-            'personalDirectoDisponiblesPorArea'
+            'personalDirectoDisponiblesPorArea',
+            'historial'
         ));
     }
 
@@ -262,6 +282,14 @@ class OficioController extends Controller
                     'instruccion' => $instruccion,
                     'estatus' => 'Turnado'
                 ]);
+
+                $area = \App\Models\Area::find($area_id);
+                \App\Models\OficioHistorial::registrar(
+                    $oficio->id,
+                    'Turnado',
+                    "Se turnó el oficio a la " . ($area ? $area->name : "Dirección ID {$area_id}") . " con la instrucción: \"{$instruccion}\".",
+                    $area_id
+                );
 
                 // Notificar a jefe_area del área turnada
                 $jefes = User::where('area_id', $area_id)
@@ -312,6 +340,17 @@ class OficioController extends Controller
                 'motivo_cancelacion' => $request->motivo_cancelacion,
                 'updated_at' => now()
             ]);
+
+        $pivot = DB::table('area_oficio')->where('id', $pivote_id)->first();
+        if ($pivot) {
+            $area = \App\Models\Area::find($pivot->area_id);
+            \App\Models\OficioHistorial::registrar(
+                $pivot->oficio_id,
+                'Turno Cancelado',
+                "Se canceló el turno asignado a la " . ($area ? $area->name : "Dirección ID {$pivot->area_id}") . ". Motivo: \"{$request->motivo_cancelacion}\".",
+                $pivot->area_id
+            );
+        }
 
         return back()->with('success', 'El turno ha sido cancelado correctamente.');
     }
@@ -383,6 +422,13 @@ class OficioController extends Controller
                         'estatus' => 'Asignado',
                     ]);
 
+                    \App\Models\OficioHistorial::registrar(
+                        $oficio->id,
+                        'Asignado',
+                        "Se delegó la tarea de atención directa al Director titular con la instrucción: \"{$instruccion}\".",
+                        $areaOficio->area_id
+                    );
+
                     // Notificar al director por correo
                     if ($director && $director->recibir_correos) {
                         $folioInterno = DB::table('area_oficio')->where('id', $pivoteId)->value('folio_interno');
@@ -426,6 +472,13 @@ class OficioController extends Controller
                         'instruccion' => $instruccion,
                         'estatus' => 'Asignado',
                     ]);
+
+                    \App\Models\OficioHistorial::registrar(
+                        $oficio->id,
+                        'Asignado',
+                        "Se delegó la tarea al personal directo: {$user->name} con la instrucción: \"{$instruccion}\".",
+                        $areaOficio->area_id
+                    );
 
                     // Notificar al usuario por correo
                     if ($user && $user->recibir_correos) {
@@ -472,6 +525,14 @@ class OficioController extends Controller
                         'instruccion' => $instruccion,
                         'estatus' => 'Asignado',
                     ]);
+
+                    \App\Models\OficioHistorial::registrar(
+                        $oficio->id,
+                        'Asignado',
+                        "Se delegó la tarea a la " . ($subarea ? $subarea->name : "subdirección") . " con la instrucción: \"{$instruccion}\".",
+                        $areaOficio->area_id,
+                        $subareaId
+                    );
 
                     // Notificar al subdirector por correo
                     if ($subdirector && $subdirector->recibir_correos) {
@@ -534,6 +595,13 @@ class OficioController extends Controller
         DB::table('area_oficio')->where('id', $pivoteId)->update($updateData);
         $oficio->update(['estatus' => 'En Proceso']);
 
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Asignado',
+            "Se delegó la tarea de atención directa al usuario: {$assignedUser->name} con la instrucción: \"{$areaOficio->instruccion}\".",
+            $areaOficio->area_id
+        );
+
         // Notificar al usuario asignado por correo
         $folioInterno = $updateData['folio_interno'] ?? $areaOficio->folio_interno;
         $data = [
@@ -582,6 +650,14 @@ class OficioController extends Controller
         $areaOficio = DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->first();
         $oficio = Oficio::find($areaOficio->oficio_id);
         $folioInterno = $areaOficio->folio_interno;
+
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Asignado',
+            "El subdirector titular delegó la tarea al personal: {$assignedUser->name} con la instrucción: \"" . ($subareaOficio->instruccion ?? $areaOficio->instruccion) . "\".",
+            $areaOficio->area_id,
+            $subareaOficio->subarea_id
+        );
 
         $data = [
             'usuario' => $assignedUser,
@@ -934,6 +1010,16 @@ class OficioController extends Controller
                 'estatus' => 'Recibido'
             ]);
 
+        $pivot = DB::table('area_oficio')->where('id', $pivote_id)->first();
+        if ($pivot) {
+            \App\Models\OficioHistorial::registrar(
+                $pivot->oficio_id,
+                'Recibido',
+                "La dirección confirmó de recibido el oficio.",
+                $pivot->area_id
+            );
+        }
+
         return back()->with('success', 'Se ha confirmado la recepción del oficio correctamente.');
     }
 
@@ -952,6 +1038,18 @@ class OficioController extends Controller
                 DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->update(['estatus' => 'Notificado']);
             }
 
+            $pivot = DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->first();
+            if ($pivot) {
+                $subName = $subareaOficio->subarea ? $subareaOficio->subarea->name : 'personal directo';
+                \App\Models\OficioHistorial::registrar(
+                    $pivot->oficio_id,
+                    'Notificado',
+                    "El destinatario ({$subName}) confirmó de enterado / recibido.",
+                    $pivot->area_id,
+                    $subareaOficio->subarea_id
+                );
+            }
+
             return back()->with('success', 'Has confirmado de notificado para este turno correctamente.');
         }
 
@@ -961,6 +1059,16 @@ class OficioController extends Controller
             ->update([
                 'estatus' => 'Notificado'
             ]);
+
+        $pivot = DB::table('area_oficio')->where('id', $pivote_id)->first();
+        if ($pivot) {
+            \App\Models\OficioHistorial::registrar(
+                $pivot->oficio_id,
+                'Notificado',
+                "El destinatario directo confirmó de enterado / recibido.",
+                $pivot->area_id
+            );
+        }
 
         return back()->with('success', 'Has confirmado de notificado para este turno correctamente.');
     }
@@ -1070,6 +1178,20 @@ class OficioController extends Controller
                 $isInternal = true;
             }
 
+            $subareaOficio = null;
+            if ($request->filled('subarea_oficio_id')) {
+                $subareaOficio = \App\Models\SubareaOficio::find($request->subarea_oficio_id);
+            }
+
+            $respDesc = ($request->tipo_respuesta === 'Solventacion' ? 'Respuesta/Solventación formal' : 'Conocimiento/Notificación de atención') . ": \"{$request->mensaje}\"";
+            \App\Models\OficioHistorial::registrar(
+                $oficioId,
+                'Solventado',
+                $respDesc,
+                $turno->area_id,
+                $subareaOficio ? $subareaOficio->subarea_id : null
+            );
+
             $pendientes = DB::table('area_oficio')
                 ->where('oficio_id', $oficioId)
                 ->where('estatus', '!=', 'Solventado')
@@ -1149,6 +1271,12 @@ class OficioController extends Controller
             'estatus' => 'Cancelado',
             'motivo_cancelacion' => $request->motivo_cancelacion
         ]);
+
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Cancelado',
+            "Se canceló el oficio completo. Motivo: \"{$request->motivo_cancelacion}\"."
+        );
 
         // Actualizamos el estatus de sus áreas turnadas si existen a 'Cancelado'
         DB::table('area_oficio')
@@ -1501,6 +1629,19 @@ class OficioController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Registrado',
+            "Se registró el oficio interno: {$folio} (Origen: {$areaOrigen->name}, No. Oficio: {$folioOrigenCompleto})."
+        );
+
+        \App\Models\OficioHistorial::registrar(
+            $oficio->id,
+            'Turnado',
+            "Se turnó automáticamente a la {$areaCaptura->name}.",
+            $areaCaptura->id
+        );
 
         return redirect()->route('oficios.internos.index')->with('success', 'Oficio interno registrado correctamente con el folio receptor de tu área: ' . $folio);
     }
