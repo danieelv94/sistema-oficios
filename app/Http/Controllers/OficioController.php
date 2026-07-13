@@ -786,6 +786,86 @@ class OficioController extends Controller
         return view('oficios.reporte_entradas', compact('oficios', 'fechaInicio', 'fechaFin', 'directorGestion'));
     }
 
+    public function reporteInternos(Request $request)
+    {
+        $user = Auth::user();
+
+        // Seguridad: Solo admin, correspondencia, jefe_area o secretaria_area
+        if (!in_array($user->role, ['admin', 'correspondencia', 'jefe_area', 'secretaria_area'])) {
+            abort(403, 'No tienes permiso para ver esta sección.');
+        }
+
+        // Obtener rango de fechas. Por defecto es HOY.
+        $fechaInicio = $request->input('fecha_inicio', \Carbon\Carbon::today()->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', \Carbon\Carbon::today()->format('Y-m-d'));
+
+        // Filtrado por área
+        $areaId = null;
+        if (in_array($user->role, ['admin', 'correspondencia'])) {
+            if ($request->filled('area_id')) {
+                $areaId = $request->area_id;
+            }
+        } else {
+            $areaId = $user->area_id;
+        }
+
+        // Obtener los folios internos
+        // Consultamos la tabla pivot area_oficio
+        $query = DB::table('area_oficio')
+            ->join('oficios', 'area_oficio.oficio_id', '=', 'oficios.id')
+            ->join('areas', 'area_oficio.area_id', '=', 'areas.id')
+            ->leftJoin('areas as origen', 'oficios.area_origen_id', '=', 'origen.id')
+            ->whereNull('oficios.deleted_at')
+            ->whereNotNull('area_oficio.folio_interno')
+            ->whereDate('area_oficio.created_at', '>=', $fechaInicio)
+            ->whereDate('area_oficio.created_at', '<=', $fechaFin);
+
+        if ($areaId) {
+            $query->where('area_oficio.area_id', $areaId);
+        }
+
+        // Ordenamos por folio_interno
+        $folios = $query->select(
+            'area_oficio.id as area_oficio_id',
+            'area_oficio.folio_interno',
+            'area_oficio.estatus as status_turno',
+            'area_oficio.created_at as fecha_registro',
+            'oficios.id as oficio_id',
+            'oficios.numero_oficio as numero_original',
+            'oficios.numero_oficio_dependencia as original_dependencia',
+            'oficios.tipo_correspondencia',
+            'oficios.remitente',
+            'oficios.asunto',
+            'areas.name as area_destino',
+            'origen.name as area_origen'
+        )
+        ->orderByRaw("IF(area_oficio.folio_interno LIKE '%/%', CAST(SUBSTRING_INDEX(area_oficio.folio_interno, '/', -1) AS UNSIGNED), area_oficio.anio) ASC")
+        ->orderByRaw("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(area_oficio.folio_interno, '/', 1), '-', -1) AS UNSIGNED) ASC")
+        ->get();
+
+        // Obtener todas las asignaciones internas de subáreas/personal para estos pivots en una sola consulta
+        $pivotIds = collect($folios)->pluck('area_oficio_id')->toArray();
+        $asignaciones = collect();
+        if (!empty($pivotIds)) {
+            $asignaciones = \App\Models\SubareaOficio::whereIn('area_oficio_id', $pivotIds)
+                ->with(['subarea', 'user'])
+                ->get()
+                ->groupBy('area_oficio_id');
+        }
+
+        // Si es admin/correspondencia, cargamos todas las áreas para el select de filtrado
+        $areas = [];
+        if (in_array($user->role, ['admin', 'correspondencia'])) {
+            $areas = \App\Models\Area::orderBy('name', 'asc')->get();
+        }
+
+        $directorGestion = \App\Models\User::where('area_id', 2)
+            ->where('role', 'jefe_area')
+            ->first();
+
+        return view('oficios.internos.reporte', compact('folios', 'fechaInicio', 'fechaFin', 'areas', 'areaId', 'directorGestion', 'asignaciones'));
+    }
+
     public function seguimiento(Request $request)
     {
         $user = Auth::user();

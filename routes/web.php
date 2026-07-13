@@ -36,6 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/oficios/reporte-entradas', [App\Http\Controllers\OficioController::class, 'reporteEntradas'])
         ->name('oficios.reporteEntradas');
 
+    // Reporte de Folios Internos
+    Route::get('/oficios/reporte-internos', [App\Http\Controllers\OficioController::class, 'reporteInternos'])
+        ->name('oficios.reporteInternos');
+
     // --- Módulo de Oficios Internos ---
     Route::get('/oficios/internos', [OficioController::class, 'internosIndex'])->name('oficios.internos.index');
     Route::get('/oficios/internos/crear', [OficioController::class, 'internosCreate'])->name('oficios.internos.create');
