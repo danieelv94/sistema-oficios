@@ -106,8 +106,18 @@
             </div>
 
             @php
+                $turnosOperativos = $turnosParaMostrar->filter(function($area) {
+                    $user = Auth::user();
+                    if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+                        return $area->id == $user->area_id;
+                    }
+                    return \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                        ->where('user_id', $user->id)
+                        ->exists();
+                });
+
                 $hasMyAssignments = false;
-                foreach ($turnosParaMostrar as $t) {
+                foreach ($turnosOperativos as $t) {
                     $checkQuery = \App\Models\SubareaOficio::where('area_oficio_id', $t->pivot->id);
                     if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
                         $checkQuery->where('subarea_id', Auth::user()->subarea_id);
@@ -132,7 +142,7 @@
                         <h3 class="text-lg font-black text-gray-800 uppercase tracking-tighter">Instrucción para su Atención
                         </h3>
                     </div>
-                    @foreach($turnosParaMostrar as $area)
+                    @foreach($turnosOperativos as $area)
                         @php
                             $mySubareaOficiosQuery = \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id);
                             if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
