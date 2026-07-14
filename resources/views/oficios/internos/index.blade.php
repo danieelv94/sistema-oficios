@@ -139,8 +139,8 @@
                                                 ->where('user_id', Auth::id())
                                                 ->first();
                                             
-                                            // 2. Si no hay asignación directa al usuario y pertenece a una subárea, buscar asignación grupal a la subárea (donde user_id es null)
-                                            if (!$subareaOficio && Auth::user()->subarea_id) {
+                                            // 2. Si no hay asignación directa al usuario y pertenece a una subárea, buscar asignación grupal a la subárea (donde user_id es null) - Solo aplicable a subdirectores
+                                            if (!$subareaOficio && Auth::user()->subarea_id && in_array(Auth::user()->role, ['subdirector', 'admin'])) {
                                                 $subareaOficio = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)
                                                     ->where('subarea_id', Auth::user()->subarea_id)
                                                     ->whereNull('user_id')

@@ -1326,12 +1326,6 @@ class OficioController extends Controller
                                                 }
                                             } else {
                                                 $deepQ->where('subarea_oficio.user_id', $user->id);
-                                                if ($user->subarea_id) {
-                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
-                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
-                                                            ->whereNull('subarea_oficio.user_id');
-                                                    });
-                                                }
                                             }
                                         });
                                 })
@@ -1369,12 +1363,6 @@ class OficioController extends Controller
                                                 }
                                             } else {
                                                 $deepQ->where('subarea_oficio.user_id', $user->id);
-                                                if ($user->subarea_id) {
-                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
-                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
-                                                            ->whereNull('subarea_oficio.user_id');
-                                                    });
-                                                }
                                             }
                                         });
                                 })
@@ -1415,12 +1403,6 @@ class OficioController extends Controller
                                                 }
                                             } else {
                                                 $deepQ->where('subarea_oficio.user_id', $user->id);
-                                                if ($user->subarea_id) {
-                                                    $deepQ->orWhere(function ($groupQ) use ($user) {
-                                                        $groupQ->where('subarea_oficio.subarea_id', $user->subarea_id)
-                                                            ->whereNull('subarea_oficio.user_id');
-                                                    });
-                                                }
                                             }
                                         });
                                 })
