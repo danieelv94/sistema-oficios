@@ -33,6 +33,7 @@ class User extends Authenticatable
         'no_empleado',
         'nivel_id',
         'recibir_correos',
+        'fecha_alta',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'recibir_correos' => 'boolean',
+        'fecha_alta' => 'date',
     ];
 
 

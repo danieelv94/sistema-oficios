@@ -105,6 +105,12 @@
                             </div>
 
                             <div>
+                                <x-label for="fecha_alta" :value="__('Fecha de Alta / Ingreso')" />
+                                <x-input id="fecha_alta" class="block mt-1 w-full" type="date" name="fecha_alta"
+                                    :value="old('fecha_alta')" />
+                            </div>
+
+                            <div>
                                 <x-label for="password" :value="__('Contraseña')" />
                                 <x-input id="password" class="block mt-1 w-full" type="password" name="password"
                                     required />

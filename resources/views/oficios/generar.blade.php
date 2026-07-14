@@ -163,7 +163,7 @@
         <p class="font-bold text-guinda-ceaa text-base uppercase mb-1 tracking-wider">Turno Interno</p>
 
         <div class="text-right mb-3">
-            <p class="text-[10px] text-gray-500 uppercase font-semibold">Fecha de Emisión</p>
+            <p class="text-[10px] text-gray-500 uppercase font-semibold">Fecha de impresión</p>
             <p class="font-bold text-xs text-gray-800">{{ now()->format('d/m/Y') }}</p>
             <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">No. Oficio Interno</p>
             <p class="font-bold text-sm text-gray-900">{{ $oficio->numero_oficio }}</p>

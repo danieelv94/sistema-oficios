@@ -57,6 +57,7 @@
                                     <th class="py-3 px-4 text-left">Área</th>
                                     <th class="py-3 px-4 text-left">Rol</th>
                                     <th class="py-3 px-4 text-left">Nivel</th>
+                                    <th class="py-3 px-4 text-left">F. Alta</th>
                                     <th class="py-3 px-4 text-center">Estado</th>
                                     <th class="py-3 px-4 text-center">Acciones</th>
                                 </tr>
@@ -76,6 +77,13 @@
                                             </span>
                                         </td>
                                         <td class="py-3 px-4 text-sm text-gray-600">{{ $usuario->nivel->nombre ?? 'N/A' }}</td>
+                                        <td class="py-3 px-4 text-sm whitespace-nowrap">
+                                            @if($usuario->fecha_alta)
+                                                <span class="text-gray-800 font-medium">{{ $usuario->fecha_alta->format('d/m/Y') }}</span>
+                                            @else
+                                                <span class="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100 text-[10px] uppercase">Pendiente</span>
+                                            @endif
+                                        </td>
                                         <td class="py-3 px-4 text-center">
                                             @if($usuario->trashed())
                                                 <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-red-100 text-red-700 uppercase">

@@ -55,6 +55,7 @@ class UserController extends Controller
             'subarea_id' => ['nullable', 'exists:subareas,id'],
             'nivel_id' => ['nullable', 'exists:nivels,id'],
             'recibir_correos' => ['nullable', 'boolean'],
+            'fecha_alta' => ['nullable', 'date'],
         ]);
 
         if ($request->role === 'jefe_area') {
@@ -86,6 +87,7 @@ class UserController extends Controller
             'cargo' => $request->cargo,
             'nivel_id' => $request->nivel_id,
             'recibir_correos' => $request->has('recibir_correos'),
+            'fecha_alta' => $request->fecha_alta,
         ]);
         return redirect()->route('usuarios.index')->with('success', 'Usuario creado exitosamente.');
     }
@@ -113,6 +115,7 @@ class UserController extends Controller
             'nivel_id' => ['nullable', 'exists:nivels,id'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'recibir_correos' => ['nullable', 'boolean'],
+            'fecha_alta' => ['nullable', 'date'],
         ]);
 
         if ($request->role === 'jefe_area') {
@@ -132,7 +135,7 @@ class UserController extends Controller
             }
         }
 
-        $data = $request->only('name', 'prof', 'email', 'role', 'area_id', 'subarea_id', 'no_empleado', 'cargo', 'nivel_id');
+        $data = $request->only('name', 'prof', 'email', 'role', 'area_id', 'subarea_id', 'no_empleado', 'cargo', 'nivel_id', 'fecha_alta');
         $data['recibir_correos'] = $request->has('recibir_correos');
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);

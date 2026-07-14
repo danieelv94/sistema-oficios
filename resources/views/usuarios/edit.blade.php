@@ -105,6 +105,12 @@
                                 </select>
                             </div>
 
+                            <div>
+                                <x-label for="fecha_alta" :value="__('Fecha de Alta / Ingreso')" />
+                                <x-input id="fecha_alta" class="block mt-1 w-full" type="date" name="fecha_alta"
+                                    :value="old('fecha_alta', $user->fecha_alta ? $user->fecha_alta->format('Y-m-d') : '')" />
+                            </div>
+
                             <div class="md:col-span-2">
                                 <p class="text-sm text-gray-600">Deja los campos de contraseña en blanco si no deseas cambiarla.</p>
                             </div>
