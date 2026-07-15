@@ -54,7 +54,7 @@
                                         $isSubareaAssigned = false;
                                         $subareaOficio = null;
 
-                                        if ($pivot && $hasSubareas) {
+                                        if ($pivot) {
                                             $isSubareaAssigned = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)->exists();
                                             $subareaOficioQuery = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id);
                                             if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
@@ -77,7 +77,7 @@
                                             <td class="px-6 py-4 font-medium text-gray-700">{{ $pivot->instruccion }}</td>
                                             <td class="px-6 py-4 text-center">
                                                 @php
-                                                    $estatusMostrar = ($hasSubareas && $subareaOficio) ? $subareaOficio->estatus : $pivot->estatus;
+                                                    $estatusMostrar = $subareaOficio ? $subareaOficio->estatus : $pivot->estatus;
                                                 @endphp
                                                 <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
                                                     {{ $estatusMostrar == 'Turnado' ? 'bg-orange-100 text-orange-700' : '' }}
@@ -119,43 +119,37 @@
                                                         @endif
                                                     @endif
 
-                                                    @if($hasSubareas)
+                                                    @if($subareaOficio)
                                                         {{-- Acciones basadas en subarea_oficio --}}
-                                                        @if($subareaOficio)
-                                                            @if($subareaOficio->estatus == 'Asignado')
-                                                                <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
-                                                                    @csrf @method('PUT')
-                                                                    <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
-                                                                    <button type="submit"
-                                                                        class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
-                                                                        Confirmar Notificado
-                                                                    </button>
-                                                                </form>
-                                                            @elseif($subareaOficio->estatus == 'Notificado')
-                                                                @if(!$subareaOficio->user_id || $subareaOficio->user_id == Auth::id())
-                                                                    <a href="{{ route('oficios.atender', [$pivot->id, 'subarea_oficio_id' => $subareaOficio->id]) }}"
-                                                                        class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
-                                                                        Atender
-                                                                    </a>
-                                                                @endif
-                                                                @if(Auth::user()->role === 'subdirector' && !$subareaOficio->user_id)
-                                                                    <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'operativo']) }}"
-                                                                        class="inline-block bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
-                                                                        Delegar a Personal
-                                                                    </a>
-                                                                @endif
-                                                            @elseif($subareaOficio->estatus == 'Solventado')
-                                                                <span class="text-green-600 font-black uppercase text-[10px] flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full">
-                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                                                    </svg>
-                                                                    Atendido
-                                                                </span>
+                                                        @if($subareaOficio->estatus == 'Asignado')
+                                                            <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
+                                                                @csrf @method('PUT')
+                                                                <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
+                                                                <button type="submit"
+                                                                    class="bg-dorado-ocre hover:bg-guinda-ceaa text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    Confirmar Notificado
+                                                                </button>
+                                                            </form>
+                                                        @elseif($subareaOficio->estatus == 'Notificado')
+                                                            @if(!$subareaOficio->user_id || $subareaOficio->user_id == Auth::id())
+                                                                <a href="{{ route('oficios.atender', [$pivot->id, 'subarea_oficio_id' => $subareaOficio->id]) }}"
+                                                                    class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    Atender
+                                                                </a>
                                                             @endif
-                                                        @else
-                                                            @if(!in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']))
-                                                                <span class="text-gray-400 italic text-[10px]">Sin asignar</span>
+                                                            @if(Auth::user()->role === 'subdirector' && !$subareaOficio->user_id)
+                                                                <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'operativo']) }}"
+                                                                    class="inline-block bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded-lg font-black uppercase text-[10px] shadow-sm hover:shadow-md transition">
+                                                                    Delegar a Personal
+                                                                </a>
                                                             @endif
+                                                        @elseif($subareaOficio->estatus == 'Solventado')
+                                                            <span class="text-green-600 font-black uppercase text-[10px] flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                Atendido
+                                                            </span>
                                                         @endif
                                                     @else
                                                         {{-- Acciones basadas en area_oficio original --}}
@@ -184,7 +178,7 @@
                                                         @elseif(!$pivot->user_id && !in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']))
                                                             <span class="text-gray-400 italic text-[10px]">Sin asignar</span>
                                                         @endif
-
+ 
                                                         {{-- Formulario de delegación para Subdirector --}}
                                                         @if(Auth::user()->role === 'subdirector' && $pivot->user_id == Auth::id() && !in_array($pivot->estatus, ['Solventado', 'Cancelado', 'Asignado']))
                                                             <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'operativo']) }}"
