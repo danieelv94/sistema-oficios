@@ -1,68 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
-
 <p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="logo.png" alt="Sistema de Oficios" width="200px">
 </p>
 
-## About Laravel
+# Sistema de Gestión de Oficios y Correspondencia
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+[![Laravel](https://img.shields.io/badge/Laravel-8.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=for-the-badge&logo=php)](https://php.net)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
+[![JS](https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=for-the-badge&logo=javascript)](https://developer.mozilla.org/es/docs/Web/JavaScript)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+El **Sistema de Gestión de Oficios y Correspondencia** es una plataforma moderna construida sobre **Laravel 8** diseñada para optimizar, controlar y dar seguimiento al flujo de documentos oficiales, oficios y correspondencia (tanto interna como externa) dentro de una organización. Permite la delegación de responsabilidades a través de "turnos", el control de comisiones de personal, la difusión de avisos oficiales y la atención de solicitudes mediante un módulo integrado de soporte técnico.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🚀 Características Principales
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+El sistema está dividido en módulos clave diseñados para cubrir las necesidades operativas y administrativas de correspondencia:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **✉️ Gestión de Correspondencia y Oficios**:
+    *   Recepción y registro detallado de correspondencia externa y folios.
+    *   Generación de oficios oficiales listos para su impresión y firma.
+    *   **Módulo de Oficios Internos**: Control y archivo de la correspondencia emitida de manera interna.
+*   **🔄 Bandeja de Gestión y Seguimiento de Turnos (Delegación)**:
+    *   Asignación de turnos a áreas y subáreas específicas.
+    *   Acuse de recibido digital: Confirmación de recepción y notificación del operativo.
+    *   Solventación y atención: Formulario para registrar las respuestas y soluciones a cada turno.
+    *   Seguimiento en tiempo real del estado de cada turno.
+*   **📊 Reportes Dinámicos**:
+    *   Reporte diario de turnos generados.
+    *   Reporte diario de entradas/recepción.
+    *   Reporte detallado de folios internos.
+*   **💼 Módulo de Órdenes de Comisión**:
+    *   Creación y seguimiento de órdenes de comisiones para el personal.
+    *   Validación e integración con Recursos Humanos con acuses de recibido.
+*   **📢 Avisos y Circulares**:
+    *   Publicación de circulares generales y avisos oficiales.
+    *   Control de avisos pendientes y seguimiento de lectura de los usuarios.
+*   **🎫 Tickets de Soporte**:
+    *   Mesa de ayuda integrada para resolver dudas técnicas del sistema.
+*   **🔔 Notificaciones Web Push**:
+    *   Notificaciones en tiempo real directo al navegador mediante el protocolo WebPush.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## 🛠️ Stack Tecnológico
 
-### Premium Partners
+El sistema utiliza tecnologías estables y de alto rendimiento:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+*   **Backend**: [Laravel 8](https://laravel.com/) (compatible con PHP 7.3 y PHP 8.0+)
+*   **Base de Datos**: [MySQL](https://www.mysql.com/) / MariaDB
+*   **Frontend**: [TailwindCSS 3](https://tailwindcss.com/), [Alpine.js 3](https://alpinejs.dev/), Laravel Mix (Webpack)
+*   **Notificaciones**: [Laravel Notification Channels - WebPush](https://github.com/laravel-notification-channels/webpush)
+*   **Autenticación**: [Laravel Breeze](https://laravel.com/docs/8.x/breeze) (con Tailwind CSS)
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 📋 Requisitos del Sistema
 
-## Code of Conduct
+Antes de iniciar la instalación, asegúrate de contar con lo siguiente:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+*   **PHP** >= 7.3 (Recomendado 8.0 o superior)
+*   **Composer** (Gestor de dependencias de PHP)
+*   **Node.js** (v14 o superior) & **NPM**
+*   **MySQL** >= 5.7 o MariaDB equivalente
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ⚙️ Instalación y Configuración
 
-## License
+Sigue estos pasos para levantar el entorno de desarrollo localmente:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 1. Clonar el repositorio
+```bash
+git clone <URL_DEL_REPOSITORIO> sistema-oficios
+cd sistema-oficios
+```
 
+### 2. Instalar dependencias
+Instala los paquetes de PHP y JavaScript necesarios:
+```bash
+composer install
+npm install
+```
 
+### 3. Configurar variables de entorno
+Copia el archivo `.env.example` a `.env` (si no existe) y configura tu base de datos y la URL del sistema:
+```bash
+cp .env.example .env
+```
+Abre el archivo `.env` y define tus credenciales:
+```env
+APP_NAME="Sistema de Oficios"
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=oficio
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_contraseña
+```
+
+### 4. Generar la clave de la aplicación
+```bash
+php artisan key:generate
+```
+
+### 5. Generar llaves VAPID (Web Push Notifications)
+Para habilitar las notificaciones push en tiempo real, genera las claves VAPID y agrégalas a tu archivo `.env`:
+```bash
+php artisan webpush:vapid
+```
+Esto generará los campos `VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` en tu `.env`.
+
+### 6. Ejecutar migraciones y seeders
+Crea la estructura de la base de datos y carga los datos de prueba (roles, áreas, y usuarios iniciales):
+```bash
+php artisan migrate --seed
+```
+
+### 7. Compilar recursos
+Compila los estilos y scripts frontend con Laravel Mix:
+```bash
+# Para compilar una vez
+npm run dev
+
+# Para compilar en producción
+npm run prod
+
+# Para desarrollo activo (observador de cambios)
 npm run watch
-php artisan serve  
+```
+
+### 8. Iniciar el servidor local
+```bash
+php artisan serve
+```
+El sistema estará disponible en [http://localhost:8000](http://localhost:8000).
+
+---
+
+## 🔑 Usuarios de Prueba
+
+El sistema cuenta con seeders que generan los siguientes usuarios iniciales para pruebas (la contraseña predeterminada para todos es `password`):
+
+| Nombre | Correo Electrónico | Rol | Permisos |
+| :--- | :--- | :--- | :--- |
+| **Admin General** | `admin@sistema.com` | `admin` | Acceso total y administración de usuarios |
+| **Jefe de Jurídico** | `jefe.juridico@sistema.com` | `jefe_area` | Turnar y delegar correspondencia de su área |
+| **Analista Jurídico** | `analista.juridico@sistema.com` | `user` | Solventar y dar seguimiento a sus turnos |
+
+---
+
+## 📂 Estructura Clave del Proyecto
+
+*   **`app/Http/Controllers/`**: Controladores principales (`OficioController`, `UserController`, `TicketController`, `ComisionController`, `AvisoController`).
+*   **`app/Models/`**: Modelos Eloquent para la base de datos.
+*   **`routes/web.php`**: Definición de rutas del sistema (protegidas por el middleware `auth`).
+*   **`database/seeders/`**: Seeders para inicializar áreas, subáreas y usuarios de prueba.
+*   **`resources/views/`**: Vistas construidas con Blade y estilos TailwindCSS.
+
+---
+
+## 📝 Licencia
+
+Este proyecto está bajo la licencia **MIT**. Consulta el archivo `LICENSE` para más información.
