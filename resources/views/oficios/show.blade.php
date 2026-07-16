@@ -220,28 +220,107 @@
                                             </div>
                                         @endif
 
-                                        {{-- Formulario de delegación para el Subdirector dentro de su subdirección --}}
-                                        @if((Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) && $mySubareaOficio->estatus !== 'Solventado' && $area->pivot->estatus !== 'Cancelado')
-                                            <form action="{{ route('oficios.asignarSubarea', $mySubareaOficio->id) }}" method="POST" class="flex items-center space-x-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-sm">
+
+
+                                    {{-- Formulario de delegación para el Subdirector dentro de su subdirección --}}
+                                    @if((Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) && $mySubareaOficio->estatus !== 'Solventado' && $area->pivot->estatus !== 'Cancelado')
+                                        @php
+                                            $assignedUsersInSubarea = \App\Models\SubareaOficio::where('area_oficio_id', $mySubareaOficio->area_oficio_id)
+                                                ->where('subarea_id', $mySubareaOficio->subarea_id)
+                                                ->whereNotNull('user_id')
+                                                ->get();
+                                            $assignedUserIds = $assignedUsersInSubarea->pluck('user_id')->toArray();
+                                            
+                                            $staffList = $personalPorSubarea[$mySubareaOficio->id] ?? [];
+                                            $availableStaff = [];
+                                            $assignedStaffWithPivot = [];
+                                            foreach ($staffList as $persona) {
+                                                if (in_array($persona->id, $assignedUserIds)) {
+                                                    $pivotRecord = $assignedUsersInSubarea->where('user_id', $persona->id)->first();
+                                                    $assignedStaffWithPivot[] = [
+                                                        'user' => $persona,
+                                                        'pivot' => $pivotRecord
+                                                    ];
+                                                } else {
+                                                    $availableStaff[] = $persona;
+                                                }
+                                            }
+                                        @endphp
+
+                                        <div class="mt-6 border-t border-gray-100 pt-6">
+                                            <form action="{{ route('oficios.asignarSubarea', $mySubareaOficio->id) }}" method="POST" class="flex flex-col gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-md w-full max-w-sm">
                                                 @csrf @method('PUT')
-                                                <select name="user_id" class="text-xs rounded border-gray-300 focus:ring-gris-oscuro py-1.5 disabled:bg-gray-150 disabled:text-gray-500" required {{ $mySubareaOficio->user_id ? 'disabled' : '' }}>
-                                                    <option value="">Delegar a personal...</option>
-                                                    @foreach($personalPorSubarea[$mySubareaOficio->id] ?? [] as $persona)
-                                                        <option value="{{ $persona->id }}" {{ $mySubareaOficio->user_id == $persona->id ? 'selected' : '' }}>
-                                                            {{ $persona->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                @if(!$mySubareaOficio->user_id)
-                                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-black uppercase shadow-sm transition">
-                                                        Asignar
+                                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Delegar a Personal de Subdirección:</p>
+                                                
+                                                {{-- Personal ya asignado --}}
+                                                @if(count($assignedStaffWithPivot) > 0)
+                                                    <div class="flex flex-col gap-1.5 mb-2">
+                                                        <p class="text-[9px] font-bold text-gray-400 uppercase">Personal Asignado:</p>
+                                                        @foreach($assignedStaffWithPivot as $item)
+                                                            <div class="flex items-center justify-between p-2.5 rounded-lg bg-green-50/50 border border-green-150 text-[11px] gap-2">
+                                                                <div class="text-left">
+                                                                    <span class="font-bold text-gray-800">{{ $item['user']->name }}</span>
+                                                                    <p class="text-[9px] text-gray-500 mt-0.5"><span class="font-bold uppercase text-[8px] bg-green-100 text-green-800 px-1 py-0.5 rounded">Instrucción:</span> "{{ $item['pivot']->instruccion }}"</p>
+                                                                </div>
+                                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase {{ $item['pivot']->estatus == 'Solventado' ? 'bg-green-200 text-green-800' : 'bg-yellow-100 text-yellow-800' }} whitespace-nowrap">
+                                                                    {{ $item['pivot']->estatus }}
+                                                                </span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+
+                                                {{-- Personal disponible para asignar --}}
+                                                @if(count($availableStaff) > 0)
+                                                    <div class="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1">
+                                                        @foreach($availableStaff as $persona)
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2" x-data="{ selectVal: '' }">
+                                                                <label class="flex items-center cursor-pointer">
+                                                                    <input type="checkbox" name="user_ids[]" value="{{ $persona->id }}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2.5 h-3.5 w-3.5">
+                                                                    <div class="text-left">
+                                                                        <p class="text-[11px] font-black text-gray-800">{{ $persona->name }}</p>
+                                                                        <p class="text-[9px] text-gray-400">{{ $persona->cargo ?? 'Personal Operativo' }}</p>
+                                                                    </div>
+                                                                </label>
+                                                                <div>
+                                                                    <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
+                                                                    <select name="select_instruccion_{{ $persona->id }}" 
+                                                                        x-model="selectVal"
+                                                                        class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                        <option value="">-- Usar instrucción del Oficio --</option>
+                                                                        <option value="Contestar con firma del Director">1. Contestar con firma del Director</option>
+                                                                        <option value="Atender conforme a lo especificado">2. Atender conforme a lo especificado</option>
+                                                                        <option value="Verificar antes de contestar oficio">3. Verificar antes de contestar oficio</option>
+                                                                        <option value="Conocimiento y Efectos">4. Conocimiento y Efectos</option>
+                                                                        <option value="Enviar a organismos Operadores">5. Enviar a organismos Operadores</option>
+                                                                        <option value="Asistir e Informar">6. Asistir e Informar</option>
+                                                                        <option value="Estudio y Opinion">7. Estudio y Opinion</option>
+                                                                        <option value="Enviado de manera oficial">8. Enviado de manera oficial</option>
+                                                                        <option value="Asesoria">9. Asesoria</option>
+                                                                        <option value="Informar">10. Informar</option>
+                                                                        <option value="Otro">Otro (Especificar)</option>
+                                                                    </select>
+                                                                    <div x-show="selectVal === 'Otro'" class="mt-1.5" x-transition>
+                                                                        <label class="text-[8px] font-bold text-gray-400 uppercase block">Escribe la instrucción:</label>
+                                                                        <input type="text" name="custom_instruccion_{{ $persona->id }}" 
+                                                                            placeholder="Escribe la instrucción específica..."
+                                                                            class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition shadow-sm hover:shadow-md">
+                                                        Confirmar Delegación
                                                     </button>
                                                 @else
-                                                    <span class="text-green-700 font-bold text-[10px] uppercase bg-green-50 px-2 py-1.5 rounded-lg border border-green-200">Asignado</span>
+                                                    @if(count($assignedStaffWithPivot) == 0)
+                                                        <p class="text-[11px] text-gray-400 italic">No hay personal disponible en esta subdirección.</p>
+                                                    @endif
                                                 @endif
                                             </form>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
                             @endforeach
                         @else

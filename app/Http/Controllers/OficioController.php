@@ -630,53 +630,99 @@ class OficioController extends Controller
     public function asignarSubarea(Request $request, $subareaOficioId)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'required|exists:users,id',
         ]);
 
         $subareaOficio = \App\Models\SubareaOficio::findOrFail($subareaOficioId);
         $currentUser = Auth::user();
-        $assignedUser = User::findOrFail($request->user_id);
-
-        // Validar que el usuario asignado pertenece a la misma subdirección
-        if ($assignedUser->subarea_id !== $subareaOficio->subarea_id) {
-            return back()->with('error', 'Acción no permitida: Solo puede asignar a personal de su propia subdirección.');
-        }
-
-        $subareaOficio->update([
-            'user_id' => $request->user_id,
-        ]);
-
-        // Notificar al personal por correo
+        
         $areaOficio = DB::table('area_oficio')->where('id', $subareaOficio->area_oficio_id)->first();
+        if (!$areaOficio) {
+            return back()->with('error', 'Registro de turno de área no encontrado.');
+        }
         $oficio = Oficio::find($areaOficio->oficio_id);
         $folioInterno = $areaOficio->folio_interno;
 
-        \App\Models\OficioHistorial::registrar(
-            $oficio->id,
-            'Asignado',
-            "El subdirector titular delegó la tarea al personal: {$assignedUser->name} con la instrucción: \"" . ($subareaOficio->instruccion ?? $areaOficio->instruccion) . "\".",
-            $areaOficio->area_id,
-            $subareaOficio->subarea_id
-        );
+        $assignedCount = 0;
 
-        $data = [
-            'usuario' => $assignedUser,
-            'oficio' => $oficio,
-            'folio_interno' => $folioInterno,
-            'instruccion' => $subareaOficio->instruccion ?? $areaOficio->instruccion,
-        ];
-        if ($assignedUser->recibir_correos) {
-            try {
-                Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
-                    $message->to($assignedUser->email)
-                        ->subject('[' . $oficio->prioridad . '] Oficio Delegado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
-                });
-            } catch (\Exception $e) {
-                Log::error("Error al enviar correo de delegación a {$assignedUser->email}: " . $e->getMessage());
+        foreach ($request->user_ids as $userId) {
+            $assignedUser = User::findOrFail($userId);
+
+            // Validar que el usuario asignado pertenece a la misma subdirección e institución
+            if ($assignedUser->subarea_id !== $subareaOficio->subarea_id || $assignedUser->area_id !== $currentUser->area_id) {
+                continue;
+            }
+
+            $instruccionSelect = $request->input('select_instruccion_' . $userId);
+            if ($instruccionSelect === 'Otro') {
+                $instruccion = $request->input('custom_instruccion_' . $userId) ?: ($subareaOficio->instruccion ?? $areaOficio->instruccion);
+            } else {
+                $instruccion = $instruccionSelect ?: ($subareaOficio->instruccion ?? $areaOficio->instruccion);
+            }
+
+            // Si el registro original (padre) aún no tiene user_id asignado, lo ocupamos con el primer usuario
+            if (is_null($subareaOficio->user_id)) {
+                $subareaOficio->update([
+                    'user_id' => $userId,
+                    'instruccion' => $instruccion,
+                    'estatus' => 'Asignado',
+                ]);
+                // Volvemos a consultar para evitar re-entrar en este bloque
+                $subareaOficio->refresh();
+            } else {
+                // Si ya está asignado, creamos un nuevo registro en subarea_oficio para este usuario
+                $exists = \App\Models\SubareaOficio::where('area_oficio_id', $subareaOficio->area_oficio_id)
+                    ->where('subarea_id', $subareaOficio->subarea_id)
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if (!$exists) {
+                    \App\Models\SubareaOficio::create([
+                        'area_oficio_id' => $subareaOficio->area_oficio_id,
+                        'subarea_id' => $subareaOficio->subarea_id,
+                        'user_id' => $userId,
+                        'instruccion' => $instruccion,
+                        'estatus' => 'Asignado',
+                    ]);
+                }
+            }
+
+            $assignedCount++;
+
+            // Registrar Historial
+            \App\Models\OficioHistorial::registrar(
+                $oficio->id,
+                'Asignado',
+                "El subdirector titular delegó la tarea al personal: {$assignedUser->name} con la instrucción: \"{$instruccion}\".",
+                $areaOficio->area_id,
+                $subareaOficio->subarea_id
+            );
+
+            // Enviar Correo
+            if ($assignedUser->recibir_correos) {
+                $data = [
+                    'usuario' => $assignedUser,
+                    'oficio' => $oficio,
+                    'folio_interno' => $folioInterno,
+                    'instruccion' => $instruccion,
+                ];
+                try {
+                    Mail::send('emails.oficio_asignado', $data, function ($message) use ($assignedUser, $oficio, $folioInterno) {
+                        $message->to($assignedUser->email)
+                            ->subject('[' . $oficio->prioridad . '] Oficio Delegado - Folio: ' . ($folioInterno ?? $oficio->numero_oficio));
+                    });
+                } catch (\Exception $e) {
+                    Log::error("Error al enviar correo de delegación a {$assignedUser->email}: " . $e->getMessage());
+                }
             }
         }
 
-        return back()->with('success', 'Oficio delegado a ' . $assignedUser->name . ' correctamente.');
+        if ($assignedCount > 0) {
+            return back()->with('success', 'Oficio delegado al personal seleccionado correctamente.');
+        }
+
+        return back()->with('error', 'No se pudo realizar la delegación de tareas.');
     }
 
 
