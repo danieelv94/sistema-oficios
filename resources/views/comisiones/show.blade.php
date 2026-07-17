@@ -199,9 +199,24 @@
                 <div>
                     <p class="font-bold uppercase text-gray-600">Autorizó</p>
                     <div class="signature-line"></div>
-                    @if(optional($comision->user)->role === 'jefe_area')
+                    @php
+                        $comisionado = $comision->user;
+                        $isJefeArea = optional($comisionado)->role === 'jefe_area';
+                        $isArea1 = optional($comisionado)->area_id == 1;
+                        $isSpecialUserArea1 = in_array(optional($comisionado)->id, [326, 328]);
+                    @endphp
+
+                    @if($isJefeArea || ($isArea1 && $isSpecialUserArea1))
                         <p class="font-bold">M.A.P. Juan Carlos Chávez González</p>
                         <p>Director General</p>
+                    @elseif($isArea1)
+                        @php
+                            $omar = \App\Models\User::find(326);
+                            $omarProf = $omar ? $omar->prof : 'L.M.M.C.';
+                            $omarName = $omar ? $omar->name : 'Omar Arturo Islas Calderón';
+                        @endphp
+                        <p class="font-bold">{{ $omarProf }} {{ $omarName }}</p>
+                        <p class="leading-tight">{{ !empty($omar->cargo) ? $omar->cargo : 'Líder de Proyecto' }}</p>
                     @else
                         @php
                             $areaNombre = optional(optional($comision->jefeArea)->area)->name ?? 'Área No Asignada';
