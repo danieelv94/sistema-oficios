@@ -162,8 +162,7 @@
                                     </div>
 
                                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap mt-2 sm:mt-0">
-                                        {{-- Botón Confirmar Notificado para Operativos --}}
-                                        @if($mySubareaOficio->estatus == 'Asignado')
+                                        @if($mySubareaOficio->estatus == 'Asignado' && (is_null($mySubareaOficio->user_id) || $mySubareaOficio->user_id == Auth::id()))
                                             <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST" class="inline-block">
                                                 @csrf @method('PUT')
                                                 <input type="hidden" name="subarea_oficio_id" value="{{ $mySubareaOficio->id }}">
@@ -336,7 +335,7 @@
 
                                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap mt-2 sm:mt-0">
                                     {{-- Botón Confirmar Notificado para Operativos --}}
-                                    @if($area->pivot->estatus == 'Asignado')
+                                    @if($area->pivot->estatus == 'Asignado' && $area->pivot->user_id == Auth::id())
                                         <form action="{{ route('oficios.notificarTurno', $area->pivot->id) }}" method="POST" class="inline-block">
                                             @csrf @method('PUT')
                                             <button type="submit"

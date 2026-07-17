@@ -121,7 +121,7 @@
 
                                                     @if($subareaOficio)
                                                         {{-- Acciones basadas en subarea_oficio --}}
-                                                        @if($subareaOficio->estatus == 'Asignado')
+                                                        @if($subareaOficio->estatus == 'Asignado' && (is_null($subareaOficio->user_id) || $subareaOficio->user_id == Auth::id()))
                                                             <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">
                                                                 @csrf @method('PUT')
                                                                 <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficio->id }}">
