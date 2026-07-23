@@ -535,7 +535,7 @@
                                                     <p class="text-[10px] font-black text-gray-500 uppercase tracking-wider border-b pb-1">Asignar Destinatarios:</p>
                                                     <div class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                                                         @if(!$isDirectorAssigned)
-                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2" x-data="{ selectVal: '' }">
                                                                 <label class="flex items-center cursor-pointer">
                                                                     <input type="checkbox" name="subarea_ids[]" value="director" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
                                                                     <div class="text-left">
@@ -546,6 +546,7 @@
                                                                 <div>
                                                                     <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
                                                                     <select name="instruccion_director"
+                                                                        x-model="selectVal"
                                                                         class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
                                                                         <option value="">-- Usar instrucción del Oficio --</option>
                                                                         <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
@@ -558,12 +559,19 @@
                                                                         <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
                                                                         <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
                                                                         <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                        <option value="Otro">Otro (Especificar)</option>
                                                                     </select>
+                                                                    <div x-show="selectVal === 'Otro'" class="mt-1.5" x-transition>
+                                                                        <label class="text-[8px] font-bold text-gray-400 uppercase block">Escribe la instrucción:</label>
+                                                                        <input type="text" name="custom_instruccion_director" 
+                                                                            placeholder="Escribe la instrucción específica..."
+                                                                            class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endif
                                                         @foreach($subareasDisponibles as $subarea)
-                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2" x-data="{ selectVal: '' }">
                                                                 <label class="flex items-center cursor-pointer">
                                                                     <input type="checkbox" name="subarea_ids[]" value="{{ $subarea->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
                                                                     <div class="text-left">
@@ -574,6 +582,7 @@
                                                                 <div>
                                                                     <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
                                                                     <select name="instruccion_{{ $subarea->id }}"
+                                                                        x-model="selectVal"
                                                                         class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
                                                                         <option value="">-- Usar instrucción del Oficio --</option>
                                                                         <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
@@ -586,12 +595,19 @@
                                                                         <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
                                                                         <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
                                                                         <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                        <option value="Otro">Otro (Especificar)</option>
                                                                     </select>
+                                                                    <div x-show="selectVal === 'Otro'" class="mt-1.5" x-transition>
+                                                                        <label class="text-[8px] font-bold text-gray-400 uppercase block">Escribe la instrucción:</label>
+                                                                        <input type="text" name="custom_instruccion_{{ $subarea->id }}" 
+                                                                            placeholder="Escribe la instrucción específica..."
+                                                                            class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
                                                         @foreach($directosDisponibles as $directo)
-                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2">
+                                                            <div class="p-2.5 rounded-lg border border-gray-150 bg-white shadow-sm flex flex-col gap-2" x-data="{ selectVal: '' }">
                                                                 <label class="flex items-center cursor-pointer">
                                                                     <input type="checkbox" name="subarea_ids[]" value="user_{{ $directo->id }}" class="rounded border-gray-300 text-dorado-ocre focus:ring-dorado-ocre mr-2.5 h-3.5 w-3.5">
                                                                     <div class="text-left">
@@ -602,6 +618,7 @@
                                                                 <div>
                                                                     <label class="text-[9px] font-bold text-gray-400 uppercase block">Instrucción específica:</label>
                                                                     <select name="instruccion_user_{{ $directo->id }}"
+                                                                        x-model="selectVal"
                                                                         class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
                                                                         <option value="">-- Usar instrucción del Oficio --</option>
                                                                         <option value="Contestar con firma del Director" {{ $area->pivot->instruccion == 'Contestar con firma del Director' ? 'selected' : '' }}>1. Contestar con firma del Director</option>
@@ -614,7 +631,14 @@
                                                                         <option value="Enviado de manera oficial" {{ $area->pivot->instruccion == 'Enviado de manera oficial' ? 'selected' : '' }}>8. Enviado de manera oficial</option>
                                                                         <option value="Asesoria" {{ $area->pivot->instruccion == 'Asesoria' ? 'selected' : '' }}>9. Asesoria</option>
                                                                         <option value="Informar" {{ $area->pivot->instruccion == 'Informar' ? 'selected' : '' }}>10. Informar</option>
+                                                                        <option value="Otro">Otro (Especificar)</option>
                                                                     </select>
+                                                                    <div x-show="selectVal === 'Otro'" class="mt-1.5" x-transition>
+                                                                        <label class="text-[8px] font-bold text-gray-400 uppercase block">Escribe la instrucción:</label>
+                                                                        <input type="text" name="custom_instruccion_user_{{ $directo->id }}" 
+                                                                            placeholder="Escribe la instrucción específica..."
+                                                                            class="block w-full mt-0.5 rounded border-gray-300 text-[10px] py-1 px-2 focus:ring-dorado-ocre focus:border-dorado-ocre">
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -637,7 +661,7 @@
                 @if($mode == 'recepcion')
                     {{-- FORMULARIO DE TURNADO CON LISTA DESPLEGABLE --}}
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-gris-oscuro"
-                        x-data="{ areas: [{id: '', instruccion: ''}] }">
+                        x-data="{ areas: [{id: '', instruccion: '', custom_instruccion: ''}] }">
                         <h3 class="text-sm font-black text-gris-oscuro uppercase tracking-widest mb-6 border-b pb-2">Turnar Oficio
                             a Nuevas Direcciones</h3>
                         <form action="{{ route('oficios.turnar', $oficio) }}" method="POST">
@@ -661,7 +685,8 @@
                                         <label class="block font-bold text-[10px] text-gray-400 uppercase">Instrucción de
                                             Turnado</label>
                                         {{-- CAMBIO A SELECT CON TUS OPCIONES --}}
-                                        <select name="instrucciones[]"
+                                        <input type="hidden" name="instrucciones[]" :value="area.instruccion === 'Otro' ? area.custom_instruccion : area.instruccion">
+                                        <select x-model="area.instruccion"
                                             class="block mt-1 w-full rounded border-gray-300 text-xs focus:ring-gris-oscuro focus:border-gris-oscuro"
                                             required>
                                             <option value="">-- Seleccione Instrucción --</option>
@@ -679,7 +704,14 @@
                                             <option value="Enviado de manera oficial">8. Enviado de manera oficial</option>
                                             <option value="Asesoría">9. Asesoría</option>
                                             <option value="Informar">10. Informar</option>
+                                            <option value="Otro">Otro (Especificar)</option>
                                         </select>
+                                        <div x-show="area.instruccion === 'Otro'" class="mt-2" x-transition>
+                                            <label class="text-[9px] font-bold text-gray-400 uppercase block">Escribe la instrucción:</label>
+                                            <input type="text" x-model="area.custom_instruccion" 
+                                                placeholder="Escribe la instrucción específica..."
+                                                class="block w-full mt-1 rounded border-gray-300 text-xs focus:ring-gris-oscuro focus:border-gris-oscuro">
+                                        </div>
                                     </div>
                                     <button type="button" @click="areas.splice(index, 1)"
                                         class="bg-red-500 text-white p-2 rounded hover:bg-red-700" x-show="areas.length > 1">
@@ -691,7 +723,7 @@
                                 </div>
                             </template>
                             <div class="flex justify-between items-center mt-6">
-                                <button type="button" @click="areas.push({id: '', instruccion: ''})"
+                                <button type="button" @click="areas.push({id: '', instruccion: '', custom_instruccion: ''})"
                                     class="text-gris-oscuro font-bold text-xs uppercase hover:underline">+ Añadir Área</button>
                                 <button type="submit"
                                     class="bg-gris-oscuro hover:bg-guinda-ceaa text-white px-8 py-2 rounded font-black uppercase text-xs shadow-lg tracking-widest transition-all transform hover:scale-105">Guardar

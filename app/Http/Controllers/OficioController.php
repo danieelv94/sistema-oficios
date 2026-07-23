@@ -413,7 +413,12 @@ class OficioController extends Controller
                         ->where('role', 'jefe_area')
                         ->first();
 
-                    $instruccion = $request->input('instruccion_director') ?: $areaOficio->instruccion;
+                    $instruccionSelect = $request->input('instruccion_director');
+                    if ($instruccionSelect === 'Otro') {
+                        $instruccion = $request->input('custom_instruccion_director') ?: $areaOficio->instruccion;
+                    } else {
+                        $instruccion = $instruccionSelect ?: $areaOficio->instruccion;
+                    }
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => null,
@@ -464,7 +469,12 @@ class OficioController extends Controller
                         continue; // Seguridad: solo personal de la misma área
                     }
 
-                    $instruccion = $request->input('instruccion_user_' . $userId) ?: $areaOficio->instruccion;
+                    $instruccionSelect = $request->input('instruccion_user_' . $userId);
+                    if ($instruccionSelect === 'Otro') {
+                        $instruccion = $request->input('custom_instruccion_user_' . $userId) ?: $areaOficio->instruccion;
+                    } else {
+                        $instruccion = $instruccionSelect ?: $areaOficio->instruccion;
+                    }
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => null,
@@ -517,7 +527,12 @@ class OficioController extends Controller
                         ->whereIn('role', ['subdirector', 'admin'])
                         ->first();
 
-                    $instruccion = $request->input('instruccion_' . $subareaId) ?: $areaOficio->instruccion;
+                    $instruccionSelect = $request->input('instruccion_' . $subareaId);
+                    if ($instruccionSelect === 'Otro') {
+                        $instruccion = $request->input('custom_instruccion_' . $subareaId) ?: $areaOficio->instruccion;
+                    } else {
+                        $instruccion = $instruccionSelect ?: $areaOficio->instruccion;
+                    }
                     \App\Models\SubareaOficio::create([
                         'area_oficio_id' => $pivoteId,
                         'subarea_id' => $subareaId,
