@@ -203,7 +203,7 @@
                         $comisionado = $comision->user;
                         $isJefeArea = optional($comisionado)->role === 'jefe_area';
                         $isArea1 = optional($comisionado)->area_id == 1;
-                        $isSpecialUserArea1 = in_array(optional($comisionado)->id, [326, 328]);
+                        $isSpecialUserArea1 = in_array(optional($comisionado)->id, [326]);
                     @endphp
 
                     @if($isJefeArea || ($isArea1 && $isSpecialUserArea1))
