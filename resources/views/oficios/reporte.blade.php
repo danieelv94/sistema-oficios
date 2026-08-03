@@ -93,6 +93,17 @@
                     <option value="Solventado" {{ $estatus == 'Solventado' ? 'selected' : '' }}>SOLVENTADO</option>
                 </select>
             </div>
+            <div class="flex flex-col">
+                <label for="area_id" class="text-[9px] font-black uppercase text-gray-400 mb-1">Dirección de Destino:</label>
+                <select name="area_id" id="area_id" class="text-xs rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 py-1.5 px-3 max-w-[200px]">
+                    <option value="">TODAS</option>
+                    @foreach($areas as $area)
+                        <option value="{{ $area->id }}" {{ $areaId == $area->id ? 'selected' : '' }}>
+                            {{ $area->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase px-4 py-2 rounded-lg transition shadow-sm">
                 Cargar
             </button>
@@ -130,7 +141,12 @@
         {{-- Título de Sección --}}
         <div class="mb-6">
             <h2 class="text-base font-black text-gray-800 uppercase tracking-tight">
-                Registro de Correspondencia Turnada a Direcciones
+                Registro de Correspondencia Turnada
+                @if($areaId)
+                    a {{ collect($areas)->firstWhere('id', $areaId)->name ?? 'Dirección Seleccionada' }}
+                @else
+                    a Direcciones
+                @endif
                 @if($estatus)
                     - Estatus: {{ $estatus }}
                 @endif
@@ -200,7 +216,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">
-                                No se encontraron oficios turnados en el rango de fechas @if($estatus) con estatus "{{ $estatus }}" @endif.
+                                No se encontraron oficios turnados en el rango de fechas @if($areaId) para la dirección seleccionada @endif @if($estatus) con estatus "{{ $estatus }}" @endif.
                             </td>
                         </tr>
                     @endforelse

@@ -869,6 +869,7 @@ class OficioController extends Controller
         $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', \Carbon\Carbon::today()->format('Y-m-d')));
         $fechaFin = $request->input('fecha_fin', $request->input('fecha', \Carbon\Carbon::today()->format('Y-m-d')));
         $estatus = $request->input('estatus');
+        $areaId = $request->input('area_id');
 
         // Obtener todos los turnos creados en el rango de fechas (excluyendo internos)
         $query = DB::table('area_oficio')
@@ -887,6 +888,10 @@ class OficioController extends Controller
             }
         }
 
+        if ($request->filled('area_id')) {
+            $query->where('area_oficio.area_id', $areaId);
+        }
+
         $turnos = $query->select(
                 'area_oficio.instruccion',
                 'area_oficio.estatus as turno_estatus',
@@ -901,11 +906,13 @@ class OficioController extends Controller
             ->orderBy('areas.name', 'asc')
             ->get();
 
+        $areas = DB::table('areas')->orderBy('name', 'asc')->get();
+
         $directorGestion = \App\Models\User::where('area_id', 2)
             ->where('role', 'jefe_area')
             ->first();
 
-        return view('oficios.reporte', compact('turnos', 'fechaInicio', 'fechaFin', 'estatus', 'directorGestion'));
+        return view('oficios.reporte', compact('turnos', 'fechaInicio', 'fechaFin', 'estatus', 'areaId', 'areas', 'directorGestion'));
     }
 
     public function reporteEntradas(Request $request)
