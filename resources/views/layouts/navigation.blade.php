@@ -141,6 +141,19 @@
                     </a>
                 @endif
 
+                <!-- Link: Transparencia PNT -->
+                @if(Auth::user()->canEditPntSection(1) || Auth::user()->canEditPntSection(2) || Auth::user()->canEditPntSection(3))
+                    <a href="{{ route('pnt.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('pnt.*') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('pnt.*') ? 'text-white' : '' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Transparencia PNT</span>
+                    </a>
+                @endif
+
                 <!-- Link: Soporte Técnico -->
                 <a href="{{ route('tickets.index') }}"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('tickets.*') ? 'bg-guinda-ceaa text-white' : '' }}">
@@ -269,6 +282,18 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span>Acuses Comisión (RH)</span>
+                    </a>
+                @endif
+
+                <!-- Enlace: Transparencia PNT (Temporalmente solo Admin) -->
+                @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('pnt.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition {{ request()->routeIs('pnt.*') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 text-gray-400 {{ request()->routeIs('pnt.*') ? 'text-white' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Transparencia PNT</span>
                     </a>
                 @endif
 

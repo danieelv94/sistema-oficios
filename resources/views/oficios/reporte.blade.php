@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Turnos - {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</title>
+    <title>
+        Reporte de Turnos - 
+        @if($fechaInicio == $fechaFin)
+            {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }}
+        @else
+            {{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }} al {{ \Carbon\Carbon::parse($fechaFin)->format('d/m/Y') }}
+        @endif
+    </title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,14 +71,32 @@
             </div>
         </div>
 
-        <form action="{{ route('oficios.reporteDiario') }}" method="GET" class="flex items-center gap-3">
-            <label for="fecha" class="text-[10px] font-black uppercase text-gray-400">Filtrar por fecha:</label>
-            <input type="date" name="fecha" id="fecha" value="{{ $fecha }}" 
-                class="text-xs rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 py-1.5 px-3">
-            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase px-4 py-1.5 rounded-lg transition shadow-sm">
+        <form action="{{ route('oficios.reporteDiario') }}" method="GET" class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-col">
+                <label for="fecha_inicio" class="text-[9px] font-black uppercase text-gray-400 mb-1">Desde:</label>
+                <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ $fechaInicio }}" 
+                    class="text-xs rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 py-1.5 px-3">
+            </div>
+            <div class="flex flex-col">
+                <label for="fecha_fin" class="text-[9px] font-black uppercase text-gray-400 mb-1">Hasta:</label>
+                <input type="date" name="fecha_fin" id="fecha_fin" value="{{ $fechaFin }}" 
+                    class="text-xs rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 py-1.5 px-3">
+            </div>
+            <div class="flex flex-col">
+                <label for="estatus" class="text-[9px] font-black uppercase text-gray-400 mb-1">Estatus:</label>
+                <select name="estatus" id="estatus" class="text-xs rounded-lg border-gray-300 focus:ring-green-500 focus:border-green-500 py-1.5 px-3">
+                    <option value="">TODOS</option>
+                    <option value="Inconcluso" {{ $estatus == 'Inconcluso' ? 'selected' : '' }}>INCONCLUSO</option>
+                    <option value="Turnado" {{ $estatus == 'Turnado' ? 'selected' : '' }}>TURNADO</option>
+                    <option value="Recibido" {{ $estatus == 'Recibido' ? 'selected' : '' }}>RECIBIDO</option>
+                    <option value="Asignado" {{ $estatus == 'Asignado' ? 'selected' : '' }}>ASIGNADO</option>
+                    <option value="Solventado" {{ $estatus == 'Solventado' ? 'selected' : '' }}>SOLVENTADO</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-black uppercase px-4 py-2 rounded-lg transition shadow-sm">
                 Cargar
             </button>
-            <button type="button" onclick="window.print()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-black uppercase px-5 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
+            <button type="button" onclick="window.print()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-black uppercase px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
@@ -91,15 +116,26 @@
             </div>
             <div class="text-right flex flex-col items-end">
                 <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" class="h-12 object-contain mb-2">
-                <p class="text-[10px] font-black text-gray-400 uppercase">Fecha del Reporte</p>
-                <p class="text-xs font-bold text-gray-800 uppercase mt-0.5">{{ \Carbon\Carbon::parse($fecha)->locale('es')->translatedFormat('d \d\e F \d\e Y') }}</p>
+                <p class="text-[10px] font-black text-gray-400 uppercase">Rango del Reporte</p>
+                <p class="text-xs font-bold text-gray-800 uppercase mt-0.5">
+                    @if($fechaInicio == $fechaFin)
+                        {{ \Carbon\Carbon::parse($fechaInicio)->locale('es')->translatedFormat('d \d\e F \d\e Y') }}
+                    @else
+                        {{ \Carbon\Carbon::parse($fechaInicio)->locale('es')->translatedFormat('d/m/Y') }} al {{ \Carbon\Carbon::parse($fechaFin)->locale('es')->translatedFormat('d/m/Y') }}
+                    @endif
+                </p>
             </div>
         </div>
 
         {{-- Título de Sección --}}
         <div class="mb-6">
-            <h2 class="text-base font-black text-gray-800 uppercase tracking-tight">Registro de Correspondencia Turnada a Direcciones</h2>
-            <p class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">Listado detallado de asignaciones y estados operativos del día</p>
+            <h2 class="text-base font-black text-gray-800 uppercase tracking-tight">
+                Registro de Correspondencia Turnada a Direcciones
+                @if($estatus)
+                    - Estatus: {{ $estatus }}
+                @endif
+            </h2>
+            <p class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">Listado detallado de asignaciones y estados operativos</p>
         </div>
 
         {{-- Tabla de Reporte --}}
@@ -164,7 +200,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-4 py-12 text-center text-gray-400 italic">
-                                No se encontraron oficios turnados en esta fecha.
+                                No se encontraron oficios turnados en el rango de fechas @if($estatus) con estatus "{{ $estatus }}" @endif.
                             </td>
                         </tr>
                     @endforelse

@@ -129,6 +129,25 @@ Route::middleware('auth')->group(function () {
         return response()->json(['success' => true]);
     })->name('notifications.subscribe');
 
+    // --- MÓDULO DE VACACIONES ---
+    Route::post('/vacaciones', [App\Http\Controllers\VacacionController::class, 'store'])->name('vacaciones.store');
+    Route::delete('/vacaciones/{solicitud}', [App\Http\Controllers\VacacionController::class, 'destroy'])->name('vacaciones.destroy');
+    Route::put('/vacaciones/{solicitud}/procesar', [App\Http\Controllers\VacacionController::class, 'procesar'])->name('vacaciones.procesar');
+    Route::post('/vacaciones/configuracion', [App\Http\Controllers\VacacionController::class, 'guardarConfiguracion'])->name('vacaciones.configuracion.store');
+
+    // --- MÓDULO DE TRANSPARENCIA PNT ---
+    Route::get('/pnt/exportar', [App\Http\Controllers\PntController::class, 'export'])->name('pnt.export');
+    Route::resource('/pnt', App\Http\Controllers\PntController::class)->parameters([
+        'pnt' => 'procedimiento'
+    ])->names([
+        'index' => 'pnt.index',
+        'create' => 'pnt.create',
+        'store' => 'pnt.store',
+        'edit' => 'pnt.edit',
+        'update' => 'pnt.update',
+        'destroy' => 'pnt.destroy',
+    ]);
+
 });
 
 require __DIR__ . '/auth.php';

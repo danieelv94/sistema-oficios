@@ -865,16 +865,29 @@ class OficioController extends Controller
             abort(403, 'No tienes permiso para ver esta sección.');
         }
 
-        // Obtener la fecha del reporte. Por defecto es HOY.
-        $fecha = $request->input('fecha', \Carbon\Carbon::today()->format('Y-m-d'));
+        // Obtener rango de fechas. Por defecto es HOY.
+        $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', \Carbon\Carbon::today()->format('Y-m-d')));
+        $fechaFin = $request->input('fecha_fin', $request->input('fecha', \Carbon\Carbon::today()->format('Y-m-d')));
+        $estatus = $request->input('estatus');
 
-        // Obtener todos los turnos creados en esa fecha
-        $turnos = DB::table('area_oficio')
+        // Obtener todos los turnos creados en el rango de fechas (excluyendo internos)
+        $query = DB::table('area_oficio')
             ->join('oficios', 'area_oficio.oficio_id', '=', 'oficios.id')
             ->join('areas', 'area_oficio.area_id', '=', 'areas.id')
             ->leftJoin('users', 'area_oficio.user_id', '=', 'users.id')
-            ->whereDate('area_oficio.created_at', $fecha)
-            ->select(
+            ->where('oficios.tipo_correspondencia', '!=', 'Interna')
+            ->whereDate('area_oficio.created_at', '>=', $fechaInicio)
+            ->whereDate('area_oficio.created_at', '<=', $fechaFin);
+
+        if ($request->filled('estatus')) {
+            if ($estatus === 'Inconcluso') {
+                $query->where('area_oficio.estatus', '!=', 'Solventado');
+            } else {
+                $query->where('area_oficio.estatus', $estatus);
+            }
+        }
+
+        $turnos = $query->select(
                 'area_oficio.instruccion',
                 'area_oficio.estatus as turno_estatus',
                 'area_oficio.created_at as turnado_fecha',
@@ -892,7 +905,7 @@ class OficioController extends Controller
             ->where('role', 'jefe_area')
             ->first();
 
-        return view('oficios.reporte', compact('turnos', 'fecha', 'directorGestion'));
+        return view('oficios.reporte', compact('turnos', 'fechaInicio', 'fechaFin', 'estatus', 'directorGestion'));
     }
 
     public function reporteEntradas(Request $request)

@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateProyectoUnidadAdministrativaTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+{
+    Schema::create('proyecto_unidad_administrativa', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('proyecto_id')->constrained()->onDelete('cascade');
+        $table->foreignId('unidad_administrativa_id')->constrained()->onDelete('cascade');
+    });
+}
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('proyecto_unidad_administrativa');
+    }
+}

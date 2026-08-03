@@ -12,13 +12,13 @@
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
                         <div>
                             <div class="flex items-center gap-3">
-                                <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight">Consola de Monitoreo Global</h3>
+                                <h3 class="text-lg font-black text-gray-800 uppercase tracking-tight">Monitoreo de Oficios</h3>
                                 <a href="{{ route('oficios.reporteDiario') }}" 
                                     class="inline-flex items-center gap-1 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm hover:shadow transition">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                     </svg>
-                                    Reporte Diario
+                                    Reporte
                                 </a>
                             </div>
                             <p class="text-xs text-gray-400 font-bold uppercase mt-1">Supervisión integral de correspondencia, áreas turnadas, responsables y estados de solventación</p>

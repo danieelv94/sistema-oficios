@@ -14,8 +14,12 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call([
-            ProyectoAreaSeeder::class,
+            AreaSeeder::class,
+            NivelSeeder::class,
+            UserSeeder::class,
             SubareaSeeder::class,
+            VehiculoSeeder::class,
+            ProyectoUnidadSeeder::class,
         ]);
     }
 }

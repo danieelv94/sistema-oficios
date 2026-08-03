@@ -82,4 +82,36 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Aviso::class)->withPivot('leido_at')->withTimestamps();
     }
+
+    public function solicitudesVacaciones()
+    {
+        return $this->hasMany(SolicitudVacacion::class, 'user_id');
+    }
+
+    /**
+     * Determina si el usuario puede editar una sección del formulario PNT.
+     */
+    public function canEditPntSection($section)
+    {
+        if ($this->role === 'admin') {
+            return true;
+        }
+
+        if ($section === 1) {
+            // Licitaciones: Habilitado para Dirección de Administración y Finanzas (4)
+            return $this->area_id == 4;
+        }
+
+        if ($section === 2) {
+            // Suministros/Recursos Materiales: Habilitado para la subdirección de Recursos Materiales (15)
+            return $this->area_id == 4 && $this->subarea_id == 15;
+        }
+
+        if ($section === 3) {
+            // Infraestructura / Áreas Técnicas: Habilitado para la Dirección de Infraestructura Hidráulica (8)
+            return $this->area_id == 8;
+        }
+
+        return false;
+    }
 }
