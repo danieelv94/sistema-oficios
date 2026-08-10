@@ -376,24 +376,14 @@ class OficioController extends Controller
             // Eliminar asignaciones de subárea o personal directo
             DB::table('subarea_oficio')->where('area_oficio_id', $pivot->id)->delete();
 
-            // Si es oficio interno, regresamos su número de oficio a temporal
-            if ($oficio->tipo_correspondencia === 'Interna') {
-                $tempNumero = 'PENDIENTE-' . $oficio->id;
-                $oficio->update([
-                    'numero_oficio' => $tempNumero,
-                    'estatus' => 'Turnado'
-                ]);
-            } else {
-                $oficio->update([
-                    'estatus' => 'Turnado'
-                ]);
-            }
+            // Regresar el estatus del oficio principal a Turnado
+            $oficio->update([
+                'estatus' => 'Turnado'
+            ]);
 
-            // Limpiar datos del folio en la tabla pivote y regresarlo a Recibido
+            // Limpiar únicamente la asignación del personal (user_id) y regresar estatus a Recibido
+            // Manteniendo intactos los datos del folio_interno, consecutivo y anio
             DB::table('area_oficio')->where('id', $pivot->id)->update([
-                'folio_interno' => null,
-                'consecutivo' => null,
-                'anio' => null,
                 'user_id' => null,
                 'estatus' => 'Recibido'
             ]);
@@ -401,14 +391,16 @@ class OficioController extends Controller
             // Registrar en historial
             \App\Models\OficioHistorial::registrar(
                 $oficio->id,
-                'Liberación de Folio',
-                "Se liberó la asignación y folio interno de la dirección para permitir su reasignación.",
+                'Liberación de Asignación',
+                "Se eliminó la asignación de personal para el folio interno {$pivot->folio_interno} manteniendo el folio intacto.",
                 $pivot->area_id
             );
         });
 
-        return back()->with('success', 'Asignación eliminada y folio liberado correctamente.');
+        return back()->with('success', 'Asignación de personal eliminada correctamente.');
     }
+
+
 
     /**
      * Asignar oficio a subdirecciones (crea registros en subarea_oficio).

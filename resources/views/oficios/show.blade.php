@@ -438,12 +438,12 @@
                                             @endif
 
                                             @if(Auth::user()->role === 'admin')
-                                                <form action="{{ route('oficios.liberarTurno', $area->pivot->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de quitar toda la asignación (usuarios, subáreas) y liberar el folio de esta dirección? Esta acción no se puede deshacer.')">
+                                                <form action="{{ route('oficios.liberarTurno', $area->pivot->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de quitar toda la asignación de personal (usuarios y subáreas) de esta dirección manteniendo el folio intacto?')">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit"
                                                         class="text-[9px] bg-orange-600 hover:bg-orange-700 text-white px-2 py-0.5 rounded font-bold uppercase transition">
-                                                        Liberar Folio
+                                                        Desasignar Personal
                                                     </button>
                                                 </form>
                                             @endif
