@@ -28,7 +28,7 @@ class OficioController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        \Illuminate\Support\Facades\Log::info('OficioController@index accessed', [
+        \Illuminate\Support\Facades\Log::error('OficioController@index accessed', [
             'user_id' => Auth::id(),
             'user_role' => $user ? $user->role : 'null',
             'user_area' => $user ? $user->area_id : 'null',
