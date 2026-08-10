@@ -46,7 +46,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/oficios/internos', [OficioController::class, 'internosStore'])->name('oficios.internos.store');
 
     // --- Módulo de Oficios ---
-    Route::resource('oficios', OficioController::class)->except(['index']);
+    Route::resource('oficios-recibidos', OficioController::class)->except(['index'])->names('oficios')->parameters([
+        'oficios-recibidos' => 'oficio'
+    ]);
     Route::put('/oficios/{oficio}/turnar', [OficioController::class, 'turnar'])->name('oficios.turnar');
     Route::put('/oficios/{oficio}/asignar', [OficioController::class, 'asignar'])->name('oficios.asignar');
     Route::put('/oficios/subarea/{subareaOficioId}/asignar', [OficioController::class, 'asignarSubarea'])->name('oficios.asignarSubarea');
