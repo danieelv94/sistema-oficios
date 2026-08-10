@@ -428,12 +428,24 @@
                                             ">
                                                 {{ $area->pivot->estatus }}
                                             </span>
+
                                             @if(in_array(Auth::user()->role, ['admin', 'correspondencia']) && $area->pivot->estatus !== 'Cancelado')
                                                 <button type="button" 
                                                     @click="showCancelTurnModal = true; cancelTurnPivoteId = {{ $area->pivot->id }}; cancelAreaName = '{{ $area->name }}'"
                                                     class="text-[9px] bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded font-bold uppercase transition">
                                                     Cancelar
                                                 </button>
+                                            @endif
+
+                                            @if(Auth::user()->role === 'admin')
+                                                <form action="{{ route('oficios.liberarTurno', $area->pivot->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de quitar toda la asignación (usuarios, subáreas) y liberar el folio de esta dirección? Esta acción no se puede deshacer.')">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit"
+                                                        class="text-[9px] bg-orange-600 hover:bg-orange-700 text-white px-2 py-0.5 rounded font-bold uppercase transition">
+                                                        Liberar Folio
+                                                    </button>
+                                                </form>
                                             @endif
                                         </div>
                                         <p class="text-xs text-gray-600"><span class="font-bold uppercase text-gray-400">Instrucción:</span> {{ $area->pivot->instruccion }}</p>

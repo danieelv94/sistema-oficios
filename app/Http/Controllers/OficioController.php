@@ -355,6 +355,61 @@ class OficioController extends Controller
         return back()->with('success', 'El turno ha sido cancelado correctamente.');
     }
 
+    public function liberarTurno(Request $request, $pivote_id)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+
+        DB::transaction(function () use ($pivote_id) {
+            $pivot = DB::table('area_oficio')->where('id', $pivote_id)->first();
+            if (!$pivot) {
+                return;
+            }
+
+            $oficio = Oficio::withTrashed()->find($pivot->oficio_id);
+            if (!$oficio) {
+                return;
+            }
+
+            // Eliminar asignaciones de subárea o personal directo
+            DB::table('subarea_oficio')->where('area_oficio_id', $pivot->id)->delete();
+
+            // Si es oficio interno, regresamos su número de oficio a temporal
+            if ($oficio->tipo_correspondencia === 'Interna') {
+                $tempNumero = 'PENDIENTE-' . $oficio->id;
+                $oficio->update([
+                    'numero_oficio' => $tempNumero,
+                    'estatus' => 'Turnado'
+                ]);
+            } else {
+                $oficio->update([
+                    'estatus' => 'Turnado'
+                ]);
+            }
+
+            // Limpiar datos del folio en la tabla pivote y regresarlo a Recibido
+            DB::table('area_oficio')->where('id', $pivot->id)->update([
+                'folio_interno' => null,
+                'consecutivo' => null,
+                'anio' => null,
+                'user_id' => null,
+                'estatus' => 'Recibido'
+            ]);
+
+            // Registrar en historial
+            \App\Models\OficioHistorial::registrar(
+                $oficio->id,
+                'Liberación de Folio',
+                "Se liberó la asignación y folio interno de la dirección para permitir su reasignación.",
+                $pivot->area_id
+            );
+        });
+
+        return back()->with('success', 'Asignación eliminada y folio liberado correctamente.');
+    }
+
     /**
      * Asignar oficio a subdirecciones (crea registros en subarea_oficio).
      * Para áreas sin subdirecciones, asigna directamente al user_id en area_oficio.
@@ -394,6 +449,10 @@ class OficioController extends Controller
                         'consecutivo' => $siguienteConsecutivo,
                         'anio' => $currentYear,
                     ]);
+
+                    if ($oficio->tipo_correspondencia === 'Interna') {
+                        $oficio->update(['numero_oficio' => $folioInterno]);
+                    }
                 }
             }
 
@@ -608,6 +667,9 @@ class OficioController extends Controller
         }
 
         DB::table('area_oficio')->where('id', $pivoteId)->update($updateData);
+        if (isset($updateData['folio_interno']) && $oficio->tipo_correspondencia === 'Interna') {
+            $oficio->update(['numero_oficio' => $updateData['folio_interno']]);
+        }
         $oficio->update(['estatus' => 'En Proceso']);
 
         \App\Models\OficioHistorial::registrar(

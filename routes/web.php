@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/oficios/subarea/{subareaOficioId}/asignar', [OficioController::class, 'asignarSubarea'])->name('oficios.asignarSubarea');
     Route::put('/oficios/{oficio}/cancelar', [OficioController::class, 'cancelar'])->name('oficios.cancelar');
     Route::put('/oficios/turno/{pivote_id}/cancelar', [OficioController::class, 'cancelarTurno'])->name('oficios.cancelarTurno');
+    Route::put('/oficios/turno/{pivote_id}/liberar', [OficioController::class, 'liberarTurno'])->name('oficios.liberarTurno');
     Route::get('/oficios/{oficio}/generar', [OficioController::class, 'generarOficio'])->name('oficios.generar');
 
     // --- Administración de Usuarios (Admins) ---
