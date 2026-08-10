@@ -18,7 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/principal', [App\Http\Controllers\OficioController::class, 'principal'])->name('principal');
 
     // Gestión de Correspondencia (la tabla)
-    Route::get('/oficios', [App\Http\Controllers\OficioController::class, 'index'])->name('oficios.index');
+    Route::get('/oficios-recibidos', [App\Http\Controllers\OficioController::class, 'index'])->name('oficios.index');
 
     // Bandeja de Gestión de Turnos (Debe declararse antes del recurso para evitar conflicto con el comodín {oficio})
     Route::get('/oficios/gestion', [App\Http\Controllers\OficioController::class, 'gestion'])

@@ -28,12 +28,6 @@ class OficioController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        \Illuminate\Support\Facades\Log::error('OficioController@index accessed', [
-            'user_id' => Auth::id(),
-            'user_role' => $user ? $user->role : 'null',
-            'user_area' => $user ? $user->area_id : 'null',
-            'request_url' => $request->fullUrl(),
-        ]);
 
         // Seguridad: Solo admin, correspondencia, o jefe_area de Gestión Institucional (area_id = 2)
         if ($user->role !== 'admin' && $user->role !== 'correspondencia' && !($user->role == 'jefe_area' && $user->area_id == 2)) {
