@@ -140,6 +140,8 @@ Route::middleware('auth')->group(function () {
 
     // --- MÓDULO DE TRANSPARENCIA PNT ---
     Route::get('/pnt/exportar', [App\Http\Controllers\PntController::class, 'export'])->name('pnt.export');
+    Route::get('/pnt/external-licitaciones', [App\Http\Controllers\PntController::class, 'getExternalLicitaciones'])
+        ->name('pnt.external-licitaciones');
     Route::resource('/pnt', App\Http\Controllers\PntController::class)->parameters([
         'pnt' => 'procedimiento'
     ])->names([

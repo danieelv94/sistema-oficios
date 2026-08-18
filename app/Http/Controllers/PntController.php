@@ -5,10 +5,43 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Pnt\Procedimiento;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class PntController extends Controller
 {
+    /**
+     * Fetch licitaciones from external API.
+     */
+    public function getExternalLicitaciones(Request $request)
+    {
+        $url = config('services.pnt.api_url');
+        $token = config('services.pnt.api_token');
+        $page = $request->query('page', 1);
+
+        try {
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+                'Authorization' => $token ? 'Bearer ' . $token : null
+            ])->get($url, [
+                'page' => $page
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+
+            return response()->json([
+                'error' => 'La API externa retornó un error: ' . $response->status(),
+                'status' => $response->status()
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error de conexión con la API externa: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Display a listing of PNT procedures.
      */

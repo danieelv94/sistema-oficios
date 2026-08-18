@@ -69,6 +69,7 @@
                                     <option value="admin">Administrador</option>
                                     <option value="recepcionista">Recepcionista</option>
                                     <option value="correspondencia">Correspondencia</option>
+                                    <option value="dg">DG (Director General)</option>
                                 </select>
                             </div>
 

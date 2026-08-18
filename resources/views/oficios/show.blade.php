@@ -15,6 +15,15 @@
                         Bandeja de Dirección y Seguimiento
                     </a>
                 @endif
+                @if(Auth::user()->role === 'dg')
+                    <a href="{{ route('oficios.seguimiento') }}"
+                        class="inline-flex items-center px-4 py-2 bg-gris-oscuro hover:bg-guinda-ceaa border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest shadow-md transition">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                        </svg>
+                        Seguimiento General de Turnos
+                    </a>
+                @endif
                 @if($oficio->pdf_path)
                     <a href="{{ asset('storage/' . $oficio->pdf_path) }}" target="_blank"
                         class="inline-flex items-center px-4 py-2 bg-red-700 border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest hover:bg-red-800 shadow-md transition">
@@ -670,7 +679,7 @@
                     </div>
                 </div>
 
-                @if($mode == 'recepcion')
+                @if($mode == 'recepcion' && Auth::user()->role !== 'dg')
                     {{-- FORMULARIO DE TURNADO CON LISTA DESPLEGABLE --}}
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-gris-oscuro"
                         x-data="{ areas: [{id: '', instruccion: '', custom_instruccion: ''}] }">

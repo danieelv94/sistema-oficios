@@ -30,4 +30,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'pnt' => [
+        'api_url' => env('PNT_API_URL', 'https://licitaciones.ceaa.app/api/v1/licitaciones'),
+        'api_token' => env('PNT_API_TOKEN'),
+    ],
+
 ];

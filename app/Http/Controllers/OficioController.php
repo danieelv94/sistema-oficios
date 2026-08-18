@@ -69,6 +69,9 @@ class OficioController extends Controller
 
     public function create()
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $currentYear = date('Y');
         $ultimoNumero = Oficio::withTrashed()
             ->where('numero_oficio', 'like', "%/$currentYear")
@@ -81,6 +84,9 @@ class OficioController extends Controller
 
     public function store(Request $request)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $currentYear = date('Y');
         $ultimoNumero = Oficio::withTrashed()
             ->where('numero_oficio', 'like', "%/$currentYear")
@@ -128,6 +134,9 @@ class OficioController extends Controller
 
     public function vistaTurnado(Oficio $oficio)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         // Cargamos lo necesario para que el Admin pueda turnar
         $areasDisponibles = \App\Models\Area::all();
         return view('oficios.turnar', compact('oficio', 'areasDisponibles'));
@@ -139,7 +148,7 @@ class OficioController extends Controller
         $oficio->load('areas');
 
         // Determinamos qué turnos mostrar según el rol del usuario de forma automática
-        if (in_array($user->role, ['admin', 'recepcionista', 'correspondencia']) || ($user->role == 'jefe_area' && $user->area_id == 2)) {
+        if (in_array($user->role, ['admin', 'recepcionista', 'correspondencia', 'dg']) || ($user->role == 'jefe_area' && $user->area_id == 2)) {
             $turnosParaMostrar = $oficio->areas;
         } elseif ($user->role == 'jefe_area' || $user->role == 'secretaria_area') {
             $turnosParaMostrar = $oficio->areas->where('id', $user->area_id);
@@ -242,7 +251,7 @@ class OficioController extends Controller
             ->with(['user', 'area', 'subarea'])
             ->orderBy('created_at', 'asc');
 
-        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista', 'dg'])) {
             $historialQuery->where(function($q) use ($user) {
                 $q->whereNull('area_id')
                   ->orWhere('area_id', $user->area_id);
@@ -268,6 +277,9 @@ class OficioController extends Controller
 
     public function turnar(Request $request, Oficio $oficio)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $request->validate([
             'areas' => 'required|array',
             'instrucciones' => 'required|array',
@@ -408,6 +420,9 @@ class OficioController extends Controller
      */
     public function asignar(Request $request, Oficio $oficio)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $currentUser = Auth::user();
         $pivoteId = $request->input('pivote_id');
 
@@ -698,6 +713,9 @@ class OficioController extends Controller
      */
     public function asignarSubarea(Request $request, $subareaOficioId)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $request->validate([
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'required|exists:users,id',
@@ -824,7 +842,7 @@ class OficioController extends Controller
                 return $area->pivot->estatus !== 'Cancelado';
             });
 
-            if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
+            if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista', 'dg'])) {
                 $turnosParaImprimir = $turnosParaImprimir->filter(function ($area) use ($user) {
                     return $area->id == $user->area_id;
                 });
@@ -1081,8 +1099,8 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        // Seguridad: Solo admin, correspondencia, o jefe_area de Gestión Institucional (area_id = 2)
-        if ($user->role !== 'admin' && $user->role !== 'correspondencia' && !($user->role == 'jefe_area' && $user->area_id == 2)) {
+        // Seguridad: Solo admin, correspondencia, DG, o jefe_area de Gestión Institucional (area_id = 2)
+        if ($user->role !== 'admin' && $user->role !== 'correspondencia' && $user->role !== 'dg' && !($user->role == 'jefe_area' && $user->area_id == 2)) {
             abort(403, 'No tienes permiso para ver esta sección.');
         }
 
@@ -1139,6 +1157,9 @@ class OficioController extends Controller
 
     public function recibirTurno($pivote_id)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         DB::table('area_oficio')
             ->where('id', $pivote_id)
             ->update([
@@ -1160,6 +1181,9 @@ class OficioController extends Controller
 
     public function notificarTurno(Request $request, $pivote_id)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         // Si viene un subarea_oficio_id, actualizamos ese registro
         if ($request->has('subarea_oficio_id')) {
             $subareaOficio = \App\Models\SubareaOficio::findOrFail($request->subarea_oficio_id);
@@ -1210,6 +1234,9 @@ class OficioController extends Controller
 
     public function atender(Request $request, $areaOficioId)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $user = Auth::user();
 
         // Si viene un subarea_oficio_id, usamos ese contexto
@@ -1254,6 +1281,9 @@ class OficioController extends Controller
 
     public function solventar(Request $request, $areaOficioId)
     {
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
         $request->validate([
             'tipo_respuesta' => 'required|in:Conocimiento,Solventacion',
             'mensaje' => 'required|string',
@@ -1349,11 +1379,9 @@ class OficioController extends Controller
 
     public function edit(Oficio $oficio)
     {
-        $user = Auth::user();
-        if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
-            abort(403, 'No tienes permiso para editar este oficio.');
+        if (Auth::user()->role === 'dg') {
+            abort(403, 'No tienes permiso para realizar esta acción.');
         }
-
         return view('oficios.edit', compact('oficio'));
     }
 

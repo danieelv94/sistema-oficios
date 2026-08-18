@@ -85,6 +85,141 @@
                             @endif
                         </div>
 
+                        @if($canEditSec1)
+                        {{-- ASISTENTE DE LLENADO RÁPIDO (API LICITACIONES) --}}
+                        <div class="mb-6 border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-gradient-to-br from-slate-50 to-white">
+                            <button type="button" @click="assistantOpen = !assistantOpen; if(assistantOpen) initAssistant();" 
+                                    class="w-full flex justify-between items-center px-4 py-3 bg-slate-100 hover:bg-slate-150 transition focus:outline-none">
+                                <span class="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                    <svg class="w-4 h-4 text-guinda-ceaa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Asistente de Llenado Rápido (API Licitaciones)
+                                </span>
+                                <svg class="w-4 h-4 text-slate-500 transition-transform duration-200" :class="assistantOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div x-show="assistantOpen" x-transition class="p-4 border-t border-slate-100 space-y-4">
+                                {{-- Alertas de Éxito / Error --}}
+                                <div x-show="successMsg" x-transition class="bg-green-50 border-l-4 border-green-500 p-3 rounded text-xs font-semibold text-green-800">
+                                    <span x-text="successMsg"></span>
+                                </div>
+                                <div x-show="apiError" x-transition class="bg-red-50 border-l-4 border-red-500 p-3 rounded text-xs font-semibold text-red-800">
+                                    <span x-text="apiError"></span>
+                                </div>
+
+                                {{-- Pestañas Internas del Asistente --}}
+                                <div class="flex border-b border-slate-200">
+                                    <button type="button" @click="apiSubTab = 'search'" 
+                                            :class="apiSubTab === 'search' ? 'border-b-2 border-guinda-ceaa font-bold text-guinda-ceaa' : 'text-slate-500 hover:text-slate-700'"
+                                            class="pb-2 px-4 text-xs font-bold uppercase tracking-wider transition focus:outline-none">
+                                        Buscar en la API
+                                    </button>
+                                    <button type="button" @click="apiSubTab = 'paste'" 
+                                            :class="apiSubTab === 'paste' ? 'border-b-2 border-guinda-ceaa font-bold text-guinda-ceaa' : 'text-slate-500 hover:text-slate-700'"
+                                            class="pb-2 px-4 text-xs font-bold uppercase tracking-wider transition focus:outline-none">
+                                        Pegar JSON
+                                    </button>
+                                </div>
+
+                                {{-- PESTAÑA 1: BUSCAR EN API --}}
+                                <div x-show="apiSubTab === 'search'" class="space-y-4">
+                                    <template x-if="!apiTokenSet">
+                                        <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded text-xs text-amber-800 space-y-2">
+                                            <p class="font-bold">⚠️ Conexión de API No Configurada</p>
+                                            <p class="leading-relaxed">
+                                                Para buscar en vivo, debes configurar la variable <code class="bg-amber-100 px-1 py-0.5 rounded font-mono text-[10px]">PNT_API_TOKEN</code> en tu archivo <code class="bg-amber-100 px-1 py-0.5 rounded font-mono text-[10px]">.env</code>. 
+                                                Mientras tanto, puedes usar la pestaña de <strong>"Pegar JSON"</strong> para rellenar de forma inmediata copiando los datos de la API.
+                                            </p>
+                                        </div>
+                                    </template>
+
+                                    <template x-if="apiTokenSet">
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative flex-1">
+                                                    <input type="text" x-model="apiQuery" placeholder="Buscar por expediente, título o municipio..." 
+                                                           class="w-full text-xs rounded-lg border-slate-350 shadow-sm focus:ring focus:ring-guinda-ceaa/20 pl-8">
+                                                    <div class="absolute left-2.5 top-2.5 text-slate-400">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @click="fetchLicitaciones(apiPage)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[10px] uppercase tracking-wider px-3 py-2 rounded-lg transition">
+                                                    Refrescar
+                                                </button>
+                                            </div>
+
+                                            {{-- Listado de Licitaciones --}}
+                                            <div class="relative">
+                                                <div x-show="apiLoading" class="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                                                    <div class="animate-spin rounded-full h-5 w-5 border-2 border-guinda-ceaa border-t-transparent"></div>
+                                                </div>
+
+                                                <label class="block font-bold text-slate-500 uppercase tracking-wide mb-1 text-[9px]">Licitaciones disponibles en la página actual</label>
+                                                <select x-model="selectedLicitacionId" class="w-full text-xs rounded-lg border-slate-300 shadow-sm focus:ring focus:ring-guinda-ceaa/20">
+                                                    <option value="">-- Selecciona una licitación --</option>
+                                                    <template x-for="item in filteredLicitaciones()" :key="item.id">
+                                                        <option :value="item.id" x-text="`[${item.numero_expediente}] ${item.titulo.substring(0, 80)}... (${item.ubicacion ? item.ubicacion.municipio : 'N/A'})`"></option>
+                                                    </template>
+                                                </select>
+                                            </div>
+
+                                            {{-- Controles de Paginación --}}
+                                            <div class="flex justify-between items-center text-slate-500 text-[10px] font-bold">
+                                                <span>Página <span x-text="apiPage"></span> de <span x-text="apiTotalPages"></span></span>
+                                                <div class="flex gap-2">
+                                                    <button type="button" @click="if(apiPage > 1) fetchLicitaciones(apiPage - 1)" :disabled="apiPage <= 1"
+                                                            class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-650 px-2.5 py-1 rounded transition disabled:opacity-40">
+                                                        Anterior
+                                                    </button>
+                                                    <button type="button" @click="if(apiPage < apiTotalPages) fetchLicitaciones(apiPage + 1)" :disabled="apiPage >= apiTotalPages"
+                                                            class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-650 px-2.5 py-1 rounded transition disabled:opacity-40">
+                                                        Siguiente
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-2 flex justify-end">
+                                                <button type="button" @click="loadFromSelected()" :disabled="!selectedLicitacionId"
+                                                        class="bg-guinda-ceaa hover:bg-guinda-ceaa/90 text-white font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition shadow disabled:opacity-40">
+                                                    Autocompletar Formulario
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                {{-- PESTAÑA 2: PEGAR JSON --}}
+                                <div x-show="apiSubTab === 'paste'" class="space-y-3">
+                                    <div>
+                                        <label class="block font-bold text-slate-500 uppercase tracking-wide mb-1 text-[9px]">Pegar JSON del expediente de licitación</label>
+                                        <textarea x-model="pastedJsonText" rows="6" 
+                                                  placeholder='Ej. { "numero_expediente": "CEAA-OP-913023990-E88-2026", "titulo": "Rehabilitación de Planta...", ... }'
+                                                  :class="pastedJsonValid === true ? 'border-green-500 focus:ring-green-200' : (pastedJsonValid === false ? 'border-red-500 focus:ring-red-200' : 'border-slate-350 focus:ring-guinda-ceaa/20')"
+                                                  class="w-full text-[11px] font-mono rounded-lg shadow-sm focus:ring focus:outline-none"></textarea>
+                                        <div class="mt-1 flex justify-between items-center text-[10px]">
+                                            <span class="text-slate-400">Puedes pegar una licitación individual o la respuesta completa de la API.</span>
+                                            <span x-show="pastedJsonValid === true" class="text-green-600 font-bold">✓ JSON Válido</span>
+                                            <span x-show="pastedJsonValid === false" class="text-red-600 font-bold">✗ JSON Inválido</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-end pt-1">
+                                        <button type="button" @click="loadFromPasted()"
+                                                class="bg-guinda-ceaa hover:bg-guinda-ceaa/90 text-white font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-lg transition shadow">
+                                            Procesar y Autocompletar
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div>
                                 <label class="block font-bold text-slate-500 uppercase tracking-wide mb-1 text-[10px]">Ejercicio</label>
@@ -1066,6 +1201,21 @@
                 periodo_inicio: '{{ old('periodo_inicio', $isEdit ? $procedimiento->periodo_inicio->format('Y-m-d') : '') }}',
                 periodo_fin: '{{ old('periodo_fin', $isEdit ? $procedimiento->periodo_fin->format('Y-m-d') : '') }}',
 
+                // --- QUICK FILL ASSISTANT STATE ---
+                assistantOpen: {{ !$isEdit ? 'true' : 'false' }},
+                apiTokenSet: {{ config('services.pnt.api_token') ? 'true' : 'false' }},
+                apiSubTab: 'search',
+                apiPage: 1,
+                apiTotalPages: 1,
+                apiLicitaciones: [],
+                apiQuery: '',
+                apiLoading: false,
+                apiError: '',
+                pastedJsonText: '',
+                pastedJsonValid: null,
+                selectedLicitacionId: '',
+                successMsg: '',
+
                 updatePeriodDates() {
                     if (!this.trimestre || !this.ejercicio) {
                         this.periodo_inicio = '';
@@ -1086,6 +1236,173 @@
                         this.periodo_inicio = `${year}-10-01`;
                         this.periodo_fin = `${year}-12-31`;
                     }
+                },
+
+                initAssistant() {
+                    if (this.apiTokenSet && this.apiLicitaciones.length === 0) {
+                        this.fetchLicitaciones(1);
+                    }
+                },
+
+                fetchLicitaciones(page) {
+                    this.apiLoading = true;
+                    this.apiError = '';
+                    fetch(`/pnt/external-licitaciones?page=${page}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('Error al conectar con el servidor.');
+                            return res.json();
+                        })
+                        .then(data => {
+                            this.apiLicitaciones = data.data || [];
+                            this.apiPage = data.meta ? data.meta.current_page : 1;
+                            this.apiTotalPages = data.meta ? data.meta.last_page : 1;
+                        })
+                        .catch(err => {
+                            this.apiError = 'No se pudieron recuperar las licitaciones en este momento.';
+                            console.error(err);
+                        })
+                        .finally(() => {
+                            this.apiLoading = false;
+                        });
+                },
+
+                filteredLicitaciones() {
+                    if (!this.apiQuery) return this.apiLicitaciones;
+                    const q = this.apiQuery.toLowerCase();
+                    return this.apiLicitaciones.filter(item => {
+                        return (item.numero_expediente && item.numero_expediente.toLowerCase().includes(q)) ||
+                               (item.titulo && item.titulo.toLowerCase().includes(q)) ||
+                               (item.descripcion && item.descripcion.toLowerCase().includes(q));
+                    });
+                },
+
+                loadFromSelected() {
+                    if (!this.selectedLicitacionId) return;
+                    const item = this.apiLicitaciones.find(x => x.id == this.selectedLicitacionId);
+                    if (item) {
+                        this.autofill(item);
+                        this.successMsg = `¡Formulario completado con éxito con los datos del expediente ${item.numero_expediente}!`;
+                        setTimeout(() => this.successMsg = '', 5000);
+                    }
+                },
+
+                loadFromPasted() {
+                    this.apiError = '';
+                    this.successMsg = '';
+                    this.pastedJsonValid = null;
+
+                    if (!this.pastedJsonText.trim()) {
+                        this.apiError = 'Por favor, pega un contenido JSON antes de continuar.';
+                        return;
+                    }
+
+                    try {
+                        const parsed = JSON.parse(this.pastedJsonText);
+                        let item = null;
+                        
+                        if (parsed.data && Array.isArray(parsed.data)) {
+                            if (parsed.data.length > 0) {
+                                item = parsed.data[0];
+                            } else {
+                                throw new Error('El campo "data" del JSON está vacío.');
+                            }
+                        } else if (Array.isArray(parsed)) {
+                            if (parsed.length > 0) {
+                                item = parsed[0];
+                            } else {
+                                throw new Error('El arreglo JSON está vacío.');
+                            }
+                        } else {
+                            item = parsed;
+                        }
+
+                        if (item && (item.numero_expediente || item.id)) {
+                            this.autofill(item);
+                            this.pastedJsonValid = true;
+                            this.successMsg = `¡Formulario completado con éxito! Se cargó el expediente: ${item.numero_expediente || 'N/A'}`;
+                            setTimeout(() => this.successMsg = '', 5000);
+                        } else {
+                            throw new Error('El JSON no tiene campos válidos de licitación.');
+                        }
+                    } catch (e) {
+                        this.pastedJsonValid = false;
+                        this.apiError = 'Error al procesar JSON: ' + e.message;
+                    }
+                },
+
+                mapTipoProcedimiento(apiName) {
+                    if (!apiName) return '';
+                    const norm = apiName.toLowerCase();
+                    if (norm.includes('licitacion') || norm.includes('licitación')) {
+                        return 'Licitación pública';
+                    }
+                    if (norm.includes('adjudicacion') || norm.includes('adjudicación')) {
+                        return 'Adjudicación directa';
+                    }
+                    if (norm.includes('tres personas') || norm.includes('3 personas') || norm.includes('invitacion') || norm.includes('invitación')) {
+                        return 'Invitación a cuando menos tres personas';
+                    }
+                    return '';
+                },
+
+                autofill(item) {
+                    // 1. Alpine fields
+                    if (item.fechas && item.fechas.publicacion) {
+                        const year = new Date(item.fechas.publicacion).getFullYear();
+                        this.ejercicio = year;
+                    } else if (item.numero_expediente) {
+                        const parts = item.numero_expediente.split('-');
+                        const lastPart = parts[parts.length - 1];
+                        if (/^\d{4}$/.test(lastPart)) {
+                            this.ejercicio = parseInt(lastPart);
+                        }
+                    }
+
+                    if (item.fechas && item.fechas.publicacion) {
+                        const month = new Date(item.fechas.publicacion).getMonth() + 1;
+                        if (month >= 1 && month <= 3) this.trimestre = '1';
+                        else if (month >= 4 && month <= 6) this.trimestre = '2';
+                        else if (month >= 7 && month <= 9) this.trimestre = '3';
+                        else if (month >= 10 && month <= 12) this.trimestre = '4';
+                        this.updatePeriodDates();
+                    }
+
+                    // 2. DOM fields mapping
+                    const domFields = {
+                        numero_expediente: item.numero_expediente || '',
+                        descripcion_bienes: item.titulo || '',
+                        descripcion_obra: item.descripcion || '',
+                        objeto_contrato: item.descripcion || item.titulo || '',
+                        tipo_procedimiento: this.mapTipoProcedimiento(item.tipo_procedimiento_nombre || item.tipo_procedimiento),
+                        tipo_contratacion: (item.numero_expediente && item.numero_expediente.includes('-OP-')) ? 'Obra pública' : 'Adquisiciones',
+                        caracter_procedimiento: 'Nacional',
+                        declarado_desierto: 'No',
+                        fecha_convocatoria: item.fechas && item.fechas.publicacion ? item.fechas.publicacion.substring(0, 10) : '',
+                        
+                        // Sección 2: Proveedor y contrato
+                        proveedor_ganador_nombre: item.adjudicacion && item.adjudicacion.empresa_ganadora ? item.adjudicacion.empresa_ganadora : '',
+                        monto_contrato_min: item.adjudicacion && item.adjudicacion.monto ? item.adjudicacion.monto : (item.autorizacion && item.autorizacion.monto ? item.autorizacion.monto : ''),
+                        monto_contrato_max: item.adjudicacion && item.adjudicacion.monto ? item.adjudicacion.monto : (item.autorizacion && item.autorizacion.monto ? item.autorizacion.monto : ''),
+                        fecha_inicio_contrato: item.fechas && item.fechas.inicio_obra ? item.fechas.inicio_obra.substring(0, 10) : '',
+                        fecha_fin_contrato: item.fechas && item.fechas.fin_obra ? item.fechas.fin_obra.substring(0, 10) : '',
+                        
+                        // Sección 3: Infraestructura
+                        ejecucion_obra: item.ubicacion ? `${item.ubicacion.municipio}, ${item.ubicacion.localidad}` : '',
+                        lugar_ejecucion: item.ubicacion ? `${item.ubicacion.municipio}, ${item.ubicacion.localidad}` : '',
+                        origen_recursos: item.programa || 'Recursos Estatales',
+                        fuente_financiamiento: item.programa || '',
+                        tipo_fondo: item.programa || '',
+                        justificacion_adjudicacion: item.autorizacion && item.autorizacion.oficio ? `Autorizado mediante oficio de suficiencia presupuestal: ${item.autorizacion.oficio}` : ''
+                    };
+
+                    Object.keys(domFields).forEach(name => {
+                        const el = document.querySelector(`[name="${name}"]`);
+                        if (el) {
+                            el.value = domFields[name];
+                            el.dispatchEvent(new Event('input', { bubbles: true }));
+                            el.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
                 },
 
                 addLicitante() {
