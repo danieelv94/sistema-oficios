@@ -1,9 +1,9 @@
 @php
     $isEdit = isset($procedimiento);
     $canEditSec1 = Auth::user()->canEditPntSection(1);
-    // Sección 2 y 3 solo se pueden llenar una vez que el registro ya existe (captura incremental)
-    $canEditSec2 = $isEdit && Auth::user()->canEditPntSection(2);
-    $canEditSec3 = $isEdit && Auth::user()->canEditPntSection(3);
+    // Sección 2 y 3 se pueden llenar si el usuario tiene los permisos correspondientes (permitiendo llenado completo en creación para admins)
+    $canEditSec2 = Auth::user()->canEditPntSection(2);
+    $canEditSec3 = Auth::user()->canEditPntSection(3);
 @endphp
 
 <x-app-layout>
@@ -53,9 +53,9 @@
                             @click="activeTab = 'sec2'"
                             :class="activeTab === 'sec2' ? 'border-b-4 border-guinda-ceaa bg-slate-50 font-black text-guinda-ceaa' : 'text-slate-500 hover:bg-slate-50/50'"
                             class="flex-1 py-3.5 text-xs font-black uppercase tracking-wider transition border-r border-slate-100 focus:outline-none"
-                            @if(!$isEdit) disabled title="Primero debes guardar el registro base" @endif>
+                            @if(!$isEdit && !$canEditSec2) disabled title="Primero debes guardar el registro base" @endif>
                         Sección 2: Suministros
-                        @if(!$isEdit)
+                        @if(!$isEdit && !$canEditSec2)
                             <span class="text-[9px] text-slate-400 font-bold block normal-case">(Bloqueado)</span>
                         @endif
                     </button>
@@ -63,9 +63,9 @@
                             @click="activeTab = 'sec3'"
                             :class="activeTab === 'sec3' ? 'border-b-4 border-guinda-ceaa bg-slate-50 font-black text-guinda-ceaa' : 'text-slate-500 hover:bg-slate-50/50'"
                             class="flex-1 py-3.5 text-xs font-black uppercase tracking-wider transition focus:outline-none"
-                            @if(!$isEdit) disabled title="Primero debes guardar el registro base" @endif>
+                            @if(!$isEdit && !$canEditSec3) disabled title="Primero debes guardar el registro base" @endif>
                         Sección 3: Infraestructura
-                        @if(!$isEdit)
+                        @if(!$isEdit && !$canEditSec3)
                             <span class="text-[9px] text-slate-400 font-bold block normal-case">(Bloqueado)</span>
                         @endif
                     </button>
@@ -1367,6 +1367,31 @@
                         this.updatePeriodDates();
                     }
 
+                    // Parse empresa_ganadora details if it's an object to prevent [object Object]
+                    let empName = '';
+                    let empRfc = '';
+                    let empDom = '';
+                    if (item.adjudicacion && item.adjudicacion.empresa_ganadora) {
+                        const eg = item.adjudicacion.empresa_ganadora;
+                        if (typeof eg === 'object' && eg !== null) {
+                            empName = eg.razon_social || eg.nombre || eg.nombre_comercial || eg.nombre_completo || '';
+                            empRfc = eg.rfc || '';
+                            if (eg.domicilio) {
+                                if (typeof eg.domicilio === 'object') {
+                                    empDom = eg.domicilio.calle || '';
+                                    if (eg.domicilio.numero_exterior) empDom += ' Ext ' + eg.domicilio.numero_exterior;
+                                    if (eg.domicilio.colonia) empDom += ', Col. ' + eg.domicilio.colonia;
+                                    if (eg.domicilio.municipio) empDom += ', ' + eg.domicilio.municipio;
+                                    if (eg.domicilio.estado) empDom += ', ' + eg.domicilio.estado;
+                                } else {
+                                    empDom = eg.domicilio;
+                                }
+                            }
+                        } else {
+                            empName = eg;
+                        }
+                    }
+
                     // 2. DOM fields mapping
                     const domFields = {
                         numero_expediente: item.numero_expediente || '',
@@ -1380,7 +1405,9 @@
                         fecha_convocatoria: item.fechas && item.fechas.publicacion ? item.fechas.publicacion.substring(0, 10) : '',
                         
                         // Sección 2: Proveedor y contrato
-                        proveedor_ganador_nombre: item.adjudicacion && item.adjudicacion.empresa_ganadora ? item.adjudicacion.empresa_ganadora : '',
+                        proveedor_ganador_nombre: empName,
+                        proveedor_ganador_rfc: empRfc,
+                        proveedor_ganador_domicilio: empDom,
                         monto_contrato_min: item.adjudicacion && item.adjudicacion.monto ? item.adjudicacion.monto : (item.autorizacion && item.autorizacion.monto ? item.autorizacion.monto : ''),
                         monto_contrato_max: item.adjudicacion && item.adjudicacion.monto ? item.adjudicacion.monto : (item.autorizacion && item.autorizacion.monto ? item.autorizacion.monto : ''),
                         fecha_inicio_contrato: item.fechas && item.fechas.inicio_obra ? item.fechas.inicio_obra.substring(0, 10) : '',

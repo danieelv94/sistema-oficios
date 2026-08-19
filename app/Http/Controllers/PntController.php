@@ -73,7 +73,7 @@ class PntController extends Controller
             abort(403, 'Acción no autorizada.');
         }
 
-        $request->validate([
+        $validationRules = [
             'ejercicio' => 'required|integer|min:2000|max:2099',
             'periodo_inicio' => 'required|date',
             'periodo_fin' => 'required|date|after_or_equal:periodo_inicio',
@@ -96,9 +96,54 @@ class PntController extends Controller
             'ganador_fisico_primer_apellido' => 'nullable|string',
             'ganador_fisico_segundo_apellido' => 'nullable|string',
             'ganador_fisico_sexo' => 'nullable|string',
-        ]);
+        ];
 
-        $procedimiento = Procedimiento::create($request->only([
+        $user = Auth::user();
+
+        if ($user->canEditPntSection(2) && $request->has('proveedor_ganador_nombre')) {
+            $validationRules = array_merge($validationRules, [
+                'proveedor_ganador_nombre' => 'required|string',
+                'proveedor_ganador_rfc' => 'required|string',
+                'proveedor_ganador_domicilio' => 'required|string',
+                'monto_contrato_min' => 'required|numeric|min:0',
+                'monto_contrato_max' => 'required|numeric|min:0|gte:monto_contrato_min',
+                'fecha_inicio_contrato' => 'required|date',
+                'fecha_fin_contrato' => 'required|date|after_or_equal:fecha_inicio_contrato',
+                'forma_pago' => 'required|string',
+                'objeto_contrato' => 'required|string',
+                'justificacion_adjudicacion' => 'nullable|string',
+                'fecha_contrato' => 'nullable|date',
+                'tipo_cambio' => 'nullable|numeric|min:0',
+                'monto_garantias' => 'nullable|numeric|min:0',
+                'contrato_url' => 'nullable|url',
+                'comunicado_suspension_url' => 'nullable|url',
+            ]);
+        }
+
+        if ($user->canEditPntSection(3) && $request->has('ejecucion_obra')) {
+            $validationRules = array_merge($validationRules, [
+                'ejecucion_obra' => 'required|string',
+                'origen_recursos' => 'required|string',
+                'fuente_financiamiento' => 'required|string',
+                'lugar_ejecucion' => 'required|string',
+                'etapa_obra' => 'required|string',
+                'observaciones' => 'nullable|string',
+                'tipo_fondo' => 'nullable|string',
+                'descripcion_obra' => 'nullable|string',
+                'impacto_ambiental_url' => 'nullable|url',
+                'observaciones_obra' => 'nullable|string',
+                'mecanismos_vigilancia' => 'nullable|string',
+                'informe_avances_fisicos_url' => 'nullable|url',
+                'informe_avances_financieros_url' => 'nullable|url',
+                'acta_recepcion_url' => 'nullable|url',
+                'finiquito_url' => 'nullable|url',
+                'factura_url' => 'nullable|url',
+            ]);
+        }
+
+        $request->validate($validationRules);
+
+        $data = $request->only([
             'ejercicio', 'periodo_inicio', 'periodo_fin', 'tipo_procedimiento',
             'tipo_contratacion', 'caracter_procedimiento', 'numero_expediente',
             'declarado_desierto', 'fundamentos_legales', 'suficiencia_presupuestal_url',
@@ -106,7 +151,29 @@ class PntController extends Controller
             'fecha_junta_aclaraciones', 'acta_junta_url', 'acta_apertura_url',
             'dictamen_fallo_url', 'acta_fallo_url',
             'ganador_fisico_nombre', 'ganador_fisico_primer_apellido', 'ganador_fisico_segundo_apellido', 'ganador_fisico_sexo'
-        ]));
+        ]);
+
+        if ($user->canEditPntSection(2) && $request->has('proveedor_ganador_nombre')) {
+            $data = array_merge($data, $request->only([
+                'proveedor_ganador_nombre', 'proveedor_ganador_rfc', 'proveedor_ganador_domicilio',
+                'monto_contrato_min', 'monto_contrato_max', 'fecha_inicio_contrato',
+                'fecha_fin_contrato', 'forma_pago', 'objeto_contrato',
+                'justificacion_adjudicacion', 'fecha_contrato', 'tipo_cambio', 'monto_garantias',
+                'contrato_url', 'comunicado_suspension_url'
+            ]));
+        }
+
+        if ($user->canEditPntSection(3) && $request->has('ejecucion_obra')) {
+            $data = array_merge($data, $request->only([
+                'ejecucion_obra', 'origen_recursos', 'fuente_financiamiento',
+                'lugar_ejecucion', 'etapa_obra', 'observaciones',
+                'tipo_fondo', 'descripcion_obra', 'impacto_ambiental_url', 'observaciones_obra',
+                'mecanismos_vigilancia', 'informe_avances_fisicos_url', 'informe_avances_financieros_url',
+                'acta_recepcion_url', 'finiquito_url', 'factura_url'
+            ]));
+        }
+
+        $procedimiento = Procedimiento::create($data);
 
         // Guardar subtablas de la Sección 1
         if ($request->has('licitantes')) {
@@ -137,6 +204,32 @@ class PntController extends Controller
             foreach ($request->input('junta_servidores') as $item) {
                 if (!empty($item['primer_nombre'])) {
                     $procedimiento->juntaServidores()->create($item);
+                }
+            }
+        }
+
+        // Guardar subtablas de la Sección 2
+        if ($user->canEditPntSection(2) && $request->has('beneficiarios')) {
+            foreach ($request->input('beneficiarios') as $item) {
+                if (!empty($item['primer_nombre'])) {
+                    $procedimiento->beneficiarios()->create($item);
+                }
+            }
+        }
+
+        if ($user->canEditPntSection(2) && $request->has('partidas')) {
+            foreach ($request->input('partidas') as $item) {
+                if (!empty($item['numero_partida'])) {
+                    $procedimiento->partidas()->create($item);
+                }
+            }
+        }
+
+        // Guardar subtablas de la Sección 3
+        if ($user->canEditPntSection(3) && $request->has('convenios')) {
+            foreach ($request->input('convenios') as $item) {
+                if (!empty($item['numero_convenio'])) {
+                    $procedimiento->convenios()->create($item);
                 }
             }
         }

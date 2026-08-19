@@ -15,7 +15,7 @@
                         Bandeja de Dirección y Seguimiento
                     </a>
                 @endif
-                @if(Auth::user()->role === 'dg')
+                @if(Auth::user()->role === 'dg' || Auth::user()->id == 326)
                     <a href="{{ route('oficios.seguimiento') }}"
                         class="inline-flex items-center px-4 py-2 bg-gris-oscuro hover:bg-guinda-ceaa border border-transparent rounded-md font-bold text-xs text-white uppercase tracking-widest shadow-md transition">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -679,7 +679,7 @@
                     </div>
                 </div>
 
-                @if($mode == 'recepcion' && Auth::user()->role !== 'dg')
+                @if($mode == 'recepcion' && Auth::user()->role !== 'dg' && Auth::user()->id != 326)
                     {{-- FORMULARIO DE TURNADO CON LISTA DESPLEGABLE --}}
                     <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 border-t-4 border-gris-oscuro"
                         x-data="{ areas: [{id: '', instruccion: '', custom_instruccion: ''}] }">
