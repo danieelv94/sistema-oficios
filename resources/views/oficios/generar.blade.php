@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Turno - {{ $oficio->numero_oficio }}</title>
+    <title>{{ $oficio->tipo_correspondencia === 'Interna' ? 'Turno Interno' : 'Turno Externo' }} - {{ $oficio->numero_oficio }}</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -160,12 +160,14 @@
             <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 7.2cm; height: 1.9cm;">
         </div>
 
-        <p class="font-bold text-guinda-ceaa text-base uppercase mb-1 tracking-wider">Turno Interno</p>
+        <p class="font-bold text-guinda-ceaa text-base uppercase mb-1 tracking-wider">
+            {{ $oficio->tipo_correspondencia === 'Interna' ? 'Turno Interno' : 'Turno Externo' }}
+        </p>
 
         <div class="text-right mb-3">
             <p class="text-[10px] text-gray-500 uppercase font-semibold">Fecha de impresión</p>
             <p class="font-bold text-xs text-gray-800">{{ now()->format('d/m/Y') }}</p>
-            <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">No. Oficio Interno</p>
+            <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">No. Oficio</p>
             <p class="font-bold text-sm text-gray-900">{{ $oficio->numero_oficio }}</p>
             @if($turnosParaImprimir->count() === 1 && $turnosParaImprimir->first()->pivot->folio_interno)
                 <p class="text-[10px] text-gray-500 uppercase font-semibold mt-0.5">Folio del Turno</p>

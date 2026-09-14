@@ -140,7 +140,7 @@
                                         <div class="space-y-3">
                                             <div class="flex items-center gap-3">
                                                 <div class="relative flex-1">
-                                                    <input type="text" x-model="apiQuery" placeholder="Buscar por expediente, título o municipio..." 
+                                                    <input type="text" x-model.debounce.500ms="apiQuery" placeholder="Buscar por expediente, título o municipio..." 
                                                            class="w-full text-xs rounded-lg border-slate-350 shadow-sm focus:ring focus:ring-guinda-ceaa/20 pl-8">
                                                     <div class="absolute left-2.5 top-2.5 text-slate-400">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1238,6 +1238,13 @@
                     }
                 },
 
+                init() {
+                    // Watch apiQuery for debounced live search querying the entire API
+                    this.$watch('apiQuery', (value) => {
+                        this.fetchLicitaciones(1);
+                    });
+                },
+
                 initAssistant() {
                     if (this.apiTokenSet && this.apiLicitaciones.length === 0) {
                         this.fetchLicitaciones(1);
@@ -1247,7 +1254,8 @@
                 fetchLicitaciones(page) {
                     this.apiLoading = true;
                     this.apiError = '';
-                    fetch(`/pnt/external-licitaciones?page=${page}`)
+                    const searchParam = this.apiQuery ? `&buscar=${encodeURIComponent(this.apiQuery)}` : '';
+                    fetch(`/pnt/external-licitaciones?page=${page}${searchParam}`)
                         .then(res => {
                             if (!res.ok) throw new Error('Error al conectar con el servidor.');
                             return res.json();
@@ -1267,13 +1275,7 @@
                 },
 
                 filteredLicitaciones() {
-                    if (!this.apiQuery) return this.apiLicitaciones;
-                    const q = this.apiQuery.toLowerCase();
-                    return this.apiLicitaciones.filter(item => {
-                        return (item.numero_expediente && item.numero_expediente.toLowerCase().includes(q)) ||
-                               (item.titulo && item.titulo.toLowerCase().includes(q)) ||
-                               (item.descripcion && item.descripcion.toLowerCase().includes(q));
-                    });
+                    return this.apiLicitaciones;
                 },
 
                 loadFromSelected() {

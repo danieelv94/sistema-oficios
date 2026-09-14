@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SubareaSeeder::class,
             VehiculoSeeder::class,
             ProyectoUnidadSeeder::class,
+            PntSeeder::class,
         ]);
     }
 }

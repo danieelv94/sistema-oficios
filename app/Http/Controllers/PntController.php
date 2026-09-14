@@ -18,14 +18,21 @@ class PntController extends Controller
         $url = config('services.pnt.api_url');
         $token = config('services.pnt.api_token');
         $page = $request->query('page', 1);
+        $buscar = $request->query('buscar');
 
         try {
+            $params = [
+                'page' => $page
+            ];
+
+            if (!empty($buscar)) {
+                $params['buscar'] = $buscar;
+            }
+
             $response = Http::withHeaders([
                 'Accept' => 'application/json',
                 'Authorization' => $token ? 'Bearer ' . $token : null
-            ])->get($url, [
-                'page' => $page
-            ]);
+            ])->get($url, $params);
 
             if ($response->successful()) {
                 return response()->json($response->json());
@@ -102,15 +109,15 @@ class PntController extends Controller
 
         if ($user->canEditPntSection(2) && $request->has('proveedor_ganador_nombre')) {
             $validationRules = array_merge($validationRules, [
-                'proveedor_ganador_nombre' => 'required|string',
-                'proveedor_ganador_rfc' => 'required|string',
-                'proveedor_ganador_domicilio' => 'required|string',
-                'monto_contrato_min' => 'required|numeric|min:0',
-                'monto_contrato_max' => 'required|numeric|min:0|gte:monto_contrato_min',
-                'fecha_inicio_contrato' => 'required|date',
-                'fecha_fin_contrato' => 'required|date|after_or_equal:fecha_inicio_contrato',
-                'forma_pago' => 'required|string',
-                'objeto_contrato' => 'required|string',
+                'proveedor_ganador_nombre' => 'nullable|string',
+                'proveedor_ganador_rfc' => 'nullable|string',
+                'proveedor_ganador_domicilio' => 'nullable|string',
+                'monto_contrato_min' => 'nullable|numeric|min:0',
+                'monto_contrato_max' => 'nullable|numeric|min:0|gte:monto_contrato_min',
+                'fecha_inicio_contrato' => 'nullable|date',
+                'fecha_fin_contrato' => 'nullable|date|after_or_equal:fecha_inicio_contrato',
+                'forma_pago' => 'nullable|string',
+                'objeto_contrato' => 'nullable|string',
                 'justificacion_adjudicacion' => 'nullable|string',
                 'fecha_contrato' => 'nullable|date',
                 'tipo_cambio' => 'nullable|numeric|min:0',
@@ -122,11 +129,11 @@ class PntController extends Controller
 
         if ($user->canEditPntSection(3) && $request->has('ejecucion_obra')) {
             $validationRules = array_merge($validationRules, [
-                'ejecucion_obra' => 'required|string',
-                'origen_recursos' => 'required|string',
-                'fuente_financiamiento' => 'required|string',
-                'lugar_ejecucion' => 'required|string',
-                'etapa_obra' => 'required|string',
+                'ejecucion_obra' => 'nullable|string',
+                'origen_recursos' => 'nullable|string',
+                'fuente_financiamiento' => 'nullable|string',
+                'lugar_ejecucion' => 'nullable|string',
+                'etapa_obra' => 'nullable|string',
                 'observaciones' => 'nullable|string',
                 'tipo_fondo' => 'nullable|string',
                 'descripcion_obra' => 'nullable|string',
@@ -464,7 +471,7 @@ class PntController extends Controller
             // 1. Escribir en la hoja principal: Reporte de Formatos (Datos generales)
             $sheetMain = $spreadsheet->getSheetByName('Reporte de Formatos');
             if ($sheetMain) {
-                $row = 9; // Primera fila disponible para datos
+                $row = 8; // Primera fila disponible para datos
                 foreach ($procedimientos as $p) {
                     // SECCIÓN 1: Licitaciones
                     $sheetMain->setCellValue("A{$row}", $p->ejercicio);
