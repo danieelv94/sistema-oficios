@@ -122,9 +122,9 @@
 <body>
 
     <div class="max-w-[21.59cm] mx-auto pt-8 text-right no-print">
-        <a href="{{ route('comisiones.index') }}"
+        <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('comisiones.index') }}"
             class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-sans text-sm inline-flex items-center">
-            &larr; Volver al Listado
+            &larr; Volver
         </a>
         @if($comision->status !== 'Cancelado' || Auth::user()->role == 'admin')
              <button onclick="window.print()"

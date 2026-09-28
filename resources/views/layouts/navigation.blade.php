@@ -1,4 +1,4 @@
-<nav x-data="{ openDropdownAvisos: false, openUserMenu: false, openMobileSidebar: false }" class="no-print">
+<nav x-data="{ openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
     <!-- TOP NAVBAR -->
     <div
         class="fixed top-0 right-0 left-0 h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-40 shadow-sm">
@@ -114,30 +114,61 @@
                         <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Internos</span>
                     </a>
                 @endif
-                <!-- Link: Oficios Comisión -->
-                <a href="{{ route('comisiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'bg-guinda-ceaa text-white' : '' }}">
-                    <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white' : '' }}"
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                    <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Comisión</span>
-                </a>
-
                 @php
-                    $isRHUser = Auth::user()->subarea && (Auth::user()->subarea->prefijo === 'SRH' || strpos(strtolower(Auth::user()->subarea->name), 'recursos humanos') !== false);
+                    $isRHUser = Auth::user()->isRecursosHumanos();
+                    $hasExtraComisionPerms = Auth::user()->canViewAllComisiones() || (Auth::user()->role === 'admin' || $isRHUser);
                 @endphp
-                @if(Auth::user()->role === 'admin' || $isRHUser)
-                    <!-- Link: Acuses Comisión (RH) -->
-                    <a href="{{ route('comisiones.recursos_humanos') }}"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.recursos_humanos') ? 'bg-guinda-ceaa text-white' : '' }}">
-                        <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white' : '' }}"
+
+                @if($hasExtraComisionPerms)
+                    <!-- Dropdown: Comisión -->
+                    <div class="space-y-1">
+                        <button @click="openDropdownComisiones = !openDropdownComisiones"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition text-left group {{ request()->routeIs('comisiones.*') ? 'bg-gray-800/60 text-white' : '' }}">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.*') ? 'text-white' : '' }}"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                </svg>
+                                <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Comisión</span>
+                            </div>
+                            <svg x-show="openSidebar" :class="openDropdownComisiones ? 'transform rotate-180' : ''"
+                                class="w-4 h-4 transition-transform text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="openDropdownComisiones && openSidebar" x-transition
+                            class="pl-11 space-y-1 bg-gray-950 rounded-md py-1">
+                            <a href="{{ route('comisiones.index') }}"
+                                class="block py-2 text-xs font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white font-bold' : '' }}">
+                                Oficios Comisión
+                            </a>
+                            @if(Auth::user()->canViewAllComisiones())
+                                <a href="{{ route('comisiones.general') }}"
+                                    class="block py-2 text-xs font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.general') ? 'text-white font-bold' : '' }}">
+                                    Todas las Comisiones
+                                </a>
+                            @endif
+                            @if(Auth::user()->role === 'admin' || $isRHUser)
+                                <a href="{{ route('comisiones.recursos_humanos') }}"
+                                    class="block py-2 text-xs font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white font-bold' : '' }}">
+                                    Acuses Comisión (RH)
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @else
+                    <!-- Link Directo: Oficios Comisión (Sin permisos extra) -->
+                    <a href="{{ route('comisiones.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-800 hover:text-white transition group {{ request()->routeIs('comisiones.*') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-white {{ request()->routeIs('comisiones.*') ? 'text-white' : '' }}"
                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Acuses Comisión (RH)</span>
+                        <span x-show="openSidebar" class="text-sm font-medium tracking-wide">Oficios Comisión</span>
                     </a>
                 @endif
 
@@ -263,25 +294,42 @@
                     </a>
                 @endif
 
-                <!-- Enlace: Oficios Comisión (Mismo Icono SVG) -->
-                <a href="{{ route('comisiones.index') }}"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                    <span>Oficios Comisión</span>
-                </a>
-
-                @if(Auth::user()->role === 'admin' || $isRHUser)
-                    <!-- Enlace: Acuses Comisión (RH) -->
-                    <a href="{{ route('comisiones.recursos_humanos') }}"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition {{ request()->routeIs('comisiones.recursos_humanos') ? 'bg-guinda-ceaa text-white' : '' }}">
-                        <svg class="w-5 h-5 text-gray-400 {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if($hasExtraComisionPerms)
+                    <!-- Sección Agrupada: Comisión (Móvil) -->
+                    <div class="border-t border-gray-800 pt-2 mt-2">
+                        <div class="flex items-center gap-3 px-3 py-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                            <span>Módulo Comisión</span>
+                        </div>
+                        <a href="{{ route('comisiones.index') }}"
+                            class="block pl-10 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white font-bold bg-guinda-ceaa' : '' }}">
+                            Oficios Comisión
+                        </a>
+                        @if(Auth::user()->canViewAllComisiones())
+                            <a href="{{ route('comisiones.general') }}"
+                                class="block pl-10 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.general') ? 'text-white font-bold bg-guinda-ceaa' : '' }}">
+                                Todas las Comisiones
+                            </a>
+                        @endif
+                        @if(Auth::user()->role === 'admin' || $isRHUser)
+                            <a href="{{ route('comisiones.recursos_humanos') }}"
+                                class="block pl-10 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-white transition {{ request()->routeIs('comisiones.recursos_humanos') ? 'text-white font-bold bg-guinda-ceaa' : '' }}">
+                                Acuses Comisión (RH)
+                            </a>
+                        @endif
+                    </div>
+                @else
+                    <!-- Enlace Directo: Oficios Comisión (Móvil) -->
+                    <a href="{{ route('comisiones.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition {{ request()->routeIs('comisiones.*') ? 'bg-guinda-ceaa text-white' : '' }}">
+                        <svg class="w-5 h-5 text-gray-400 {{ request()->routeIs('comisiones.*') ? 'text-white' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span>Acuses Comisión (RH)</span>
+                        <span>Oficios Comisión</span>
                     </a>
                 @endif
 

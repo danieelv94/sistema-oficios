@@ -6,6 +6,7 @@ use App\Models\Comision;
 use App\Models\Proyecto;
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Models\Area;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -117,8 +118,7 @@ class ComisionController extends Controller
     public function recursosHumanosIndex(Request $request)
     {
         $user = Auth::user();
-        $isRH = $user->subarea && ($user->subarea->prefijo === 'SRH' || strpos(strtolower($user->subarea->name), 'recursos humanos') !== false);
-        if ($user->role !== 'admin' && !$isRH) {
+        if ($user->role !== 'admin' && !$user->isRecursosHumanos()) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -156,8 +156,7 @@ class ComisionController extends Controller
     public function toggleAcuse(Request $request, Comision $comision)
     {
         $user = Auth::user();
-        $isRH = $user->subarea && ($user->subarea->prefijo === 'SRH' || strpos(strtolower($user->subarea->name), 'recursos humanos') !== false);
-        if ($user->role !== 'admin' && !$isRH) {
+        if ($user->role !== 'admin' && !$user->isRecursosHumanos()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'No autorizado'], 403);
             }
@@ -185,5 +184,125 @@ class ComisionController extends Controller
         }
 
         return back()->with('success', 'Estatus del acuse actualizado.');
+    }
+
+    /**
+     * Vista general con todas las comisiones para el usuario ID 246 y Administradores.
+     */
+    public function generalIndex(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->canViewAllComisiones()) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        $query = Comision::with([
+            'user' => function ($q) {
+                $q->withTrashed();
+            },
+            'user.area',
+            'user.subarea',
+            'vehiculo',
+            'proyecto'
+        ]);
+
+        // Filtro por texto de búsqueda (No. oficio, comisionado, actividad, lugar, días)
+        if ($request->filled('search')) {
+            $terms = array_map('trim', explode(',', $request->search));
+
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    if (empty($term)) continue;
+                    $q->orWhere(function ($sub) use ($term) {
+                        $sub->where('oficio_numero', 'like', "%{$term}%")
+                            ->orWhere('actividad', 'like', "%{$term}%")
+                            ->orWhere('lugar', 'like', "%{$term}%")
+                            ->orWhere('dias_comision', 'like', "%{$term}%")
+                            ->orWhereHas('user', function ($u) use ($term) {
+                                $u->withTrashed()
+                                  ->where('name', 'like', "%{$term}%")
+                                  ->orWhere('prof', 'like', "%{$term}%");
+                            });
+                    });
+                }
+            });
+        }
+
+        // Filtro por Área / Dirección
+        if ($request->filled('area_id') && $request->area_id !== 'todas') {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->withTrashed()->where('area_id', $request->area_id);
+            });
+        }
+
+        // Filtro por Estatus (Autorizado / Cancelado)
+        if ($request->filled('status') && $request->status !== 'todos') {
+            if ($request->status === 'Cancelado') {
+                $query->where('status', 'Cancelado');
+            } elseif ($request->status === 'Autorizado') {
+                $query->where(function ($q) {
+                    $q->where('status', '!=', 'Cancelado')
+                      ->orWhereNull('status');
+                });
+            }
+        }
+
+        // Filtro por Entrega de Acuse (Pendientes / Entregados)
+        if ($request->filled('acuse') && $request->acuse !== 'todos') {
+            if ($request->acuse === 'Entregados') {
+                $query->where('entregado_acuse', true);
+            } elseif ($request->acuse === 'Pendientes') {
+                $query->where('entregado_acuse', false);
+            }
+        }
+
+        // Filtro por Año
+        if ($request->filled('anio') && $request->anio !== 'todos') {
+            $query->where('anio', $request->anio);
+        }
+
+        // Filtro por Fechas
+        if ($request->filled('fecha_desde')) {
+            $query->whereDate('created_at', '>=', $request->fecha_desde);
+        }
+        if ($request->filled('fecha_hasta')) {
+            $query->whereDate('created_at', '<=', $request->fecha_hasta);
+        }
+
+        // Resumen estadístico
+        $totalComisiones = Comision::count();
+        $totalAutorizadas = Comision::where(function ($q) {
+            $q->where('status', '!=', 'Cancelado')->orWhereNull('status');
+        })->count();
+        $totalCanceladas = Comision::where('status', 'Cancelado')->count();
+        $totalAcusesEntregados = Comision::where('entregado_acuse', true)->count();
+        $totalAcusesPendientes = Comision::where('entregado_acuse', false)->count();
+
+        // Años disponibles
+        $aniosDisponibles = Comision::select('anio')
+            ->distinct()
+            ->whereNotNull('anio')
+            ->orderBy('anio', 'desc')
+            ->pluck('anio');
+
+        if ($aniosDisponibles->isEmpty()) {
+            $aniosDisponibles = collect([now()->year]);
+        }
+
+        $areas = Area::orderBy('name')->get();
+        $perPage = $request->input('per_page', 15);
+        $comisiones = $query->latest()->paginate($perPage);
+
+        return view('comisiones.general', compact(
+            'comisiones',
+            'areas',
+            'totalComisiones',
+            'totalAutorizadas',
+            'totalCanceladas',
+            'totalAcusesEntregados',
+            'totalAcusesPendientes',
+            'aniosDisponibles'
+        ));
     }
 }

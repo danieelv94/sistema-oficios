@@ -114,4 +114,28 @@ class User extends Authenticatable
 
         return false;
     }
+
+    /**
+     * Determina si el usuario pertenece a Recursos Humanos.
+     */
+    public function isRecursosHumanos(): bool
+    {
+        if ($this->subarea && ($this->subarea->prefijo === 'SRH' || strpos(strtolower($this->subarea->name), 'recursos humanos') !== false)) {
+            return true;
+        }
+
+        if ($this->area && strpos(strtolower($this->area->name), 'recursos humanos') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Determina si el usuario puede ver el apartado general con todas las comisiones.
+     */
+    public function canViewAllComisiones(): bool
+    {
+        return $this->id == 246 || $this->role === 'admin' || $this->isRecursosHumanos();
+    }
 }
