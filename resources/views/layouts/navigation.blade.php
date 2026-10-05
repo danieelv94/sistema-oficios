@@ -1,4 +1,4 @@
-<nav x-data="{ openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
+<nav x-data="{ openDropdownOficios: {{ request()->routeIs('oficios.*') ? 'true' : 'false' }}, openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
     <!-- TOP NAVBAR -->
     <div
         class="fixed top-0 right-0 left-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 shadow-xs transition-all">
@@ -136,18 +136,56 @@
                     <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Inicio</span>
                 </a>
 
-                <!-- Link: Correspondencia Interna -->
+                <!-- Dropdown: Oficios (Internos y Externos) -->
                 @if(Auth::user()->area_id || Auth::user()->role == 'admin')
-                    <a href="{{ route('oficios.internos.index') }}"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition duration-150 group {{ request()->routeIs('oficios.internos.*') ? 'bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover text-white font-bold shadow-sm' : 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}"
-                        title="Oficios Internos">
-                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('oficios.internos.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Oficios Internos</span>
-                    </a>
+                    <div class="space-y-1">
+                        <button @click="openDropdownOficios = !openDropdownOficios"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition text-left group {{ request()->routeIs('oficios.*') ? 'bg-slate-800/80 text-white' : 'text-slate-300' }}"
+                            title="Oficios">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('oficios.*') ? 'text-guinda-ceaa' : 'text-slate-400 group-hover:text-white' }}"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Oficios</span>
+                            </div>
+                            <svg x-show="openSidebar" :class="openDropdownOficios ? 'transform rotate-180' : ''"
+                                class="w-4 h-4 transition-transform text-slate-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="openDropdownOficios && openSidebar" x-transition
+                            class="ml-4 pl-4 border-l-2 border-slate-700/60 space-y-1 py-1">
+                            <a href="{{ route('oficios.internos.index') }}"
+                                class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('oficios.internos.*') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
+                                Oficios Internos
+                            </a>
+
+                            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
+                                <a href="{{ route('oficios.index') }}"
+                                    class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ (request()->routeIs('oficios.index') || request()->routeIs('oficios.create') || (request()->routeIs('oficios.show') && request('mode') !== 'gestion' && request('mode') !== 'operativo')) ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
+                                    Oficios Externos
+                                </a>
+                            @endif
+
+                            @if((Auth::user()->area_id && !in_array(Auth::user()->role, ['recepcionista', 'correspondencia'])) || Auth::user()->role == 'admin')
+                                <a href="{{ route('oficios.gestion') }}"
+                                    class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('oficios.gestion') || request()->routeIs('oficios.atender') || (request()->routeIs('oficios.show') && in_array(request('mode'), ['gestion', 'operativo'])) ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
+                                    Gestión de Turnos
+                                </a>
+                            @endif
+
+                            @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || Auth::user()->role == 'dg' || Auth::user()->id == 326 || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
+                                <a href="{{ route('oficios.seguimiento') }}"
+                                    class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('oficios.seguimiento') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
+                                    Seguimiento General
+                                </a>
+                            @endif
+                        </div>
+                    </div>
                 @endif
 
                 @php
@@ -329,16 +367,39 @@
                     <span>Inicio</span>
                 </a>
 
-                <!-- Enlace: Correspondencia Interna -->
+                <!-- Sección Agrupada: Oficios (Móvil) -->
                 @if(Auth::user()->area_id || Auth::user()->role == 'admin')
-                    <a href="{{ route('oficios.internos.index') }}"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('oficios.internos.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>Oficios Internos</span>
-                    </a>
+                    <div class="border-t border-slate-800/80 pt-2 mt-2">
+                        <div class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Oficios</span>
+                        </div>
+                        <a href="{{ route('oficios.internos.index') }}"
+                            class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('oficios.internos.*') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">
+                            Oficios Internos
+                        </a>
+                        @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
+                            <a href="{{ route('oficios.index') }}"
+                                class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('oficios.index') || request()->routeIs('oficios.create') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">
+                                Oficios Externos
+                            </a>
+                        @endif
+                        @if((Auth::user()->area_id && !in_array(Auth::user()->role, ['recepcionista', 'correspondencia'])) || Auth::user()->role == 'admin')
+                            <a href="{{ route('oficios.gestion') }}"
+                                class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('oficios.gestion') || request()->routeIs('oficios.atender') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">
+                                Gestión de Turnos
+                            </a>
+                        @endif
+                        @if(Auth::user()->role == 'admin' || Auth::user()->role == 'correspondencia' || Auth::user()->role == 'dg' || Auth::user()->id == 326 || (Auth::user()->role == 'jefe_area' && Auth::user()->area_id == 2))
+                            <a href="{{ route('oficios.seguimiento') }}"
+                                class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('oficios.seguimiento') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">
+                                Seguimiento General
+                            </a>
+                        @endif
+                    </div>
                 @endif
 
                 @if($hasExtraComisionPerms)

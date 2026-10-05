@@ -12,16 +12,113 @@ use Illuminate\Support\Facades\Log;
 
 class OficioController extends Controller
 {
-    // 1. Este método SOLO carga el Dashboard (Métricas)
+    // 1. Este método carga el Dashboard con métricas de tareas turnadas y pendientes (Externos e Internos)
     public function principal()
     {
         $user = Auth::user();
         $totalOficios = Oficio::count();
-        $pendientesArea = DB::table('area_oficio')->whereNull('user_id')->count();
-        $misTareas = DB::table('area_oficio')->where('user_id', $user->id)->count();
 
-        // No enviamos $oficios aquí, porque el Dashboard no necesita esa tabla
-        return view('principal', compact('totalOficios', 'pendientesArea', 'misTareas'));
+        // Query base de turnos/tareas asignadas al usuario (Externos e Internos)
+        $queryTurnos = Oficio::query();
+
+        if ($user->role === 'admin' && !$user->area_id) {
+            $misTareas = DB::table('area_oficio')->where('estatus', '!=', 'Cancelado')->count();
+            $misTareasPendientes = DB::table('area_oficio')->whereNotIn('estatus', ['Solventado', 'Cancelado'])->count();
+            $pendientesArea = $misTareasPendientes;
+            $queryPendientes = Oficio::whereHas('areas', function ($q) {
+                $q->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+            });
+        } elseif ($user->area_id) {
+            $queryTurnos->whereHas('areas', function ($query) use ($user) {
+                $query->where('area_id', $user->area_id);
+
+                if ($user->role === 'subdirector') {
+                    $query->where(function ($q) use ($user) {
+                        $q->whereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.subarea_id', $user->subarea_id);
+                        })
+                            ->orWhere('area_oficio.user_id', $user->id)
+                            ->orWhereExists(function ($subQ) use ($user) {
+                                $subQ->select(DB::raw(1))
+                                    ->from('users')
+                                    ->whereColumn('users.id', 'area_oficio.user_id')
+                                    ->where('users.subarea_id', $user->subarea_id);
+                            });
+                    });
+                } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                    $query->where(function ($q) use ($user) {
+                        $q->whereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.user_id', $user->id);
+                        })
+                            ->orWhere('area_oficio.user_id', $user->id);
+                    });
+                }
+            });
+
+            // Total de oficios turnados en el alcance del usuario (Internos y Externos)
+            $misTareas = (clone $queryTurnos)->count();
+
+            // Total de oficios pendientes (no solventados) en el alcance del usuario (Internos y Externos)
+            $queryPendientes = (clone $queryTurnos)->whereHas('areas', function ($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+                if ($user->role === 'subdirector') {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                        });
+                    });
+                } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.user_id', $user->id)
+                                ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                        });
+                    });
+                } else {
+                    $q->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                }
+            });
+
+            $misTareasPendientes = (clone $queryPendientes)->count();
+            $pendientesArea = DB::table('area_oficio')
+                ->where('area_id', $user->area_id)
+                ->whereNotIn('estatus', ['Solventado', 'Cancelado'])
+                ->count();
+        } else {
+            $misTareas = 0;
+            $misTareasPendientes = 0;
+            $pendientesArea = 0;
+            $queryPendientes = Oficio::whereRaw('1 = 0');
+        }
+
+        // Obtener las 10 tareas pendientes más recientes (Internas y Externas)
+        $ultimasTareasPendientes = collect();
+        if ($user->area_id && $misTareasPendientes > 0) {
+            $ultimasTareasPendientes = (clone $queryPendientes)->with(['areas' => function($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+            }, 'areaOrigen'])->latest()->take(10)->get();
+        }
+
+        return view('principal', compact('totalOficios', 'pendientesArea', 'misTareas', 'misTareasPendientes', 'ultimasTareasPendientes'));
     }
 
     // 2. Este método carga la tabla de correspondencia recibida (Entrada de Correspondencia)
@@ -860,9 +957,8 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        // Si es administrador o rol de gestión del área, ve todos los turnos del área.
-        // Si es operativo o subdirector, se filtra según la asignación a su subárea o personal.
-        $query = Oficio::where('tipo_correspondencia', '!=', 'Interna')->whereHas('areas', function ($query) use ($user) {
+        // Base query con ámbito del usuario
+        $baseQuery = Oficio::where('tipo_correspondencia', '!=', 'Interna')->whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
 
             if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
@@ -893,6 +989,173 @@ class OficioController extends Controller
                 });
             }
         });
+
+        // Contadores para pestañas
+        $totalTurnadosCount = (clone $baseQuery)->count();
+
+        $pendientesCount = (clone $baseQuery)->whereHas('areas', function ($q) use ($user) {
+            $q->where('area_id', $user->area_id);
+            if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+                $q->where(function ($subQ) use ($user) {
+                    $subQ->whereExists(function ($existsQ) use ($user) {
+                        $existsQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                            ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                    })->orWhere(function ($directQ) use ($user) {
+                        $directQ->where('area_oficio.user_id', $user->id)
+                            ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                    });
+                });
+            } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                $q->where(function ($subQ) use ($user) {
+                    $subQ->whereExists(function ($existsQ) use ($user) {
+                        $existsQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.user_id', $user->id)
+                            ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                    })->orWhere(function ($directQ) use ($user) {
+                        $directQ->where('area_oficio.user_id', $user->id)
+                            ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                    });
+                });
+            } else {
+                $q->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+            }
+        })->count();
+
+        $solventadosCount = (clone $baseQuery)->whereHas('areas', function ($q) use ($user) {
+            $q->where('area_id', $user->area_id);
+            if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+                $q->where(function ($subQ) use ($user) {
+                    $subQ->whereExists(function ($existsQ) use ($user) {
+                        $existsQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                            ->where('subarea_oficio.estatus', 'Solventado');
+                    })->orWhere(function ($directQ) use ($user) {
+                        $directQ->where('area_oficio.user_id', $user->id)
+                            ->where('area_oficio.estatus', 'Solventado');
+                    });
+                });
+            } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                $q->where(function ($subQ) use ($user) {
+                    $subQ->whereExists(function ($existsQ) use ($user) {
+                        $existsQ->select(DB::raw(1))
+                            ->from('subarea_oficio')
+                            ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                            ->where('subarea_oficio.user_id', $user->id)
+                            ->where('subarea_oficio.estatus', 'Solventado');
+                    })->orWhere(function ($directQ) use ($user) {
+                        $directQ->where('area_oficio.user_id', $user->id)
+                            ->where('area_oficio.estatus', 'Solventado');
+                    });
+                });
+            } else {
+                $q->where('area_oficio.estatus', 'Solventado');
+            }
+        })->count();
+
+        $misTurnosCount = (clone $baseQuery)->whereHas('areas', function ($q) use ($user) {
+            $q->where('area_id', $user->area_id)
+              ->where(function ($subQ) use ($user) {
+                  $subQ->where('area_oficio.user_id', $user->id)
+                       ->orWhereExists(function ($existsQ) use ($user) {
+                           $existsQ->select(DB::raw(1))
+                               ->from('subarea_oficio')
+                               ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                               ->where('subarea_oficio.user_id', $user->id);
+                       });
+              });
+        })->count();
+
+        // Aplicar filtro si se solicita
+        $query = clone $baseQuery;
+        $filtro = $request->input('filtro', 'todos');
+
+        if ($filtro === 'pendientes') {
+            $query->whereHas('areas', function ($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+                if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                        });
+                    });
+                } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.user_id', $user->id)
+                                ->where('subarea_oficio.estatus', '!=', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                        });
+                    });
+                } else {
+                    $q->whereNotIn('area_oficio.estatus', ['Solventado', 'Cancelado']);
+                }
+            });
+        } elseif ($filtro === 'solventados') {
+            $query->whereHas('areas', function ($q) use ($user) {
+                $q->where('area_id', $user->area_id);
+                if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.subarea_id', $user->subarea_id)
+                                ->where('subarea_oficio.estatus', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->where('area_oficio.estatus', 'Solventado');
+                        });
+                    });
+                } elseif (!in_array($user->role, ['admin', 'jefe_area', 'secretaria_area'])) {
+                    $q->where(function ($subQ) use ($user) {
+                        $subQ->whereExists(function ($existsQ) use ($user) {
+                            $existsQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where('subarea_oficio.user_id', $user->id)
+                                ->where('subarea_oficio.estatus', 'Solventado');
+                        })->orWhere(function ($directQ) use ($user) {
+                            $directQ->where('area_oficio.user_id', $user->id)
+                                ->where('area_oficio.estatus', 'Solventado');
+                        });
+                    });
+                } else {
+                    $q->where('area_oficio.estatus', 'Solventado');
+                }
+            });
+        } elseif ($filtro === 'mis_turnos') {
+            $query->whereHas('areas', function ($q) use ($user) {
+                $q->where('area_id', $user->area_id)
+                  ->where(function ($subQ) use ($user) {
+                      $subQ->where('area_oficio.user_id', $user->id)
+                           ->orWhereExists(function ($existsQ) use ($user) {
+                               $existsQ->select(DB::raw(1))
+                                   ->from('subarea_oficio')
+                                   ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                   ->where('subarea_oficio.user_id', $user->id);
+                           });
+                  });
+            });
+        }
 
         // Búsqueda en la bandeja de gestión de turnos del área
         if ($request->filled('search')) {
@@ -925,7 +1188,7 @@ class OficioController extends Controller
 
         $oficiosTurnados = $query->latest()->paginate(10);
 
-        return view('oficios.gestion', compact('oficiosTurnados'));
+        return view('oficios.gestion', compact('oficiosTurnados', 'totalTurnadosCount', 'pendientesCount', 'solventadosCount', 'misTurnosCount'));
     }
 
     public function reporteDiario(Request $request)

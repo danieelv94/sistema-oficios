@@ -18,8 +18,60 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- Buscador y Filtros en Bandeja de Gestión --}}
-            <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-5">
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-5 space-y-4">
+                {{-- Pestañas de Filtro Rápido por Estatus / Tareas --}}
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-100">
+                    <a href="{{ route('oficios.gestion', array_merge(request()->except('page', 'filtro'), ['filtro' => 'todos'])) }}"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 whitespace-nowrap {{ request('filtro', 'todos') === 'todos' ? 'bg-slate-800 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                        <span>Todos los Turnados</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request('filtro', 'todos') === 'todos' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700' }}">
+                            {{ $totalTurnadosCount ?? 0 }}
+                        </span>
+                    </a>
+
+                    <a href="{{ route('oficios.gestion', array_merge(request()->except('page', 'filtro'), ['filtro' => 'pendientes'])) }}"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 whitespace-nowrap {{ request('filtro') === 'pendientes' ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-amber-50/60 border border-slate-200/80' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Pendientes de Atención</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request('filtro') === 'pendientes' ? 'bg-white/20 text-white' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                            {{ $pendientesCount ?? 0 }}
+                        </span>
+                    </a>
+
+                    <a href="{{ route('oficios.gestion', array_merge(request()->except('page', 'filtro'), ['filtro' => 'solventados'])) }}"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 whitespace-nowrap {{ request('filtro') === 'solventados' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-emerald-50/60 border border-slate-200/80' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Solventados / Atendidos</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request('filtro') === 'solventados' ? 'bg-white/20 text-white' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
+                            {{ $solventadosCount ?? 0 }}
+                        </span>
+                    </a>
+
+                    @if(in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area', 'subdirector']))
+                        <a href="{{ route('oficios.gestion', array_merge(request()->except('page', 'filtro'), ['filtro' => 'mis_turnos'])) }}"
+                            class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 whitespace-nowrap {{ request('filtro') === 'mis_turnos' ? 'bg-guinda-ceaa text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-guinda-ceaa/5 border border-slate-200/80' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>Mis Tareas Directas</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ request('filtro') === 'mis_turnos' ? 'bg-white/20 text-white' : 'bg-guinda-ceaa/10 text-guinda-ceaa' }}">
+                                {{ $misTurnosCount ?? 0 }}
+                            </span>
+                        </a>
+                    @endif
+                </div>
+
                 <form action="{{ route('oficios.gestion') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-3">
+                    @if(request('filtro'))
+                        <input type="hidden" name="filtro" value="{{ request('filtro') }}">
+                    @endif
                     <div class="relative flex-1 w-full">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +90,7 @@
                             Buscar
                         </button>
                         @if(request()->filled('search'))
-                            <a href="{{ route('oficios.gestion') }}" class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-1">
+                            <a href="{{ route('oficios.gestion', request('filtro') ? ['filtro' => request('filtro')] : []) }}" class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-1">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
@@ -68,6 +120,7 @@
                         <thead class="bg-slate-50/80 text-slate-600 text-[11px] font-black uppercase tracking-wider">
                             <tr>
                                 <th class="py-3 px-4 text-left">Número de Oficio</th>
+                                <th class="py-3 px-4 text-center">Tipo</th>
                                 <th class="py-3 px-4 text-left">Asunto</th>
                                 <th class="py-3 px-4 text-left">Instrucción</th>
                                 <th class="py-3 px-4 text-center">Estatus</th>
@@ -82,6 +135,7 @@
                                     $hasSubareas = $areaTurnada ? \App\Models\Subarea::where('area_id', $areaTurnada->id)->exists() : false;
                                     $isSubareaAssigned = false;
                                     $subareaOficio = null;
+                                    $isInterno = ($oficio->tipo_correspondencia === 'Interna');
 
                                     if ($pivot) {
                                         $isSubareaAssigned = \App\Models\SubareaOficio::where('area_oficio_id', $pivot->id)->exists();
@@ -102,10 +156,21 @@
                                                 {{ $oficio->numero_oficio }}
                                             </a>
                                         </td>
+                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                            @if($isInterno)
+                                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+                                                    Interno
+                                                </span>
+                                            @else
+                                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                                    Externo
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td class="py-3.5 px-4 text-slate-600 max-w-xs truncate" title="{{ $oficio->asunto }}">
                                             {{ $oficio->asunto }}
                                         </td>
-                                        <td class="py-3.5 px-4 font-medium text-slate-700">
+                                        <td class="py-3.5 px-4 font-medium text-slate-700 max-w-xs truncate">
                                             {{ $pivot->instruccion ?: 'Sin instrucción especificada' }}
                                         </td>
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -254,7 +319,7 @@
                                 @endif
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-12 text-center text-slate-400 italic">
+                                    <td colspan="6" class="py-12 text-center text-slate-400 italic">
                                         <div class="flex flex-col items-center justify-center gap-2">
                                             <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />

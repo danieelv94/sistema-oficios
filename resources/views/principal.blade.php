@@ -25,13 +25,14 @@
 
             {{-- 1. Tarjetas Resumen de Estadísticas (Estilo Homologado) --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                {{-- Card 1: Total Recibidos --}}
                 <div class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition duration-200 flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Total Recibidos</p>
                         <p class="text-3xl font-black text-slate-800 mt-1">{{ number_format($totalOficios ?? 0) }}</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Oficios en el sistema</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Oficios en el organismo</p>
                     </div>
-                    <div class="p-3.5 bg-guinda-ceaa/10 text-guinda-ceaa rounded-xl">
+                    <div class="p-3.5 bg-slate-100 text-slate-700 rounded-xl">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -39,34 +40,146 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition duration-200 flex items-center justify-between">
+                {{-- Card 2: Oficios Turnados (Las que te turnaron) --}}
+                <a href="{{ route('oficios.gestion') }}"
+                    class="group bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 hover:border-guinda-ceaa/50 hover:shadow-md transition duration-200 flex items-center justify-between">
                     <div>
-                        <p class="text-[11px] font-bold uppercase text-amber-600 tracking-wider">Pendientes de Área</p>
-                        <p class="text-3xl font-black text-amber-700 mt-1">{{ number_format($pendientesArea ?? 0) }}</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Por atender en tu dirección</p>
+                        <p class="text-[11px] font-bold uppercase text-guinda-ceaa tracking-wider group-hover:underline">Oficios Turnados</p>
+                        <p class="text-3xl font-black text-slate-800 mt-1">{{ number_format($misTareas ?? 0) }}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Turnados a tu atención</p>
                     </div>
-                    <div class="p-3.5 bg-amber-50 text-amber-600 rounded-xl">
+                    <div class="p-3.5 bg-guinda-ceaa/10 text-guinda-ceaa rounded-xl group-hover:bg-guinda-ceaa group-hover:text-white transition duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" />
+                        </svg>
+                    </div>
+                </a>
+
+                {{-- Card 3: Mis Tareas Pendientes (Las que tienes pendientes) --}}
+                <a href="{{ route('oficios.gestion', ['filtro' => 'pendientes']) }}"
+                    class="group bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 hover:border-amber-500/60 hover:shadow-md transition duration-200 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase text-amber-600 tracking-wider group-hover:underline">Tareas Pendientes</p>
+                        <p class="text-3xl font-black text-amber-700 mt-1">{{ number_format($misTareasPendientes ?? 0) }}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Por atender o solventar</p>
+                    </div>
+                    <div class="p-3.5 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition duration-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                </div>
-
-                <div class="bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-md transition duration-200 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase text-emerald-600 tracking-wider">Mis Tareas Asignadas</p>
-                        <p class="text-3xl font-black text-emerald-700 mt-1">{{ number_format($misTareas ?? 0) }}</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Asignaciones directas</p>
-                    </div>
-                    <div class="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                    </div>
-                </div>
+                </a>
             </div>
+
+            {{-- 2. Lista de Tareas Pendientes Recientes (si tiene pendientes) --}}
+            @if(isset($ultimasTareasPendientes) && $ultimasTareasPendientes->isNotEmpty())
+                <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Mis Tareas Pendientes de Atención</h3>
+                            <span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black rounded-full">
+                                {{ $misTareasPendientes }} pendientes
+                            </span>
+                        </div>
+                        <a href="{{ route('oficios.gestion', ['filtro' => 'pendientes']) }}"
+                            class="text-xs font-bold text-guinda-ceaa hover:text-guinda-ceaa-hover inline-flex items-center gap-1 transition">
+                            <span>Ver todas en Gestión de Turnos</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white divide-y divide-slate-100 text-xs">
+                            <thead class="bg-slate-50/80 text-slate-600 text-[11px] font-black uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4 text-left">Número de Oficio</th>
+                                    <th class="py-3 px-4 text-center">Tipo</th>
+                                    <th class="py-3 px-4 text-left">Origen / Remitente</th>
+                                    <th class="py-3 px-4 text-left">Asunto</th>
+                                    <th class="py-3 px-4 text-left">Instrucción</th>
+                                    <th class="py-3 px-4 text-center">Estatus</th>
+                                    <th class="py-3 px-4 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700">
+                                @foreach($ultimasTareasPendientes as $oficioPendiente)
+                                    @php
+                                        $areaPend = $oficioPendiente->areas->where('id', Auth::user()->area_id)->first() ?? $oficioPendiente->areas->first();
+                                        $pivotPend = $areaPend ? $areaPend->pivot : null;
+                                        $subareaOficioPend = null;
+                                        if ($pivotPend) {
+                                            $subQuery = \App\Models\SubareaOficio::where('area_oficio_id', $pivotPend->id);
+                                            if (Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id !== null)) {
+                                                $subQuery->where('subarea_id', Auth::user()->subarea_id);
+                                            } else {
+                                                $subQuery->where('user_id', Auth::id());
+                                            }
+                                            $subareaOficioPend = $subQuery->first();
+                                        }
+                                        $estatusP = $subareaOficioPend ? $subareaOficioPend->estatus : ($pivotPend ? $pivotPend->estatus : 'Pendiente');
+                                        $isInterno = ($oficioPendiente->tipo_correspondencia === 'Interna');
+                                    @endphp
+                                    <tr class="hover:bg-slate-50/75 transition duration-150">
+                                        <td class="py-3 px-4 font-black text-guinda-ceaa whitespace-nowrap">
+                                            <a href="{{ route('oficios.show', [$oficioPendiente->id, 'mode' => in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo']) }}" class="hover:underline">
+                                                {{ $oficioPendiente->numero_oficio }}
+                                            </a>
+                                        </td>
+                                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                                            @if($isInterno)
+                                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+                                                    Interno
+                                                </span>
+                                            @else
+                                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                                    Externo
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-700 whitespace-nowrap">
+                                            @if($isInterno)
+                                                <span class="font-bold text-purple-800">{{ $oficioPendiente->areaOrigen->nombre ?? 'Dirección Interna' }}</span>
+                                            @else
+                                                <span class="font-semibold text-slate-700">{{ $oficioPendiente->remitente }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-600 max-w-xs truncate" title="{{ $oficioPendiente->asunto }}">
+                                            {{ $oficioPendiente->asunto }}
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-700 max-w-xs truncate">
+                                            {{ $pivotPend->instruccion ?? 'Sin instrucción' }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
+                                                {{ $estatusP == 'Turnado' ? 'bg-orange-50 text-orange-700 border border-orange-200' : '' }}
+                                                {{ $estatusP == 'Recibido' ? 'bg-slate-100 text-slate-700 border border-slate-200' : '' }}
+                                                {{ $estatusP == 'Asignado' ? 'bg-amber-50 text-amber-700 border border-amber-200' : '' }}
+                                                {{ $estatusP == 'Notificado' ? 'bg-sky-50 text-sky-700 border border-sky-200' : '' }}
+                                                {{ $estatusP == 'Solventado' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : '' }}
+                                            ">
+                                                {{ $estatusP }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                                            <a href="{{ route('oficios.show', [$oficioPendiente->id, 'mode' => in_array(Auth::user()->role, ['admin', 'jefe_area', 'secretaria_area']) ? 'gestion' : 'operativo']) }}"
+                                                class="px-2.5 py-1 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded text-[10px] font-bold uppercase tracking-wider transition inline-flex items-center gap-1">
+                                                <span>Atender / Ver</span>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
             {{-- 2. Acciones Rápidas (Módulos principales del sistema) --}}
             <div>
