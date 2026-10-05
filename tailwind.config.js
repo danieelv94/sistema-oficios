@@ -26,7 +26,7 @@ module.exports = {
                 'pantone-424c': '#6F7271',  // Gris oscuro
             },
             fontFamily: {
-                sans: ['Nunito', 'sans-serif'],
+                sans: ['"Plus Jakarta Sans"', 'Nunito', ...defaultTheme.fontFamily.sans],
             },
         },
     },

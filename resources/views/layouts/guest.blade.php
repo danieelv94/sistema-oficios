@@ -8,10 +8,9 @@
         <title>{{ config('app.name', 'CEAA') }}</title>
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
         <meta name="theme-color" content="#4a5568">
-        <link rel="manifest" href="{{ asset('manifest.json') }}">
-
-
-        <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
         <!-- Scripts -->
