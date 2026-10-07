@@ -229,7 +229,7 @@
                             $displayDestinatarioName = ($subareaOficio->user->prof ? $subareaOficio->user->prof . ' ' : '') . $subareaOficio->user->name;
                             $displayDestinatarioCargo = $subareaOficio->user->cargo ?: ($subareaOficio->subarea ? $subareaOficio->subarea->name : 'Personal');
                         } elseif ($subareaOficio->subarea) {
-                            $subdirector = \App\Models\User::where('subarea_id', $subareaOficio->subarea_id)
+                            $subdirector = \App\Models\User::withTrashed()->where('subarea_id', $subareaOficio->subarea_id)
                                 ->where('role', 'subdirector')
                                 ->first();
                             if ($subdirector) {
@@ -241,7 +241,7 @@
                             }
                         }
                     } else {
-                        $userAsignado = $area->pivot->user_id ? \App\Models\User::find($area->pivot->user_id) : null;
+                        $userAsignado = $area->pivot->user_id ? \App\Models\User::withTrashed()->find($area->pivot->user_id) : null;
                         if ($userAsignado) {
                             $displayDestinatarioName = ($userAsignado->prof ? $userAsignado->prof . ' ' : '') . $userAsignado->name;
                             $displayDestinatarioCargo = $userAsignado->cargo;

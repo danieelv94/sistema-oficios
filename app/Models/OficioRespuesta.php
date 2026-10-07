@@ -41,6 +41,6 @@ class OficioRespuesta extends Model
     // Relación con el usuario que registra la respuesta
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 }

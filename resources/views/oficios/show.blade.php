@@ -516,7 +516,7 @@
                                                 @endforeach
                                             </div>
                                         @else
-                                            <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Responsable:</span> <span class="font-bold text-gray-800">{{ \App\Models\User::find($area->pivot->user_id)->name ?? 'PENDIENTE' }}</span></p>
+                                            <p class="text-xs text-gray-600 mt-1"><span class="font-bold uppercase text-gray-400">Responsable:</span> <span class="font-bold text-gray-800">{{ \App\Models\User::withTrashed()->find($area->pivot->user_id)?->name ?? 'PENDIENTE' }}</span></p>
                                             @if($area->pivot->user_id)
                                                 <div class="mt-1">
                                                     <a href="{{ route('oficios.generar', [$oficio->id, 'area_id' => $area->id]) }}"
@@ -833,13 +833,13 @@
                     <div class="flex-shrink-0">
                         <div
                             class="w-10 h-10 rounded-full bg-gris-claro/20 flex items-center justify-center font-black text-gris-oscuro">
-                            {{ substr($respuesta->user->name, 0, 1) }}
+                            {{ substr($respuesta->user?->name ?? 'U', 0, 1) }}
                         </div>
                     </div>
                     <div class="flex-1">
                         <div class="flex justify-between">
-                            <p class="text-xs font-black uppercase text-gray-800">{{ $respuesta->user->name }}</p>
-                            <p class="text-[10px] text-gray-400">{{ $respuesta->created_at->format('d/m/Y H:i') }}</p>
+                            <p class="text-xs font-black uppercase text-gray-800">{{ $respuesta->user?->name ?? 'Usuario no disponible' }}</p>
+                            <p class="text-[10px] text-gray-400">{{ $respuesta->created_at?->format('d/m/Y H:i') }}</p>
                         </div>
                         <span
                             class="inline-block px-2 py-0.5 mt-1 text-[9px] font-black uppercase {{ $respuesta->tipo_respuesta == 'Solventacion' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600' }}">
@@ -903,7 +903,7 @@
                             ">
                                 {{ $item->accion }}
                             </span>
-                            <span class="text-xs font-black text-gray-800">{{ $item->user->name }}</span>
+                            <span class="text-xs font-black text-gray-800">{{ $item->user?->name ?? 'Usuario no disponible' }}</span>
                             @if($item->area)
                                 <span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold uppercase">{{ $item->area->name }}</span>
                             @endif
@@ -912,7 +912,7 @@
                             @endif
                         </div>
                         <span class="text-[10px] font-bold text-gray-400 whitespace-nowrap">
-                            {{ $item->created_at->format('d/m/Y H:i:s') }}
+                            {{ $item->created_at?->format('d/m/Y H:i:s') }}
                         </span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1 leading-relaxed">{{ $item->descripcion }}</p>
