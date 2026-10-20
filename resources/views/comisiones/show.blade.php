@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Oficio de Comisión - {{ $comision->oficio_numero }}</title>
+    <title>{{ $comision->isOdso() ? 'Oficio de Comisión' : 'Oficio de Comisión' }} - {{ $comision->oficio_numero }}
+    </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -127,7 +128,7 @@
             &larr; Volver
         </a>
         @if($comision->status !== 'Cancelado' || Auth::user()->role == 'admin')
-             <button onclick="window.print()"
+            <button onclick="window.print()"
                 class="ml-2 px-6 py-2 bg-guinda-ceaa text-white rounded-md hover:bg-guinda-ceaa-hover font-bold shadow-lg">
                 Imprimir Oficio
             </button>
@@ -148,7 +149,9 @@
                 <img src="{{ asset('images/encabezado.png') }}" alt="CEAA" style="width: 9.09cm; height: 2.39cm;">
             </div>
 
-            <p class="font-bold text-guinda-ceaa text-lg uppercase mb-2">Oficio de Comisión</p>
+            <p class="font-bold text-guinda-ceaa text-lg uppercase mb-2">
+                {{ $comision->isOdso() ? 'Oficio de Comisión' : 'Oficio de Comisión' }}
+            </p>
 
             <div class="text-right mb-10">
                 <p>Pachuca de Soto, Hgo. a {{ $fechaFormateada }}</p>
@@ -226,7 +229,8 @@
                             $cargo = str_ireplace(['Dirección', 'Subdirección', 'Jefatura'], $reemplazos, $areaNombre);
                         @endphp
                         <p class="font-bold">{{ optional($comision->jefeArea)->prof }}
-                            {{ optional($comision->jefeArea)->name }}</p>
+                            {{ optional($comision->jefeArea)->name }}
+                        </p>
                         <p class="leading-tight">{{ $cargo }}</p>
                     @endif
                 </div>

@@ -149,7 +149,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
                         {{-- Búsqueda de Texto --}}
-                        <div class="lg:col-span-2">
+                        <div class="lg:col-span-1">
                             <label for="search" class="block text-xs font-bold uppercase text-slate-600 mb-1">
                                 Búsqueda General
                             </label>
@@ -165,6 +165,21 @@
                                     class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-guinda-ceaa focus:border-guinda-ceaa transition"
                                     value="{{ request('search') }}">
                             </div>
+                        </div>
+
+                        {{-- Filtro por Modalidad (Normal / ODSO) --}}
+                        <div>
+                            <label for="tipo_comision" class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                                Tipo / Modalidad
+                            </label>
+                            <select name="tipo_comision" id="tipo_comision"
+                                class="w-full py-2 px-3 text-xs border border-slate-300 rounded-lg focus:ring-guinda-ceaa focus:border-guinda-ceaa bg-white transition">
+                                <option value="todos" {{ request('tipo_comision') === 'todos' || !request('tipo_comision') ? 'selected' : '' }}>-- Todas --</option>
+                                <option value="normal" {{ request('tipo_comision') === 'normal' ? 'selected' : '' }}>
+                                    Normales (Estándar)</option>
+                                <option value="ODSO" {{ request('tipo_comision') === 'ODSO' ? 'selected' : '' }}>
+                                    Supervisión de Obra (ODSO)</option>
+                            </select>
                         </div>
 
                         {{-- Filtro por Área / Dirección --}}
@@ -302,10 +317,17 @@
                                 <tr class="hover:bg-slate-50/75 transition duration-150">
                                     {{-- No. Oficio --}}
                                     <td class="py-3.5 px-4 font-black text-guinda-ceaa whitespace-nowrap">
-                                        <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline"
-                                            title="Ver detalle del oficio">
-                                            {{ $comision->oficio_numero }}
-                                        </a>
+                                        <div class="flex items-center gap-1.5">
+                                            <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline"
+                                                title="Ver detalle del oficio">
+                                                {{ $comision->oficio_numero }}
+                                            </a>
+                                            @if($comision->isOdso())
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300" title="Supervisión de Obra">
+                                                    ODSO
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
 
                                     {{-- Fecha Emisión --}}

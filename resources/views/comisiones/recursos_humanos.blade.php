@@ -113,9 +113,16 @@
                             @forelse($comisiones as $comision)
                                 <tr class="hover:bg-slate-50/75 transition duration-150">
                                     <td class="py-3.5 px-4 font-black text-guinda-ceaa whitespace-nowrap">
-                                        <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline">
-                                            {{ $comision->oficio_numero }}
-                                        </a>
+                                        <div class="flex items-center gap-1.5">
+                                            <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline">
+                                                {{ $comision->oficio_numero }}
+                                            </a>
+                                            @if($comision->isOdso())
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300" title="Supervisión de Obra">
+                                                    ODSO
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
                                         {{ $comision->user->prof }} {{ $comision->user->name }}

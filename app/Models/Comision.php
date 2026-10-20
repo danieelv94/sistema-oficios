@@ -21,7 +21,12 @@ class Comision extends Model
     public function vehiculo() { return $this->belongsTo(Vehiculo::class); }
     public function proyecto() { return $this->belongsTo(Proyecto::class); }
     public function unidadAdministrativa()
-{
-    return $this->belongsTo(UnidadAdministrativa::class);
-}
+    {
+        return $this->belongsTo(UnidadAdministrativa::class);
+    }
+
+    public function isOdso(): bool
+    {
+        return $this->tipo_comision === 'ODSO' || str_starts_with($this->oficio_numero ?? '', 'ODSO-');
+    }
 }

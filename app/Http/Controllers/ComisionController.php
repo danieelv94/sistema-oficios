@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comision;
+use App\Models\ComisionOdso;
 use App\Models\Proyecto;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Area;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class ComisionController extends Controller
@@ -61,24 +63,122 @@ class ComisionController extends Controller
     // Los métodos create, store, show, edit, update y cancelar se mantienen igual que en tu versión funcional...
     public function create()
     {
+        $user = Auth::user();
+        $area = $user->area;
         $vehiculos = Vehiculo::orderBy('marca')->get();
         $proyectos = Proyecto::with('unidadesAdministrativas')->get();
-        return view('comisiones.create', compact('vehiculos', 'proyectos'));
+
+        $prefijosOdso = ['DIH', 'DVPH'];
+        $puedeOdso = ($area && in_array($area->prefijo, $prefijosOdso)) || $user->role === 'admin';
+
+        $currentYear = now()->year;
+
+        // Folio siguiente para Oficio Normal
+        $ultimoConsecutivoNormal = Comision::where('anio', $currentYear)
+            ->where(function ($q) {
+                $q->where('tipo_comision', 'normal')
+                  ->orWhereNull('tipo_comision');
+            })
+            ->where('oficio_numero', 'not like', 'ODSO-%')
+            ->whereHas('user', fn($q) => $q->where('area_id', $user->area_id))
+            ->max('consecutivo');
+        $siguienteConsecutivoNormal = $ultimoConsecutivoNormal ? $ultimoConsecutivoNormal + 1 : 1;
+        $prefijoArea = $area ? $area->prefijo : 'SD';
+        $siguienteFolioNormal = $prefijoArea . '-OC-' . str_pad($siguienteConsecutivoNormal, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+        // Folio siguiente para ODSO (consecutivo compartido único desde comisiones_odso)
+        $ultimoConsecutivoOdso = ComisionOdso::where('anio', $currentYear)->max('consecutivo');
+        $siguienteConsecutivoOdso = $ultimoConsecutivoOdso ? $ultimoConsecutivoOdso + 1 : 1;
+        $siguienteFolioOdso = 'ODSO-OC-' . str_pad($siguienteConsecutivoOdso, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+        return view('comisiones.create', compact(
+            'vehiculos',
+            'proyectos',
+            'puedeOdso',
+            'prefijoArea',
+            'siguienteFolioNormal',
+            'siguienteFolioOdso'
+        ));
     }
 
     public function store(Request $request)
     {
-        $request->validate(['dias_comision' => 'required', 'actividad' => 'required', 'lugar' => 'required', 'hora_inicio' => 'required', 'hora_fin' => 'required']);
+        $request->validate([
+            'dias_comision' => 'required',
+            'actividad' => 'required',
+            'lugar' => 'required',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required',
+            'tipo_comision' => 'nullable|in:normal,ODSO',
+        ]);
+
         $user = Auth::user();
         $area = $user->area;
         $jefeArea = User::where('area_id', $user->area_id)->where('role', 'jefe_area')->first();
-        if (!$jefeArea)
+        if (!$jefeArea) {
             return back()->with('error', 'No se encontró Jefe de Área.');
+        }
+
+        $prefijosOdso = ['DIH', 'DVPH'];
+        $puedeOdso = ($area && in_array($area->prefijo, $prefijosOdso)) || $user->role === 'admin';
+        $tipoComision = ($puedeOdso && $request->input('tipo_comision') === 'ODSO') ? 'ODSO' : 'normal';
+
         $currentYear = now()->year;
-        $ultimoConsecutivo = Comision::where('anio', $currentYear)->whereHas('user', fn($q) => $q->where('area_id', $user->area_id))->max('consecutivo');
-        $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
-        $numeroOficio = ($area ? $area->prefijo : 'SD') . '-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
-        $comision = Comision::create(['consecutivo' => $siguienteConsecutivo, 'anio' => $currentYear, 'oficio_numero' => $numeroOficio, 'user_id' => $user->id, 'jefe_area_id' => $jefeArea->id, 'dias_comision' => $request->dias_comision, 'hora_inicio' => $request->hora_inicio, 'hora_fin' => $request->hora_fin, 'actividad' => $request->actividad, 'lugar' => $request->lugar, 'vehiculo_id' => $request->vehiculo_id, 'proyecto_id' => $request->proyecto_id]);
+
+        if ($tipoComision === 'ODSO') {
+            $comisionOdso = DB::transaction(function () use ($user, $jefeArea, $currentYear, $request) {
+                $ultimoConsecutivo = ComisionOdso::where('anio', $currentYear)
+                    ->lockForUpdate()
+                    ->max('consecutivo');
+                $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
+                $numeroOficio = 'ODSO-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+                return ComisionOdso::create([
+                    'consecutivo' => $siguienteConsecutivo,
+                    'anio' => $currentYear,
+                    'oficio_numero' => $numeroOficio,
+                    'user_id' => $user->id,
+                    'jefe_area_id' => $jefeArea->id,
+                    'dias_comision' => $request->dias_comision,
+                    'hora_inicio' => $request->hora_inicio,
+                    'hora_fin' => $request->hora_fin,
+                    'actividad' => $request->actividad,
+                    'lugar' => $request->lugar,
+                    'vehiculo_id' => $request->vehiculo_id,
+                    'proyecto_id' => $request->proyecto_id,
+                    'unidad_administrativa_id' => $request->unidad_administrativa_id,
+                ]);
+            });
+
+            return redirect()->route('comisiones-odso.show', $comisionOdso);
+        }
+
+        $comision = DB::transaction(function () use ($user, $area, $jefeArea, $currentYear, $request) {
+            $ultimoConsecutivo = Comision::where('anio', $currentYear)
+                ->whereHas('user', fn($q) => $q->where('area_id', $user->area_id))
+                ->lockForUpdate()
+                ->max('consecutivo');
+            $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
+            $numeroOficio = ($area ? $area->prefijo : 'SD') . '-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
+
+            return Comision::create([
+                'consecutivo' => $siguienteConsecutivo,
+                'anio' => $currentYear,
+                'oficio_numero' => $numeroOficio,
+                'tipo_comision' => 'normal',
+                'user_id' => $user->id,
+                'jefe_area_id' => $jefeArea->id,
+                'dias_comision' => $request->dias_comision,
+                'hora_inicio' => $request->hora_inicio,
+                'hora_fin' => $request->hora_fin,
+                'actividad' => $request->actividad,
+                'lugar' => $request->lugar,
+                'vehiculo_id' => $request->vehiculo_id,
+                'proyecto_id' => $request->proyecto_id,
+                'unidad_administrativa_id' => $request->unidad_administrativa_id,
+            ]);
+        });
+
         return redirect()->route('comisiones.show', $comision);
     }
 
@@ -245,6 +345,21 @@ class ComisionController extends Controller
                     $q->where('status', '!=', 'Cancelado')
                       ->orWhereNull('status');
                 });
+            }
+        }
+
+        // Filtro por Tipo de Comisión (Normal / ODSO)
+        if ($request->filled('tipo_comision') && $request->tipo_comision !== 'todos') {
+            if ($request->tipo_comision === 'ODSO') {
+                $query->where(function ($q) {
+                    $q->where('tipo_comision', 'ODSO')
+                      ->orWhere('oficio_numero', 'like', 'ODSO-%');
+                });
+            } elseif ($request->tipo_comision === 'normal') {
+                $query->where(function ($q) {
+                    $q->where('tipo_comision', 'normal')
+                      ->orWhereNull('tipo_comision');
+                })->where('oficio_numero', 'not like', 'ODSO-%');
             }
         }
 

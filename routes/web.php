@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComisionController;
+use App\Http\Controllers\ComisionOdsoController;
 use App\Http\Controllers\AvisoController;
 
 Route::redirect('/', '/login');
@@ -83,6 +84,13 @@ Route::middleware('auth')->group(function () {
         'comisiones' => 'comision'
     ]);
     Route::patch('/comisiones/{comision}/cancelar', [ComisionController::class, 'cancelar'])->name('comisiones.cancelar');
+
+    // --- Órdenes de Comisión ODSO (Supervisión de Obra) ---
+    Route::post('/comisiones-odso/{comision_odso}/toggle-acuse', [ComisionOdsoController::class, 'toggleAcuse'])->name('comisiones-odso.toggle_acuse');
+    Route::patch('/comisiones-odso/{comision_odso}/cancelar', [ComisionOdsoController::class, 'cancelar'])->name('comisiones-odso.cancelar');
+    Route::resource('comisiones-odso', ComisionOdsoController::class)->parameters([
+        'comisiones-odso' => 'comision_odso'
+    ]);
 
     // --- Módulo de Avisos / Circulares ---
     Route::get('/avisos', [AvisoController::class, 'index'])->name('avisos.index');

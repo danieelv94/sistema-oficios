@@ -79,6 +79,30 @@
     <div class="py-6 bg-slate-50/50 min-h-screen">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
+            {{-- Pestañas de Navegación entre Comisiones Normales y ODSO --}}
+            @php
+                $canSeeOdsoTab = in_array(optional(Auth::user()->area)->prefijo, ['DIH', 'DVPH']) || Auth::user()->role === 'admin' || Auth::user()->canViewAllComisiones();
+            @endphp
+            @if($canSeeOdsoTab)
+                <div class="flex items-center gap-2 border-b border-slate-200 no-print pb-1">
+                    <a href="{{ route('comisiones.index') }}"
+                        class="px-4 py-2.5 rounded-t-xl text-xs font-bold transition flex items-center gap-2 border-b-2 border-guinda-ceaa text-guinda-ceaa bg-white shadow-xs">
+                        <svg class="w-4 h-4 text-guinda-ceaa" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Comisiones Normales (Institucionales)</span>
+                    </a>
+                    <a href="{{ route('comisiones-odso.index') }}"
+                        class="px-4 py-2.5 rounded-t-xl text-xs font-bold transition flex items-center gap-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span>Supervisión de Obra (ODSO)</span>
+                        <span class="text-[10px] bg-amber-200/80 text-amber-900 px-1.5 py-0.2 rounded font-black">ODSO</span>
+                    </a>
+                </div>
+            @endif
+
             {{-- Encabezado de Reporte para el Admin --}}
             @if(Auth::user()->role === 'admin')
                 <div class="printable-header mb-6">
@@ -165,9 +189,16 @@
                             @forelse($comisiones as $comision)
                                 <tr class="hover:bg-slate-50/75 transition duration-150">
                                     <td class="py-3.5 px-4 font-black text-guinda-ceaa whitespace-nowrap">
-                                        <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline">
-                                            {{ $comision->oficio_numero }}
-                                        </a>
+                                        <div class="flex items-center gap-1.5">
+                                            <a href="{{ route('comisiones.show', $comision) }}" class="hover:underline">
+                                                {{ $comision->oficio_numero }}
+                                            </a>
+                                            @if($comision->isOdso())
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300" title="Supervisión de Obra">
+                                                    ODSO
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                                         {{ $comision->created_at->format('d/m/Y') }}

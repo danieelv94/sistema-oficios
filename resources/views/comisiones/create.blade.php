@@ -11,6 +11,94 @@
 
                     <form action="{{ route('comisiones.store') }}" method="POST" @submit="isSubmitting = true">
                         @csrf
+
+                        @if($puedeOdso)
+                            <div class="mb-6 p-5 rounded-xl border border-slate-200 bg-slate-50/60 shadow-sm">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <label class="block text-xs font-black uppercase tracking-wider text-slate-700">
+                                            Tipo de Oficio de Comisión
+                                        </label>
+                                        <p class="text-xs text-slate-500">
+                                            Selecciona la nomenclatura para este oficio de comisión
+                                        </p>
+                                    </div>
+                                    <span class="hidden sm:inline-flex items-center text-[11px] font-semibold text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200">
+                                        Área: <span class="ml-1 text-guinda-ceaa font-bold">{{ $prefijoArea }}</span>
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {{-- Opción 1: Oficio Normal --}}
+                                    <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none"
+                                        :class="tipoComision === 'normal' 
+                                            ? 'bg-white border-guinda-ceaa shadow-md ring-2 ring-guinda-ceaa/15' 
+                                            : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:bg-white'">
+                                        <input type="radio" name="tipo_comision" value="normal" x-model="tipoComision" class="sr-only">
+                                        
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2.5">
+                                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                                    :class="tipoComision === 'normal' ? 'border-guinda-ceaa bg-guinda-ceaa' : 'border-slate-300 bg-white'">
+                                                    <div class="w-2 h-2 rounded-full bg-white transition-opacity"
+                                                        :class="tipoComision === 'normal' ? 'opacity-100' : 'opacity-0'"></div>
+                                                </div>
+                                                <span class="font-bold text-sm text-slate-900">
+                                                    Normal ({{ $prefijoArea }}-OC)
+                                                </span>
+                                            </div>
+                                            <span class="text-[11px] font-black px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono">
+                                                {{ $siguienteFolioNormal }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 pl-7">
+                                            Oficio de comisión estándar con nomenclatura de tu área.
+                                        </p>
+                                    </label>
+
+                                    {{-- Opción 2: Supervisión de Obra (ODSO) --}}
+                                    <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none"
+                                        :class="tipoComision === 'ODSO' 
+                                            ? 'bg-amber-50/60 border-amber-600 shadow-md ring-2 ring-amber-500/20' 
+                                            : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:bg-white'">
+                                        <input type="radio" name="tipo_comision" value="ODSO" x-model="tipoComision" class="sr-only">
+                                        
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2.5">
+                                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                                    :class="tipoComision === 'ODSO' ? 'border-amber-600 bg-amber-600' : 'border-slate-300 bg-white'">
+                                                    <div class="w-2 h-2 rounded-full bg-white transition-opacity"
+                                                        :class="tipoComision === 'ODSO' ? 'opacity-100' : 'opacity-0'"></div>
+                                                </div>
+                                                <span class="font-bold text-sm text-amber-950 flex items-center gap-1.5">
+                                                    Supervisión de Obra (ODSO-OC)
+                                                </span>
+                                            </div>
+                                            <span class="text-[11px] font-black px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-mono">
+                                                {{ $siguienteFolioOdso }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-amber-800/80 pl-7">
+                                            Oficio de comisión de supervisión de obra con consecutivo independiente.
+                                        </p>
+                                    </label>
+                                </div>
+
+                                {{-- Folio resultante --}}
+                                <div class="mt-3.5 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                                    <span class="text-slate-600 font-medium">
+                                        Número de oficio que se asignará:
+                                    </span>
+                                    <span class="font-mono font-black text-sm"
+                                        :class="tipoComision === 'ODSO' ? 'text-amber-700' : 'text-guinda-ceaa'"
+                                        x-text="tipoComision === 'ODSO' ? '{{ $siguienteFolioOdso }}' : '{{ $siguienteFolioNormal }}'">
+                                    </span>
+                                </div>
+                            </div>
+                        @else
+                            <input type="hidden" name="tipo_comision" value="normal">
+                        @endif
+
                         <div class="space-y-6">
                             <div class="border-t pt-6">
                                 <p class="mb-4">
@@ -122,6 +210,7 @@
     <script>
         function comisionForm() {
             return {
+                tipoComision: 'normal',
                 selectedProyecto: '',
                 unidades: [],
                 proyectos: @json($proyectos->keyBy('id')),

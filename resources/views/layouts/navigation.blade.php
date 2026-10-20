@@ -1,4 +1,4 @@
-<nav x-data="{ openDropdownOficios: {{ request()->routeIs('oficios.*') ? 'true' : 'false' }}, openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
+<nav x-data="{ openDropdownOficios: {{ request()->routeIs('oficios.*') ? 'true' : 'false' }}, openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') || request()->routeIs('comisiones-odso.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
     <!-- TOP NAVBAR -->
     <div
         class="fixed top-0 right-0 left-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 shadow-xs transition-all">
@@ -190,17 +190,18 @@
 
                 @php
                     $isRHUser = Auth::user()->isRecursosHumanos();
-                    $hasExtraComisionPerms = Auth::user()->canViewAllComisiones() || (Auth::user()->role === 'admin' || $isRHUser);
+                    $canAccessOdso = in_array(optional(Auth::user()->area)->prefijo, ['DIH', 'DVPH']) || Auth::user()->role === 'admin' || Auth::user()->canViewAllComisiones();
+                    $hasExtraComisionPerms = Auth::user()->canViewAllComisiones() || (Auth::user()->role === 'admin' || $isRHUser) || $canAccessOdso;
                 @endphp
 
                 @if($hasExtraComisionPerms)
                     <!-- Dropdown: Comisión -->
                     <div class="space-y-1">
                         <button @click="openDropdownComisiones = !openDropdownComisiones"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition text-left group {{ request()->routeIs('comisiones.*') ? 'bg-slate-800/80 text-white' : 'text-slate-300' }}"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition text-left group {{ request()->routeIs('comisiones.*') || request()->routeIs('comisiones-odso.*') ? 'bg-slate-800/80 text-white' : 'text-slate-300' }}"
                             title="Comisiones">
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('comisiones.*') ? 'text-guinda-ceaa' : 'text-slate-400 group-hover:text-white' }}"
+                                <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('comisiones.*') || request()->routeIs('comisiones-odso.*') ? 'text-guinda-ceaa' : 'text-slate-400 group-hover:text-white' }}"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -220,6 +221,13 @@
                                 class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
                                 Mis Oficios Comisión
                             </a>
+                            @if($canAccessOdso)
+                                <a href="{{ route('comisiones-odso.index') }}"
+                                    class="flex items-center justify-between py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('comisiones-odso.*') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
+                                    <span>Supervisión Obra (ODSO)</span>
+                                    <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
+                                </a>
+                            @endif
                             @if(Auth::user()->canViewAllComisiones())
                                 <a href="{{ route('comisiones.general') }}"
                                     class="block py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('comisiones.general') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
@@ -416,6 +424,13 @@
                             class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('comisiones.index') || request()->routeIs('comisiones.show') || request()->routeIs('comisiones.create') || request()->routeIs('comisiones.edit') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">
                             Mis Oficios Comisión
                         </a>
+                        @if($canAccessOdso)
+                            <a href="{{ route('comisiones-odso.index') }}"
+                                class="flex items-center justify-between pl-8 pr-4 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('comisiones-odso.*') ? 'text-white font-bold bg-amber-600' : 'text-slate-400 hover:text-white' }}">
+                                <span>Supervisión Obra (ODSO)</span>
+                                <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
+                            </a>
+                        @endif
                         @if(Auth::user()->canViewAllComisiones())
                             <a href="{{ route('comisiones.general') }}"
                                 class="block pl-8 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('comisiones.general') ? 'text-white font-bold bg-guinda-ceaa' : 'text-slate-400 hover:text-white' }}">

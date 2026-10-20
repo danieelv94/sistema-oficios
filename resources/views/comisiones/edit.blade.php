@@ -11,7 +11,14 @@
                 <div class="p-8 text-gray-900">
 
                     <div class="mb-6 flex justify-between items-center border-b pb-4">
-                        <h3 class="text-lg font-bold text-guinda-ceaa">Modificar Datos de Registro</h3>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-bold text-guinda-ceaa">Modificar Datos de Registro</h3>
+                            @if($comision->isOdso())
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                                    ODSO - Supervisión de Obra
+                                </span>
+                            @endif
+                        </div>
                         <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded">ID: {{ $comision->id }}</span>
                     </div>
 
