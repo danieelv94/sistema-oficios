@@ -27,8 +27,10 @@ class ComisionOdsoController extends Controller
 
         // --- SEGURIDAD POR ROLES ---
         if (in_array($user->role, ['jefe_area', 'secretaria_area', 'recepcionista'])) {
-            $query->whereHas('user', function ($q) use ($user) {
-                $q->withTrashed()->where('area_id', $user->area_id);
+            $query->where(function ($q) use ($user) {
+                $q->whereHas('user', function ($sub) use ($user) {
+                    $sub->withTrashed()->where('area_id', $user->area_id);
+                })->orWhere('jefe_area_id', $user->id);
             });
         } elseif ($user->role !== 'admin' && !$user->isRecursosHumanos() && !$user->canViewAllComisiones()) {
             $query->where('user_id', $user->id);
@@ -64,12 +66,10 @@ class ComisionOdsoController extends Controller
     {
         $user = Auth::user();
         $area = $user->area;
-        $prefijosOdso = ['DIH', 'DVPH'];
-        $puedeOdso = ($area && in_array($area->prefijo, $prefijosOdso)) || $user->role === 'admin';
 
-        if (!$puedeOdso) {
+        if (!$user->canAccessOdso()) {
             return redirect()->route('comisiones.create')
-                ->with('error', 'Los oficios ODSO de supervisión de obra están reservados para las áreas técnicas autorizadas.');
+                ->with('error', 'Los oficios ODSO de supervisión de obra están reservados para las áreas técnicas autorizadas (DIH, DVPH, DCA y DAyF).');
         }
 
         $vehiculos = Vehiculo::orderBy('marca')->get();
@@ -80,7 +80,24 @@ class ComisionOdsoController extends Controller
         $siguienteConsecutivo = $ultimoConsecutivo ? $ultimoConsecutivo + 1 : 1;
         $siguienteFolioOdso = 'ODSO-OC-' . str_pad($siguienteConsecutivo, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
-        return view('comisiones_odso.create', compact('vehiculos', 'proyectos', 'siguienteFolioOdso', 'area'));
+        // Titulares que pueden autorizar supervisión de obra
+        $jefesAutorizadores = User::with('area')
+            ->where('role', 'jefe_area')
+            ->whereIn('area_id', [8, 7, 9, 4, 1]) // DIH, DVPH, DCA, DAyF, DG
+            ->orderByRaw("FIELD(area_id, 8, 7, 9, 4, 1)")
+            ->get();
+
+        // Titular por defecto: si es DVPH -> 258 (Orlando), en otro caso -> 292 (Germán)
+        $defaultJefeId = ($area && $area->prefijo === 'DVPH') ? 258 : 292;
+
+        return view('comisiones_odso.create', compact(
+            'vehiculos',
+            'proyectos',
+            'siguienteFolioOdso',
+            'area',
+            'jefesAutorizadores',
+            'defaultJefeId'
+        ));
     }
 
     public function store(Request $request)
@@ -91,13 +108,33 @@ class ComisionOdsoController extends Controller
             'lugar' => 'required',
             'hora_inicio' => 'required',
             'hora_fin' => 'required',
+            'jefe_area_id' => 'nullable|exists:users,id',
         ]);
 
         $user = Auth::user();
+        if (!$user->canAccessOdso()) {
+            return redirect()->route('comisiones.create')
+                ->with('error', 'No tiene permisos para generar oficios ODSO.');
+        }
+
         $area = $user->area;
-        $jefeArea = User::where('area_id', $user->area_id)->where('role', 'jefe_area')->first();
+
+        // Determinar quién autoriza la comisión
+        $jefeArea = null;
+        if ($request->filled('jefe_area_id')) {
+            $jefeArea = User::find($request->jefe_area_id);
+        }
+
         if (!$jefeArea) {
-            return back()->with('error', 'No se encontró Jefe de Área.');
+            if ($area && $area->prefijo === 'DVPH') {
+                $jefeArea = User::find(258) ?? User::where('area_id', $user->area_id)->where('role', 'jefe_area')->first();
+            } else {
+                $jefeArea = User::find(292) ?? User::where('area_id', $user->area_id)->where('role', 'jefe_area')->first();
+            }
+        }
+
+        if (!$jefeArea) {
+            return back()->with('error', 'No se encontró Titular que autorice la comisión.');
         }
 
         $currentYear = now()->year;
@@ -146,7 +183,11 @@ class ComisionOdsoController extends Controller
         $comision = $comision_odso;
         $vehiculos = Vehiculo::all();
         $proyectos = Proyecto::all();
-        return view('comisiones_odso.edit', compact('comision', 'vehiculos', 'proyectos'));
+        $jefesAutorizadores = User::with('area')
+            ->where('role', 'jefe_area')
+            ->orderBy('name')
+            ->get();
+        return view('comisiones_odso.edit', compact('comision', 'vehiculos', 'proyectos', 'jefesAutorizadores'));
     }
 
     public function update(Request $request, ComisionOdso $comision_odso)

@@ -190,7 +190,7 @@
 
                 @php
                     $isRHUser = Auth::user()->isRecursosHumanos();
-                    $canAccessOdso = in_array(optional(Auth::user()->area)->prefijo, ['DIH', 'DVPH']) || Auth::user()->role === 'admin' || Auth::user()->canViewAllComisiones();
+                    $canAccessOdso = Auth::user()->canAccessOdso();
                     $hasExtraComisionPerms = Auth::user()->canViewAllComisiones() || (Auth::user()->role === 'admin' || $isRHUser) || $canAccessOdso;
                 @endphp
 

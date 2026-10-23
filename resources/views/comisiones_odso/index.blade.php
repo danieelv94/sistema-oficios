@@ -52,7 +52,7 @@
                     {{ __('Comisiones de Supervisión de Obra (ODSO)') }}
                 </h2>
                 <p class="text-xs text-slate-500 font-medium mt-0.5">
-                    Oficios de comisión de supervisión de obra emitidos (DIH y DVPH)
+                    Oficios de comisión de supervisión de obra emitidos (DIH, DVPH, DCA y DAyF)
                 </p>
             </div>
             <div class="flex items-center gap-2">

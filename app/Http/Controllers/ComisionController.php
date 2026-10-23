@@ -68,8 +68,7 @@ class ComisionController extends Controller
         $vehiculos = Vehiculo::orderBy('marca')->get();
         $proyectos = Proyecto::with('unidadesAdministrativas')->get();
 
-        $prefijosOdso = ['DIH', 'DVPH'];
-        $puedeOdso = ($area && in_array($area->prefijo, $prefijosOdso)) || $user->role === 'admin';
+        $puedeOdso = $user->canAccessOdso();
 
         $currentYear = now()->year;
 
@@ -91,13 +90,23 @@ class ComisionController extends Controller
         $siguienteConsecutivoOdso = $ultimoConsecutivoOdso ? $ultimoConsecutivoOdso + 1 : 1;
         $siguienteFolioOdso = 'ODSO-OC-' . str_pad($siguienteConsecutivoOdso, 2, '0', STR_PAD_LEFT) . '/' . $currentYear;
 
+        // Titulares que pueden autorizar ODSO
+        $jefesAutorizadores = User::with('area')
+            ->where('role', 'jefe_area')
+            ->whereIn('area_id', [8, 7, 9, 4, 1])
+            ->orderByRaw("FIELD(area_id, 8, 7, 9, 4, 1)")
+            ->get();
+        $defaultJefeId = ($area && $area->prefijo === 'DVPH') ? 258 : 292;
+
         return view('comisiones.create', compact(
             'vehiculos',
             'proyectos',
             'puedeOdso',
             'prefijoArea',
             'siguienteFolioNormal',
-            'siguienteFolioOdso'
+            'siguienteFolioOdso',
+            'jefesAutorizadores',
+            'defaultJefeId'
         ));
     }
 
@@ -110,6 +119,7 @@ class ComisionController extends Controller
             'hora_inicio' => 'required',
             'hora_fin' => 'required',
             'tipo_comision' => 'nullable|in:normal,ODSO',
+            'jefe_area_id' => 'nullable|exists:users,id',
         ]);
 
         $user = Auth::user();
@@ -119,14 +129,26 @@ class ComisionController extends Controller
             return back()->with('error', 'No se encontró Jefe de Área.');
         }
 
-        $prefijosOdso = ['DIH', 'DVPH'];
-        $puedeOdso = ($area && in_array($area->prefijo, $prefijosOdso)) || $user->role === 'admin';
+        $puedeOdso = $user->canAccessOdso();
         $tipoComision = ($puedeOdso && $request->input('tipo_comision') === 'ODSO') ? 'ODSO' : 'normal';
 
         $currentYear = now()->year;
 
         if ($tipoComision === 'ODSO') {
-            $comisionOdso = DB::transaction(function () use ($user, $jefeArea, $currentYear, $request) {
+            // Determinar titular que autoriza ODSO
+            $jefeOdso = null;
+            if ($request->filled('jefe_area_id')) {
+                $jefeOdso = User::find($request->jefe_area_id);
+            }
+            if (!$jefeOdso) {
+                if ($area && $area->prefijo === 'DVPH') {
+                    $jefeOdso = User::find(258) ?? $jefeArea;
+                } else {
+                    $jefeOdso = User::find(292) ?? $jefeArea;
+                }
+            }
+
+            $comisionOdso = DB::transaction(function () use ($user, $jefeOdso, $currentYear, $request) {
                 $ultimoConsecutivo = ComisionOdso::where('anio', $currentYear)
                     ->lockForUpdate()
                     ->max('consecutivo');
@@ -138,7 +160,7 @@ class ComisionController extends Controller
                     'anio' => $currentYear,
                     'oficio_numero' => $numeroOficio,
                     'user_id' => $user->id,
-                    'jefe_area_id' => $jefeArea->id,
+                    'jefe_area_id' => $jefeOdso->id,
                     'dias_comision' => $request->dias_comision,
                     'hora_inicio' => $request->hora_inicio,
                     'hora_fin' => $request->hora_fin,

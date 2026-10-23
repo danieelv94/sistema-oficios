@@ -94,6 +94,24 @@
                                         x-text="tipoComision === 'ODSO' ? '{{ $siguienteFolioOdso }}' : '{{ $siguienteFolioNormal }}'">
                                     </span>
                                 </div>
+
+                                {{-- Titular que Autoriza si es ODSO --}}
+                                <div class="mt-3.5 pt-3 border-t border-slate-200/80" x-show="tipoComision === 'ODSO'" x-transition>
+                                    <label for="jefe_area_id" class="block font-medium text-xs text-amber-950 font-bold uppercase">
+                                        Titular que Autoriza la Comisión (Supervisión de Obra)
+                                    </label>
+                                    <select name="jefe_area_id" id="jefe_area_id"
+                                        class="block mt-1 w-full rounded-md shadow-sm border-gray-300 text-xs focus:border-amber-500 focus:ring-amber-500">
+                                        @foreach($jefesAutorizadores as $jefe)
+                                            <option value="{{ $jefe->id }}" {{ $jefe->id == $defaultJefeId ? 'selected' : '' }}>
+                                                {{ $jefe->prof }} {{ $jefe->name }} — {{ optional($jefe->area)->name ?? $jefe->cargo }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-[11px] text-slate-500 mt-1">
+                                        Para supervisión técnica de obra autoriza la Dirección de Infraestructura Hidráulica (DIH), Dirección de Vinculación y Proyectos Hídricos (DVPH), o el titular del área.
+                                    </p>
+                                </div>
                             </div>
                         @else
                             <input type="hidden" name="tipo_comision" value="normal">

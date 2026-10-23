@@ -10,7 +10,7 @@
                     {{ __('Solicitar Oficio de Comisión ODSO') }}
                 </h2>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Oficio de Comisión de Supervisión de Obra (DIH / DVPH)
+                    Oficio de Comisión de Supervisión de Obra (DIH / DVPH / DCA / DAyF)
                 </p>
             </div>
             <a href="{{ route('comisiones-odso.index') }}"
@@ -54,6 +54,22 @@
                     <form action="{{ route('comisiones-odso.store') }}" method="POST" @submit="isSubmitting = true">
                         @csrf
                         <div class="space-y-6">
+                            {{-- Titular que Autoriza --}}
+                            <div class="border-t pt-6">
+                                <label for="jefe_area_id" class="block font-medium text-sm text-gray-700">Titular que Autoriza la Comisión</label>
+                                <select name="jefe_area_id" id="jefe_area_id"
+                                    class="block mt-1 w-full rounded-md shadow-sm border-gray-300 focus:border-amber-500 focus:ring-amber-500">
+                                    @foreach($jefesAutorizadores as $jefe)
+                                        <option value="{{ $jefe->id }}" {{ $jefe->id == $defaultJefeId ? 'selected' : '' }}>
+                                            {{ $jefe->prof }} {{ $jefe->name }} — {{ optional($jefe->area)->name ?? $jefe->cargo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Para supervisión de obra habitualmente autoriza la Dirección de Infraestructura Hidráulica (DIH) o la Dirección de Vinculación y Proyectos Hídricos (DVPH), o el titular de tu área.
+                                </p>
+                            </div>
+
                             <div class="border-t pt-6">
                                 <p class="mb-4 text-sm text-slate-700">
                                     Por este conducto me permito comunicar a usted, que ha sido comisionado el (los) día (s):

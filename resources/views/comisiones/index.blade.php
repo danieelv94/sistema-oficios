@@ -81,7 +81,7 @@
 
             {{-- Pestañas de Navegación entre Comisiones Normales y ODSO --}}
             @php
-                $canSeeOdsoTab = in_array(optional(Auth::user()->area)->prefijo, ['DIH', 'DVPH']) || Auth::user()->role === 'admin' || Auth::user()->canViewAllComisiones();
+                $canSeeOdsoTab = Auth::user()->canAccessOdso();
             @endphp
             @if($canSeeOdsoTab)
                 <div class="flex items-center gap-2 border-b border-slate-200 no-print pb-1">

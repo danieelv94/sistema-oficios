@@ -138,4 +138,18 @@ class User extends Authenticatable
     {
         return $this->id == 246 || $this->role === 'admin' || $this->isRecursosHumanos();
     }
+
+    /**
+     * Determina si el usuario tiene acceso para emitir oficios ODSO de supervisión de obra.
+     */
+    public function canAccessOdso(): bool
+    {
+        $prefijosOdso = ['DIH', 'DVPH', 'DCA', 'DAyF'];
+        $areaPrefijo = optional($this->area)->prefijo;
+
+        return in_array($areaPrefijo, $prefijosOdso)
+            || $this->role === 'admin'
+            || $this->canViewAllComisiones();
+    }
 }
+

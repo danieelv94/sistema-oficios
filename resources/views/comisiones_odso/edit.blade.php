@@ -97,6 +97,20 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- Titular que Autoriza --}}
+                            <div class="md:col-span-2">
+                                <label for="jefe_area_id"
+                                    class="block text-sm font-bold text-gray-700 uppercase">Titular que Autoriza la Comisión</label>
+                                <select name="jefe_area_id" id="jefe_area_id"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500">
+                                    @foreach($jefesAutorizadores as $jefe)
+                                        <option value="{{ $jefe->id }}" {{ $comision->jefe_area_id == $jefe->id ? 'selected' : '' }}>
+                                            {{ $jefe->prof }} {{ $jefe->name }} — {{ optional($jefe->area)->name ?? $jefe->cargo }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mt-8 flex justify-end gap-4">
