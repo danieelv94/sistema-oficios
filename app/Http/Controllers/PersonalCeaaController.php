@@ -534,7 +534,7 @@ class PersonalCeaaController extends Controller
         $fin = Carbon::parse($request->fecha_fin)->startOfDay();
 
         $institucion = $request->institucion_medica;
-        $dias = $inicio->diffInDays($fin) + 1;
+        $dias = (int) round($inicio->diffInDays($fin)) + 1;
 
         if ($request->categoria === 'vacacion') {
             $soloHabiles = $request->boolean('solo_dias_habiles', true);

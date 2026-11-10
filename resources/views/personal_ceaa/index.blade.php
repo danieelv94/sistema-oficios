@@ -216,8 +216,8 @@
                                     $totalComisionesUsuario = ($usuario->comisiones_anio_count ?? 0) + ($usuario->comisiones_odso_anio_count ?? 0);
                                     $antiguedadTexto = 'Sin registro';
                                     if ($usuario->fecha_alta) {
-                                        $aniosAnt = $usuario->fecha_alta->diffInYears(now());
-                                        $mesesAnt = $usuario->fecha_alta->diffInMonths(now()) % 12;
+                                        $aniosAnt = (int) floor($usuario->fecha_alta->diffInYears(now()));
+                                        $mesesAnt = ((int) floor($usuario->fecha_alta->diffInMonths(now()))) % 12;
                                         if ($aniosAnt > 0) {
                                             $antiguedadTexto = $aniosAnt . ($aniosAnt == 1 ? ' año' : ' años') . ($mesesAnt > 0 ? ", {$mesesAnt} m" : '');
                                         } elseif ($mesesAnt > 0) {

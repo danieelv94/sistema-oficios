@@ -25,9 +25,9 @@
         $mesesRestantes = 0;
         
         if ($fechaAltaCarbon) {
-            $diffAnios = $fechaAltaCarbon->diffInYears(now());
-            $diffMeses = $fechaAltaCarbon->diffInMonths(now()) % 12;
-            $diffDias = $fechaAltaCarbon->diffInDays(now()) % 30;
+            $diffAnios = (int) floor($fechaAltaCarbon->diffInYears(now()));
+            $diffMeses = ((int) floor($fechaAltaCarbon->diffInMonths(now()))) % 12;
+            $diffDias = ((int) floor($fechaAltaCarbon->diffInDays(now()))) % 30;
             
             $antiguedadParts = [];
             if ($diffAnios > 0) {

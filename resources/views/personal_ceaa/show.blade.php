@@ -52,9 +52,9 @@
         $aptoVacaciones = false;
 
         if ($fechaAltaCarbon) {
-            $diffAnios = $fechaAltaCarbon->diffInYears(now());
-            $diffMeses = $fechaAltaCarbon->diffInMonths(now()) % 12;
-            $diffDias = $fechaAltaCarbon->diffInDays(now()) % 30;
+            $diffAnios = (int) floor($fechaAltaCarbon->diffInYears(now()));
+            $diffMeses = ((int) floor($fechaAltaCarbon->diffInMonths(now()))) % 12;
+            $diffDias = ((int) floor($fechaAltaCarbon->diffInDays(now()))) % 30;
 
             $partes = [];
             if ($diffAnios > 0) $partes[] = $diffAnios == 1 ? '1 año' : "{$diffAnios} años";
@@ -106,22 +106,59 @@
                     </select>
                 </form>
 
-                {{-- Botón Imprimir Kardex --}}
-                <button type="button" onclick="window.print()"
-                    class="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Imprimir Kardex
-                </button>
+                {{-- Menú Desplegable Imprimir Kardex --}}
+                <div x-data="{ openPrintMenu: false }" class="relative">
+                    <button type="button" @click="openPrintMenu = !openPrintMenu" @click.away="openPrintMenu = false"
+                        class="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>Imprimir Kardex</span>
+                        <svg class="w-3.5 h-3.5 text-slate-300 transition-transform" :class="openPrintMenu ? 'rotate-180' : ''"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="openPrintMenu" style="display: none;" x-transition
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 divide-y divide-slate-100 text-xs">
+                        <div class="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                            ¿Qué apartado deseas imprimir?
+                        </div>
+                        <div class="py-1">
+                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'todo')"
+                                class="w-full text-left px-3.5 py-2 font-black text-slate-800 hover:bg-slate-50 hover:text-guinda-ceaa flex items-center gap-2 transition">
+                                <span>📑</span>
+                                <span>Todo el Kardex Completo</span>
+                            </button>
+                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'comisiones')"
+                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 transition">
+                                <span>🚗</span>
+                                <span>Solo Comisiones</span>
+                            </button>
+                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'incapacidades')"
+                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-2 transition">
+                                <span>🏥</span>
+                                <span>Solo Incapacidades</span>
+                            </button>
+                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'vacaciones')"
+                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2 transition">
+                                <span>🌴</span>
+                                <span>Solo Vacaciones</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </x-slot>
 
     <div class="py-6 bg-slate-50/50 min-h-screen"
+        @imprimir-kardex.window="imprimirSeccion($event.detail)"
         x-data="{
             tabActiva: 'comisiones',
+            seccionImpresion: 'todo',
             modalIncapacidad: false,
             modalPermiso: false,
             modalVacacion: false,
@@ -136,6 +173,15 @@
             vacFin: '{{ now()->toDateString() }}',
             soloHabiles: true,
             fechasVacacionesSueltas: ['{{ now()->toDateString() }}'],
+            imprimirSeccion(seccion) {
+                this.seccionImpresion = seccion;
+                if (seccion !== 'todo') {
+                    this.tabActiva = seccion;
+                }
+                this.$nextTick(() => {
+                    window.print();
+                });
+            },
             calcularDias(inicio, fin) {
                 if (!inicio || !fin) return 0;
                 const d1 = new Date(inicio + 'T00:00:00');
@@ -170,7 +216,12 @@
                     <img src="{{ asset('images/encabezado.png') }}" style="height: 55px;" alt="CEAA">
                     <div class="text-right">
                         <h1 class="text-base font-black uppercase text-guinda-ceaa">COMISIÓN ESTATAL DEL AGUA Y ALCANTARILLADO</h1>
-                        <h2 class="text-xs font-bold uppercase text-slate-800">Subdirección de Recursos Humanos — Hoja de Kardex Individual ({{ $anio }})</h2>
+                        <h2 class="text-xs font-bold uppercase text-slate-800">
+                            Subdirección de Recursos Humanos —
+                            <span x-text="seccionImpresion === 'comisiones' ? 'Kardex de Salidas de Comisión ({{ $anio }})' : (seccionImpresion === 'incapacidades' ? 'Kardex de Incapacidades Médicas ({{ $anio }})' : (seccionImpresion === 'vacaciones' ? 'Kardex de Vacaciones ({{ $anio }})' : 'Hoja de Kardex Individual Completo ({{ $anio }})'))">
+                                Hoja de Kardex Individual ({{ $anio }})
+                            </span>
+                        </h2>
                         <p class="text-[10px] text-slate-500">Fecha de impresión: {{ now()->format('d/m/Y H:i') }}</p>
                     </div>
                 </div>
@@ -342,6 +393,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {{-- Comisiones del Año --}}
                 <div @click="tabActiva = 'comisiones'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'comisiones') ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border transition hover:shadow-md {{ $totalComisionesActivas > 0 ? 'border-sky-200' : 'border-slate-200/80' }}">
                     <div class="flex items-center justify-between">
                         <div>
@@ -365,6 +417,7 @@
 
                 {{-- Incapacidades del Año --}}
                 <div @click="tabActiva = 'incapacidades'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'incapacidades') ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border transition hover:shadow-md {{ $incapacidades->count() > 0 ? 'border-rose-200' : 'border-slate-200/80' }}">
                     <div class="flex items-center justify-between">
                         <div>
@@ -408,6 +461,7 @@
 
                 {{-- Vacaciones --}}
                 <div @click="tabActiva = 'vacaciones'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'vacaciones') ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 transition hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
@@ -595,7 +649,9 @@
                 </div>
 
                 {{-- TAB 1: HISTORIAL DE COMISIONES DE LA PERSONA --}}
-                <div x-show="tabActiva === 'comisiones'" class="p-5 print-force-show">
+                <div x-show="tabActiva === 'comisiones'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'comisiones') ? 'print-force-show' : 'no-print'"
+                    class="p-5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
                             <h4 class="text-xs font-black uppercase text-slate-800 tracking-wider">
@@ -700,7 +756,9 @@
                 </div>
 
                 {{-- TAB 2: INCAPACIDADES MÉDICAS --}}
-                <div x-show="tabActiva === 'incapacidades'" class="p-5 border-t border-slate-100 print-force-show">
+                <div x-show="tabActiva === 'incapacidades'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'incapacidades') ? 'print-force-show' : 'no-print'"
+                    class="p-5 border-t border-slate-100">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
                             <h4 class="text-xs font-black uppercase text-rose-800 tracking-wider">
@@ -888,7 +946,9 @@
                 --}}
 
                 {{-- TAB 4: VACACIONES Y PERÍODOS --}}
-                <div x-show="tabActiva === 'vacaciones'" class="p-5 border-t border-slate-100 print-force-show">
+                <div x-show="tabActiva === 'vacaciones'"
+                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'vacaciones') ? 'print-force-show' : 'no-print'"
+                    class="p-5 border-t border-slate-100">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                         <div>
                             <h4 class="text-xs font-black uppercase text-emerald-800 tracking-wider">
