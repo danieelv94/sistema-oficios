@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\ComisionOdsoController;
 use App\Http\Controllers\AvisoController;
+use App\Http\Controllers\PersonalCeaaController;
 
 Route::redirect('/', '/login');
 
@@ -64,6 +65,13 @@ Route::middleware('auth')->group(function () {
     ]);
     Route::put('/usuarios/{user}/restore', [UserController::class, 'restore'])->name('usuarios.restore');
     Route::delete('/usuarios/{user}/force-delete', [UserController::class, 'forceDelete'])->name('usuarios.forceDelete');
+
+    // --- Personal CEAA / Kardex de Personal (RH y Admins) ---
+    Route::get('/personal-ceaa', [PersonalCeaaController::class, 'index'])->name('personal-ceaa.index');
+    Route::get('/personal-ceaa/{user}', [PersonalCeaaController::class, 'show'])->name('personal-ceaa.show');
+    Route::post('/personal-ceaa/{user}/incidencias', [PersonalCeaaController::class, 'storeIncidencia'])->name('personal-ceaa.incidencias.store');
+    Route::delete('/personal-ceaa/incidencias/{incidencia}', [PersonalCeaaController::class, 'destroyIncidencia'])->name('personal-ceaa.incidencias.destroy');
+    Route::patch('/personal-ceaa/{user}/expediente', [PersonalCeaaController::class, 'updateExpediente'])->name('personal-ceaa.expediente.update');
 
 
     // --- Sistema de Tickets de Soporte ---

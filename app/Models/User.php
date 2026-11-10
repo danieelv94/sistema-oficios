@@ -31,6 +31,15 @@ class User extends Authenticatable
         'area_id',
         'subarea_id',
         'no_empleado',
+        'curp',
+        'rfc',
+        'nss',
+        'tipo_sangre',
+        'telefono',
+        'contacto_emergencia_nombre',
+        'contacto_emergencia_telefono',
+        'contacto_emergencia_parentesco',
+        'notas_rh',
         'nivel_id',
         'recibir_correos',
         'fecha_alta',
@@ -86,6 +95,44 @@ class User extends Authenticatable
     public function solicitudesVacaciones()
     {
         return $this->hasMany(SolicitudVacacion::class, 'user_id');
+    }
+
+    public function comisiones()
+    {
+        return $this->hasMany(Comision::class, 'user_id');
+    }
+
+    public function comisionesOdso()
+    {
+        return $this->hasMany(ComisionOdso::class, 'user_id');
+    }
+
+    public function incidencias()
+    {
+        return $this->hasMany(PersonalIncidencia::class, 'user_id');
+    }
+
+    public function incapacidades()
+    {
+        return $this->hasMany(PersonalIncidencia::class, 'user_id')->where('categoria', 'incapacidad');
+    }
+
+    public function permisos()
+    {
+        return $this->hasMany(PersonalIncidencia::class, 'user_id')->where('categoria', 'incidencia');
+    }
+
+    public function vacacionesKardex()
+    {
+        return $this->hasMany(PersonalIncidencia::class, 'user_id')->where('categoria', 'vacacion');
+    }
+
+    /**
+     * Determina si el usuario puede acceder al apartado de Personal CEAA (Kardex RH / Admin).
+     */
+    public function canAccessPersonalCeaa(): bool
+    {
+        return $this->role === 'admin' || $this->isRecursosHumanos();
     }
 
     /**
