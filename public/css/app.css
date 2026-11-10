@@ -1229,6 +1229,9 @@ select {
 .w-px {
   width: 1px;
 }
+.w-72 {
+  width: 18rem;
+}
 .min-w-\[160px\] {
   min-width: 160px;
 }
@@ -3632,6 +3635,14 @@ select {
 .hover\:bg-sky-50:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(240 249 255 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-rose-50\/60:hover {
+  background-color: rgb(255 241 242 / 0.6);
+}
+
+.hover\:bg-sky-50\/60:hover {
+  background-color: rgb(240 249 255 / 0.6);
 }
 
 .hover\:bg-opacity-90:hover {

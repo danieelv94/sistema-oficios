@@ -106,8 +106,13 @@
                     </select>
                 </form>
 
-                {{-- Menú Desplegable Imprimir Kardex --}}
-                <div x-data="{ openPrintMenu: false }" class="relative">
+                {{-- Menú Desplegable Imprimir Kardex (Selección Múltiple) --}}
+                <div x-data="{
+                        openPrintMenu: false,
+                        selComisiones: true,
+                        selIncapacidades: true,
+                        selVacaciones: true
+                    }" class="relative">
                     <button type="button" @click="openPrintMenu = !openPrintMenu" @click.away="openPrintMenu = false"
                         class="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs transition flex items-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,32 +127,55 @@
                     </button>
 
                     <div x-show="openPrintMenu" style="display: none;" x-transition
-                        class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 divide-y divide-slate-100 text-xs">
-                        <div class="px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            ¿Qué apartado deseas imprimir?
-                        </div>
-                        <div class="py-1">
-                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'todo')"
-                                class="w-full text-left px-3.5 py-2 font-black text-slate-800 hover:bg-slate-50 hover:text-guinda-ceaa flex items-center gap-2 transition">
-                                <span>📑</span>
-                                <span>Todo el Kardex Completo</span>
-                            </button>
-                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'comisiones')"
-                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-sky-50 hover:text-sky-700 flex items-center gap-2 transition">
-                                <span>🚗</span>
-                                <span>Solo Comisiones</span>
-                            </button>
-                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'incapacidades')"
-                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-2 transition">
-                                <span>🏥</span>
-                                <span>Solo Incapacidades</span>
-                            </button>
-                            <button type="button" @click="openPrintMenu = false; $dispatch('imprimir-kardex', 'vacaciones')"
-                                class="w-full text-left px-3.5 py-2 font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2 transition">
-                                <span>🌴</span>
-                                <span>Solo Vacaciones</span>
+                        class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-3.5 z-50 space-y-3 text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                                Elige qué incluir al imprimir
+                            </span>
+                            <button type="button"
+                                @click="selComisiones = true; selIncapacidades = true; selVacaciones = true"
+                                class="text-[10px] font-bold text-guinda-ceaa hover:underline">
+                                Marcar todas
                             </button>
                         </div>
+
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-sky-50/60 cursor-pointer select-none border border-slate-100">
+                                <input type="checkbox" x-model="selComisiones"
+                                    class="rounded border-slate-300 text-guinda-ceaa focus:ring-guinda-ceaa">
+                                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                    <span>🚗</span> Salidas de Comisión
+                                </span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-rose-50/60 cursor-pointer select-none border border-slate-100">
+                                <input type="checkbox" x-model="selIncapacidades"
+                                    class="rounded border-slate-300 text-guinda-ceaa focus:ring-guinda-ceaa">
+                                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                    <span>🏥</span> Incapacidades Médicas
+                                </span>
+                            </label>
+
+                            <label class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-emerald-50/60 cursor-pointer select-none border border-slate-100">
+                                <input type="checkbox" x-model="selVacaciones"
+                                    class="rounded border-slate-300 text-guinda-ceaa focus:ring-guinda-ceaa">
+                                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                    <span>🌴</span> Vacaciones
+                                </span>
+                            </label>
+                        </div>
+
+                        <button type="button"
+                            :disabled="!selComisiones && !selIncapacidades && !selVacaciones"
+                            :class="(!selComisiones && !selIncapacidades && !selVacaciones) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-guinda-ceaa-hover'"
+                            @click="openPrintMenu = false; $dispatch('imprimir-kardex', { comisiones: selComisiones, incapacidades: selIncapacidades, vacaciones: selVacaciones })"
+                            class="w-full py-2 px-3 bg-guinda-ceaa text-white rounded-lg font-black uppercase tracking-wider text-center shadow-2xs transition flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>Imprimir Selección</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -158,7 +186,9 @@
         @imprimir-kardex.window="imprimirSeccion($event.detail)"
         x-data="{
             tabActiva: 'comisiones',
-            seccionImpresion: 'todo',
+            printComisiones: true,
+            printIncapacidades: true,
+            printVacaciones: true,
             modalIncapacidad: false,
             modalPermiso: false,
             modalVacacion: false,
@@ -173,14 +203,21 @@
             vacFin: '{{ now()->toDateString() }}',
             soloHabiles: true,
             fechasVacacionesSueltas: ['{{ now()->toDateString() }}'],
-            imprimirSeccion(seccion) {
-                this.seccionImpresion = seccion;
-                if (seccion !== 'todo') {
-                    this.tabActiva = seccion;
-                }
+            imprimirSeccion(opciones) {
+                this.printComisiones = !!opciones.comisiones;
+                this.printIncapacidades = !!opciones.incapacidades;
+                this.printVacaciones = !!opciones.vacaciones;
                 this.$nextTick(() => {
                     window.print();
                 });
+            },
+            tituloImpresion() {
+                const partes = [];
+                if (this.printComisiones) partes.push('Comisiones');
+                if (this.printIncapacidades) partes.push('Incapacidades');
+                if (this.printVacaciones) partes.push('Vacaciones');
+                if (partes.length === 3) return 'Hoja de Kardex Individual Completo ({{ $anio }})';
+                return 'Kardex Individual: ' + partes.join(', ') + ' ({{ $anio }})';
             },
             calcularDias(inicio, fin) {
                 if (!inicio || !fin) return 0;
@@ -218,7 +255,7 @@
                         <h1 class="text-base font-black uppercase text-guinda-ceaa">COMISIÓN ESTATAL DEL AGUA Y ALCANTARILLADO</h1>
                         <h2 class="text-xs font-bold uppercase text-slate-800">
                             Subdirección de Recursos Humanos —
-                            <span x-text="seccionImpresion === 'comisiones' ? 'Kardex de Salidas de Comisión ({{ $anio }})' : (seccionImpresion === 'incapacidades' ? 'Kardex de Incapacidades Médicas ({{ $anio }})' : (seccionImpresion === 'vacaciones' ? 'Kardex de Vacaciones ({{ $anio }})' : 'Hoja de Kardex Individual Completo ({{ $anio }})'))">
+                            <span x-text="tituloImpresion()">
                                 Hoja de Kardex Individual ({{ $anio }})
                             </span>
                         </h2>
@@ -393,7 +430,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {{-- Comisiones del Año --}}
                 <div @click="tabActiva = 'comisiones'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'comisiones') ? '' : 'no-print'"
+                    :class="printComisiones ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border transition hover:shadow-md {{ $totalComisionesActivas > 0 ? 'border-sky-200' : 'border-slate-200/80' }}">
                     <div class="flex items-center justify-between">
                         <div>
@@ -417,7 +454,7 @@
 
                 {{-- Incapacidades del Año --}}
                 <div @click="tabActiva = 'incapacidades'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'incapacidades') ? '' : 'no-print'"
+                    :class="printIncapacidades ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border transition hover:shadow-md {{ $incapacidades->count() > 0 ? 'border-rose-200' : 'border-slate-200/80' }}">
                     <div class="flex items-center justify-between">
                         <div>
@@ -461,7 +498,7 @@
 
                 {{-- Vacaciones --}}
                 <div @click="tabActiva = 'vacaciones'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'vacaciones') ? '' : 'no-print'"
+                    :class="printVacaciones ? '' : 'no-print'"
                     class="cursor-pointer bg-white rounded-xl p-5 shadow-xs border border-slate-200/80 transition hover:shadow-md">
                     <div class="flex items-center justify-between">
                         <div>
@@ -650,7 +687,7 @@
 
                 {{-- TAB 1: HISTORIAL DE COMISIONES DE LA PERSONA --}}
                 <div x-show="tabActiva === 'comisiones'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'comisiones') ? 'print-force-show' : 'no-print'"
+                    :class="printComisiones ? 'print-force-show' : 'no-print'"
                     class="p-5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
@@ -757,7 +794,7 @@
 
                 {{-- TAB 2: INCAPACIDADES MÉDICAS --}}
                 <div x-show="tabActiva === 'incapacidades'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'incapacidades') ? 'print-force-show' : 'no-print'"
+                    :class="printIncapacidades ? 'print-force-show' : 'no-print'"
                     class="p-5 border-t border-slate-100">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div>
@@ -947,7 +984,7 @@
 
                 {{-- TAB 4: VACACIONES Y PERÍODOS --}}
                 <div x-show="tabActiva === 'vacaciones'"
-                    :class="(seccionImpresion === 'todo' || seccionImpresion === 'vacaciones') ? 'print-force-show' : 'no-print'"
+                    :class="printVacaciones ? 'print-force-show' : 'no-print'"
                     class="p-5 border-t border-slate-100">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                         <div>
