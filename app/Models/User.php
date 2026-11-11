@@ -136,6 +136,34 @@ class User extends Authenticatable
     }
 
     /**
+     * Determina si el usuario pertenece a Dirección General.
+     */
+    public function isDireccionGeneral(): bool
+    {
+        if ($this->role === 'dg' || (int) $this->area_id === 1) {
+            return true;
+        }
+
+        if ($this->area) {
+            $prefijo = strtoupper(trim($this->area->prefijo ?? ''));
+            $nombreArea = mb_strtolower($this->area->name ?? '', 'UTF-8');
+            if ($prefijo === 'DG' || strpos($nombreArea, 'dirección general') !== false || strpos($nombreArea, 'direccion general') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determina si el usuario puede acceder al Control de Oficios para Firma de Dirección General.
+     */
+    public function canAccessFirmaDg(): bool
+    {
+        return $this->isDireccionGeneral() || $this->role === 'admin';
+    }
+
+    /**
      * Determina si el usuario puede editar una sección del formulario PNT.
      */
     public function canEditPntSection($section)

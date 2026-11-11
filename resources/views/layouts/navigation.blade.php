@@ -1,4 +1,5 @@
-<nav x-data="{ openDropdownOficios: {{ request()->routeIs('oficios.*') ? 'true' : 'false' }}, openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') || request()->routeIs('comisiones-odso.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }" class="no-print">
+<nav x-data="{ openDropdownOficios: {{ request()->routeIs('oficios.*') ? 'true' : 'false' }}, openDropdownAvisos: {{ request()->routeIs('avisos.*') ? 'true' : 'false' }}, openDropdownComisiones: {{ request()->routeIs('comisiones.*') || request()->routeIs('comisiones-odso.*') ? 'true' : 'false' }}, openUserMenu: false, openMobileSidebar: false }"
+    class="no-print">
     <!-- TOP NAVBAR -->
     <div
         class="fixed top-0 right-0 left-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 z-40 shadow-xs transition-all">
@@ -28,7 +29,8 @@
                     <span class="font-black text-base text-slate-800 tracking-wider uppercase leading-none font-sans">
                         Sistema <span class="text-guinda-ceaa">Oficios</span>
                     </span>
-                    <span class="text-[9px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">CEAA Hidalgo</span>
+                    <span class="text-[9px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">CEAA
+                        Hidalgo</span>
                 </div>
             </div>
         </div>
@@ -68,7 +70,8 @@
             <div class="relative">
                 <button @click="openUserMenu = !openUserMenu" @click.away="openUserMenu = false"
                     class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 text-slate-700 hover:text-slate-900 focus:outline-none transition">
-                    <div class="w-8 h-8 rounded-lg bg-guinda-ceaa/10 text-guinda-ceaa flex items-center justify-center font-black text-xs">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-guinda-ceaa/10 text-guinda-ceaa flex items-center justify-center font-black text-xs">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
                     <div class="hidden md:block text-left">
@@ -78,7 +81,9 @@
                         </div>
                     </div>
                     <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
                     </svg>
                 </button>
 
@@ -95,7 +100,8 @@
                         <a href="{{ route('profile.edit') }}"
                             class="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-guinda-ceaa transition">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             {{ __('Mi Perfil') }}
                         </a>
@@ -105,8 +111,10 @@
                             @csrf
                             <button type="submit"
                                 class="flex items-center gap-2 w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
-                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
                                 {{ __('Cerrar Sesión') }}
                             </button>
@@ -148,7 +156,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Oficios</span>
+                                <span x-show="openSidebar"
+                                    class="text-xs font-semibold tracking-wide uppercase">Oficios</span>
                             </div>
                             <svg x-show="openSidebar" :class="openDropdownOficios ? 'transform rotate-180' : ''"
                                 class="w-4 h-4 transition-transform text-slate-400" fill="none" stroke="currentColor"
@@ -206,7 +215,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                 </svg>
-                                <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Comisión</span>
+                                <span x-show="openSidebar"
+                                    class="text-xs font-semibold tracking-wide uppercase">Comisión</span>
                             </div>
                             <svg x-show="openSidebar" :class="openDropdownComisiones ? 'transform rotate-180' : ''"
                                 class="w-4 h-4 transition-transform text-slate-400" fill="none" stroke="currentColor"
@@ -225,7 +235,8 @@
                                 <a href="{{ route('comisiones-odso.index') }}"
                                     class="flex items-center justify-between py-1.5 px-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('comisiones-odso.*') ? 'text-white bg-slate-800 font-bold' : 'text-slate-400 hover:text-white hover:bg-slate-800/40' }}">
                                     <span>Supervisión Obra (ODSO)</span>
-                                    <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
+                                    <span
+                                        class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
                                 </a>
                             @endif
                             @if(Auth::user()->canViewAllComisiones())
@@ -252,7 +263,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
-                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Oficios Comisión</span>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Oficios
+                            Comisión</span>
                     </a>
                 @endif
 
@@ -266,7 +278,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Transparencia PNT</span>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Transparencia
+                            PNT</span>
                     </a>
                 @endif
 
@@ -279,7 +292,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Soporte Técnico</span>
+                    <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Soporte
+                        Técnico</span>
                 </a>
 
                 <!-- Dropdown: Avisos -->
@@ -293,7 +307,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
-                            <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Avisos</span>
+                            <span x-show="openSidebar"
+                                class="text-xs font-semibold tracking-wide uppercase">Avisos</span>
                         </div>
                         <svg x-show="openSidebar" :class="openDropdownAvisos ? 'transform rotate-180' : ''"
                             class="w-4 h-4 transition-transform text-slate-400" fill="none" stroke="currentColor"
@@ -317,6 +332,63 @@
                     </div>
                 </div>
 
+                <!-- Módulo de Control de Firma Director General (DG y Admin) y Seguimiento para Áreas/Usuarios -->
+                @php
+                    $firmadosPorRecogerAreaCount = 0;
+                    try {
+                        $uNav = Auth::user();
+                        if ($uNav && \Illuminate\Support\Facades\Schema::hasTable('oficios_firma_dg')) {
+                            $esDirectorNav = in_array($uNav->role, ['jefe_area', 'admin']);
+                            $firmadosPorRecogerAreaCount = \App\Models\OficioFirmaDg::where('estatus', 'Firmado')
+                                ->where(function ($q) use ($uNav, $esDirectorNav) {
+                                    $q->where('entregado_por_user_id', $uNav->id);
+                                    // Solo si es Jefe de Área (Director) cuenta también los de toda su Dirección
+                                    if ($esDirectorNav && $uNav->area_id) {
+                                        $q->orWhere('area_id', $uNav->area_id);
+                                    }
+                                })
+                                ->count();
+                        }
+                    } catch (\Throwable $e) {
+                        $firmadosPorRecogerAreaCount = 0;
+                    }
+                @endphp
+
+                @if(Auth::user()->canAccessFirmaDg())
+                    <a href="{{ route('firma-dg.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition duration-150 group {{ request()->routeIs('firma-dg.*') ? 'bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover text-white font-bold shadow-sm' : 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}"
+                        title="Control de Oficios para Firma DG">
+                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('firma-dg.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Firma Director
+                            Gral.</span>
+                    </a>
+                @else
+                    <a href="{{ route('firma-dg.mis-oficios') }}"
+                        class="flex items-center justify-between px-3 py-2.5 rounded-xl transition duration-150 group {{ request()->routeIs('firma-dg.mis-oficios') ? 'bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover text-white font-bold shadow-sm' : 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}"
+                        title="Mis Oficios en Firma de Dirección General">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('firma-dg.mis-oficios') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Estatus Firma
+                                DG</span>
+                        </div>
+                        @if($firmadosPorRecogerAreaCount > 0)
+                            <span x-show="openSidebar"
+                                class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-blue-500 text-white animate-pulse"
+                                title="Documentos ya firmados listos para recoger en Dirección General">
+                                {{ $firmadosPorRecogerAreaCount }} {{ $firmadosPorRecogerAreaCount === 1 ? 'listo' : 'listos' }}
+                            </span>
+                        @endif
+                    </a>
+                @endif
+
                 <!-- Módulo de Personal CEAA / Kardex (RH y Admin) -->
                 @if(Auth::user()->canAccessPersonalCeaa())
                     <a href="{{ route('personal-ceaa.index') }}"
@@ -327,7 +399,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                         </svg>
-                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Personal CEAA</span>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Personal
+                            CEAA</span>
                     </a>
                 @endif
 
@@ -341,14 +414,33 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Control Usuarios</span>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Control
+                            Usuarios</span>
+                    </a>
+                @endif
+
+                <!-- Módulo de Bitácora de Actividades / Auditoría (Admin y DG) -->
+                @if(Auth::user()->role === 'admin' || Auth::user()->isDireccionGeneral())
+                    <a href="{{ route('bitacora.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition duration-150 group {{ request()->routeIs('bitacora.*') ? 'bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover text-white font-bold shadow-sm' : 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}"
+                        title="Bitácora de Actividades (Auditoría)">
+                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('bitacora.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span x-show="openSidebar" class="text-xs font-semibold tracking-wide uppercase">Bitácora
+                            Auditoría</span>
                     </a>
                 @endif
 
             </div>
 
-            <div class="px-4 py-3 text-[10px] text-slate-500 border-t border-slate-800/80 whitespace-nowrap text-center">
-                <p x-show="openSidebar" class="font-bold tracking-widest uppercase text-slate-500">CEAA &bull; {{ now()->year }}</p>
+            <div
+                class="px-4 py-3 text-[10px] text-slate-500 border-t border-slate-800/80 whitespace-nowrap text-center">
+                <p x-show="openSidebar" class="font-bold tracking-widest uppercase text-slate-500">CEAA &bull;
+                    {{ now()->year }}
+                </p>
                 <p x-show="!openSidebar" class="font-bold text-slate-600">V1</p>
             </div>
         </div>
@@ -358,11 +450,13 @@
     <div x-show="openMobileSidebar" class="md:hidden fixed inset-0 flex z-50 no-print" x-transition
         style="display: none;">
         <!-- Fondo oscuro translúcido -->
-        <div @click="openMobileSidebar = false" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs transition-opacity">
+        <div @click="openMobileSidebar = false"
+            class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs transition-opacity">
         </div>
 
         <!-- Cuerpo del Sidebar Móvil -->
-        <div class="relative flex-1 flex flex-col max-w-xs w-full bg-slate-900 pt-5 pb-4 shadow-2xl border-r border-slate-800">
+        <div
+            class="relative flex-1 flex flex-col max-w-xs w-full bg-slate-900 pt-5 pb-4 shadow-2xl border-r border-slate-800">
             <div class="absolute top-0 right-0 -mr-12 pt-3">
                 <button @click="openMobileSidebar = false"
                     class="ml-1 flex items-center justify-center h-10 w-10 rounded-full bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-white">
@@ -375,7 +469,8 @@
 
             <div class="px-5 pb-4 border-b border-slate-800 flex items-center gap-3">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo CEAA" class="h-8 w-auto">
-                <span class="font-black text-sm text-white uppercase tracking-wider">Sistema <span class="text-guinda-ceaa">Oficios</span></span>
+                <span class="font-black text-sm text-white uppercase tracking-wider">Sistema <span
+                        class="text-guinda-ceaa">Oficios</span></span>
             </div>
 
             <div class="mt-4 flex-1 h-0 overflow-y-auto px-4 space-y-1.5">
@@ -392,7 +487,8 @@
                 <!-- Sección Agrupada: Oficios (Móvil) -->
                 @if(Auth::user()->area_id || Auth::user()->role == 'admin')
                     <div class="border-t border-slate-800/80 pt-2 mt-2">
-                        <div class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -427,7 +523,8 @@
                 @if($hasExtraComisionPerms)
                     <!-- Sección Agrupada: Comisión (Móvil) -->
                     <div class="border-t border-slate-800/80 pt-2 mt-2">
-                        <div class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -442,7 +539,8 @@
                             <a href="{{ route('comisiones-odso.index') }}"
                                 class="flex items-center justify-between pl-8 pr-4 py-2 rounded-xl text-xs font-medium transition {{ request()->routeIs('comisiones-odso.*') ? 'text-white font-bold bg-amber-600' : 'text-slate-400 hover:text-white' }}">
                                 <span>Supervisión Obra (ODSO)</span>
-                                <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
+                                <span
+                                    class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 rounded font-bold">ODSO</span>
                             </a>
                         @endif
                         @if(Auth::user()->canViewAllComisiones())
@@ -462,7 +560,8 @@
                     <!-- Enlace Directo: Oficios Comisión (Móvil) -->
                     <a href="{{ route('comisiones.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('comisiones.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
-                        <svg class="w-5 h-5 {{ request()->routeIs('comisiones.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 {{ request()->routeIs('comisiones.*') ? 'text-white' : 'text-slate-400' }}"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
@@ -471,10 +570,11 @@
                 @endif
 
                 <!-- Enlace: Transparencia PNT -->
-                @if(Auth::user()->canEditPntSection(1) || Auth::user()->canEditPntSection(2) || Auth::user()->canEditPntSection(3))
+                @if(Auth::user()->role === 'admin')
                     <a href="{{ route('pnt.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('pnt.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
-                        <svg class="w-5 h-5 {{ request()->routeIs('pnt.*') ? 'text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 {{ request()->routeIs('pnt.*') ? 'text-white' : 'text-slate-400' }}" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -494,7 +594,8 @@
 
                 <!-- Sección Agrupada: Avisos -->
                 <div class="border-t border-slate-800/80 pt-2 mt-2">
-                    <div class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <div
+                        class="flex items-center gap-2 px-3 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
@@ -512,6 +613,34 @@
                         Muro de Avisos
                     </a>
                 </div>
+
+                <!-- Enlace: Firma Director General (DG y Admin) y Seguimiento para Áreas -->
+                @if(Auth::user()->canAccessFirmaDg())
+                    <a href="{{ route('firma-dg.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('firma-dg.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span>Firma Director Gral.</span>
+                    </a>
+                @else
+                    <a href="{{ route('firma-dg.mis-oficios') }}"
+                        class="flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('firma-dg.mis-oficios') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span>Estatus Firma DG</span>
+                        </div>
+                        @if($firmadosPorRecogerAreaCount > 0)
+                            <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-blue-500 text-white">
+                                {{ $firmadosPorRecogerAreaCount }} {{ $firmadosPorRecogerAreaCount === 1 ? 'listo' : 'listos' }}
+                            </span>
+                        @endif
+                    </a>
+                @endif
 
                 <!-- Enlace: Personal CEAA (RH y Admin) -->
                 @if(Auth::user()->canAccessPersonalCeaa())
@@ -534,6 +663,18 @@
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                         <span>Control Usuarios</span>
+                    </a>
+                @endif
+
+                <!-- Enlace: Bitácora Auditoría (Admin y DG) -->
+                @if(Auth::user()->role === 'admin' || Auth::user()->isDireccionGeneral())
+                    <a href="{{ route('bitacora.index') }}"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('bitacora.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span>Bitácora Auditoría</span>
                     </a>
                 @endif
             </div>

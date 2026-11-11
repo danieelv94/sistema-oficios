@@ -11,6 +11,8 @@ use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\ComisionOdsoController;
 use App\Http\Controllers\AvisoController;
 use App\Http\Controllers\PersonalCeaaController;
+use App\Http\Controllers\OficioFirmaDgController;
+use App\Http\Controllers\BitacoraActividadController;
 
 Route::redirect('/', '/login');
 
@@ -72,6 +74,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/personal-ceaa/{user}/incidencias', [PersonalCeaaController::class, 'storeIncidencia'])->name('personal-ceaa.incidencias.store');
     Route::delete('/personal-ceaa/incidencias/{incidencia}', [PersonalCeaaController::class, 'destroyIncidencia'])->name('personal-ceaa.incidencias.destroy');
     Route::patch('/personal-ceaa/{user}/expediente', [PersonalCeaaController::class, 'updateExpediente'])->name('personal-ceaa.expediente.update');
+
+    // --- Bitácora de Oficios para Firma del Director General (DG y Seguimiento para Áreas/Usuarios) ---
+    Route::get('/firma-dg/mis-oficios', [OficioFirmaDgController::class, 'misOficios'])->name('firma-dg.mis-oficios');
+    Route::get('/firma-dg', [OficioFirmaDgController::class, 'index'])->name('firma-dg.index');
+    Route::post('/firma-dg', [OficioFirmaDgController::class, 'store'])->name('firma-dg.store');
+    Route::patch('/firma-dg/{registro}/estatus', [OficioFirmaDgController::class, 'cambiarEstatus'])->name('firma-dg.estatus');
+    Route::patch('/firma-dg/{registro}/entrega', [OficioFirmaDgController::class, 'registrarEntrega'])->name('firma-dg.entrega');
+    Route::delete('/firma-dg/{registro}', [OficioFirmaDgController::class, 'destroy'])->name('firma-dg.destroy');
+
+    // --- Bitácora de Actividades / Auditoría del Sistema (Admin y DG) ---
+    Route::get('/bitacora-auditoria', [BitacoraActividadController::class, 'index'])->name('bitacora.index');
 
 
     // --- Sistema de Tickets de Soporte ---
