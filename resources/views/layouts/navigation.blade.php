@@ -666,8 +666,8 @@
                     </a>
                 @endif
 
-                <!-- Enlace: Bitácora Auditoría (Admin y DG) -->
-                @if(Auth::user()->role === 'admin' || Auth::user()->isDireccionGeneral())
+                <!-- Enlace: Bitácora Auditoría (Admin) -->
+                @if(Auth::user()->role === 'admin')
                     <a href="{{ route('bitacora.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition {{ request()->routeIs('bitacora.*') ? 'bg-guinda-ceaa text-white' : 'text-slate-300 hover:bg-slate-800' }}">
                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

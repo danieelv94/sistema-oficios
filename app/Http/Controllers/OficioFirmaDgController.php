@@ -8,6 +8,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OficioFirmaDgController extends Controller
 {
@@ -173,9 +175,57 @@ class OficioFirmaDgController extends Controller
         }
 
         $registro->update($datos);
+        $registro->load(['area', 'entregadoPor']);
+
+        $correosEnviados = 0;
+        if ($request->estatus === 'Firmado') {
+            $destinatarios = collect();
+
+            // 1. La persona que dejó el documento en Dirección General
+            if ($registro->entregado_por_user_id) {
+                $personaDejo = User::find($registro->entregado_por_user_id);
+                if ($personaDejo) {
+                    $destinatarios->push($personaDejo);
+                }
+            }
+
+            // 2. El Jefe de Área (Director) del área correspondiente
+            if ($registro->area_id) {
+                $directoresArea = User::where('area_id', $registro->area_id)
+                    ->where('role', 'jefe_area')
+                    ->get();
+                foreach ($directoresArea as $dir) {
+                    $destinatarios->push($dir);
+                }
+            }
+
+            // Evitar duplicados (por si quien lo dejó fue el mismo Director de Área)
+            $destinatarios = $destinatarios->unique('id');
+
+            $folioLabel = $registro->numero_oficio ?: ('Folio #' . $registro->id);
+
+            foreach ($destinatarios as $usuarioDestino) {
+                if (!$usuarioDestino->recibir_correos || empty($usuarioDestino->email)) {
+                    continue;
+                }
+
+                try {
+                    Mail::send('emails.oficio_firma_dg_listo', [
+                        'usuario' => $usuarioDestino,
+                        'registro' => $registro,
+                    ], function ($message) use ($usuarioDestino, $registro, $folioLabel) {
+                        $message->to($usuarioDestino->email)
+                            ->subject('[' . $registro->prioridad . '] ✍️ Documento Firmado Listo para Recoger - ' . $folioLabel);
+                    });
+                    $correosEnviados++;
+                } catch (\Exception $e) {
+                    Log::error("Error al enviar correo de Firma DG a {$usuarioDestino->email}: " . $e->getMessage());
+                }
+            }
+        }
 
         $mensaje = $request->estatus === 'Firmado'
-            ? 'Documento marcado como FIRMADO (Listo para que el área lo recoja).'
+            ? 'Documento marcado como FIRMADO (Listo para recoger).' . ($correosEnviados > 0 ? " Se notificó por correo electrónico ({$correosEnviados})." : '')
             : "Estatus actualizado a {$request->estatus}.";
 
         return back()->with('success', $mensaje);
