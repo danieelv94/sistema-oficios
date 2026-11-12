@@ -28,12 +28,18 @@ class OficioFirmaDgController extends Controller
     {
         $this->authorizeAccess();
 
-        $query = OficioFirmaDg::with(['area', 'entregadoPor.area', 'recogidoPor.area', 'registrador', 'entregadorDg']);
+        $query = OficioFirmaDg::with(['area', 'entregadoPor.area', 'recogidoPor.area', 'registrador', 'entregadorDg', 'cancelador']);
 
-        // Filtro por Estatus
+        // Filtro por Estatus: Por defecto los "Cancelados" NO aparecen en la lista general ni en Total Registrados,
+        // solo cuando se selecciona explícitamente el apartado/pestaña "Cancelado".
         $estatus = $request->input('estatus', 'Todos');
-        if ($estatus !== 'Todos' && !empty($estatus)) {
-            $query->where('estatus', $estatus);
+        if ($estatus === 'Cancelado') {
+            $query->where('estatus', 'Cancelado');
+        } else {
+            $query->where('estatus', '!=', 'Cancelado');
+            if ($estatus !== 'Todos' && !empty($estatus)) {
+                $query->where('estatus', $estatus);
+            }
         }
 
         // Filtro por Dirección / Área
@@ -75,13 +81,14 @@ class OficioFirmaDgController extends Controller
 
         $registros = $query->orderBy('fecha_recepcion', 'desc')->orderBy('id', 'desc')->paginate(15)->withQueryString();
 
-        // Indicadores KPI
+        // Indicadores KPI (Total Registrados excluye los Cancelados)
         $stats = [
-            'total' => OficioFirmaDg::count(),
+            'total' => OficioFirmaDg::where('estatus', '!=', 'Cancelado')->count(),
             'en_firma' => OficioFirmaDg::where('estatus', 'En Firma')->count(),
             'firmados' => OficioFirmaDg::where('estatus', 'Firmado')->count(),
             'entregados' => OficioFirmaDg::where('estatus', 'Entregado')->count(),
             'devueltos' => OficioFirmaDg::where('estatus', 'Devuelto')->count(),
+            'cancelados' => OficioFirmaDg::where('estatus', 'Cancelado')->count(),
         ];
 
         $areas = Area::orderBy('name')->get();
@@ -278,15 +285,26 @@ class OficioFirmaDgController extends Controller
     }
 
     /**
-     * Elimina un registro de la bitácora.
+     * Cancela un registro de la bitácora (no se elimina físicamente, pasa al apartado de Cancelados).
      */
-    public function destroy(OficioFirmaDg $registro)
+    public function cancelar(Request $request, OficioFirmaDg $registro)
     {
         $this->authorizeAccess();
 
-        $registro->delete();
+        $request->validate([
+            'motivo_cancelacion' => 'required|string|max:1500',
+        ], [
+            'motivo_cancelacion.required' => 'Debes indicar el motivo de la cancelación del documento.',
+        ]);
 
-        return back()->with('success', 'Registro eliminado de la bitácora de Firma DG.');
+        $registro->update([
+            'estatus' => 'Cancelado',
+            'motivo_cancelacion' => trim($request->motivo_cancelacion),
+            'fecha_cancelacion' => now(),
+            'cancelado_por' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'El documento ha sido cancelado y movido al apartado de Cancelados.');
     }
 
     /**
@@ -300,6 +318,7 @@ class OficioFirmaDgController extends Controller
         $esDirectorArea = in_array($user->role, ['jefe_area', 'admin']) || $user->canAccessFirmaDg();
 
         $baseQuery = OficioFirmaDg::with(['area', 'entregadoPor.area', 'recogidoPor.area', 'registrador', 'entregadorDg'])
+            ->where('estatus', '!=', 'Cancelado')
             ->where(function ($q) use ($user, $esDirectorArea) {
                 $q->where('entregado_por_user_id', $user->id)
                   ->orWhere('recogido_por_user_id', $user->id);

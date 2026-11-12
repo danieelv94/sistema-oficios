@@ -228,6 +228,10 @@ class AppServiceProvider extends ServiceProvider
                     $quien = $modelo->recogido_por_nombre ?: 'personal del área';
                     return "Devolvió con observaciones el {$modelo->tipo_documento} ({$folio}) de {$areaNombre}. Recogió: {$quien}.";
                 }
+                if ($cambios['estatus'] === 'Cancelado') {
+                    $motivo = $modelo->motivo_cancelacion ?: 'Sin motivo especificado';
+                    return "Canceló el {$modelo->tipo_documento} ({$folio}) de {$areaNombre}. Motivo: {$motivo}.";
+                }
             }
         }
 

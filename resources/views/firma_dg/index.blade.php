@@ -119,6 +119,23 @@
         entregaFecha: '{{ now()->format('Y-m-d\TH:i') }}',
         entregaObservaciones: '',
 
+        // Datos del modal de Cancelación
+        openModalCancelar: false,
+        cancelarRegistroId: null,
+        cancelarFolio: '',
+        cancelarAsunto: '',
+        cancelarAreaNombre: '',
+        motivoCancelacion: '',
+
+        abrirModalCancelar(reg) {
+            this.cancelarRegistroId = reg.id;
+            this.cancelarFolio = reg.numero_oficio || ('Folio #' + reg.id);
+            this.cancelarAsunto = reg.asunto;
+            this.cancelarAreaNombre = reg.area_nombre;
+            this.motivoCancelacion = '';
+            this.openModalCancelar = true;
+        },
+
         normalizarTexto(txt) {
             return String(txt || '')
                 .toLowerCase()
@@ -268,14 +285,14 @@
             @endif
 
             <!-- KPIs / Resumen Rápido -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 print:hidden">
-                <!-- Total -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 print:hidden">
+                <!-- Total (Excluye Cancelados) -->
                 <a href="{{ route('firma-dg.index') }}"
                     class="bg-white rounded-2xl p-4 border {{ !request('estatus') ? 'border-slate-400 ring-2 ring-slate-200' : 'border-slate-200/80' }} shadow-sm hover:shadow transition flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Registrados</p>
                         <p class="text-2xl font-extrabold text-slate-800 mt-1">{{ $stats['total'] }}</p>
-                        <p class="text-[11px] text-slate-500 mt-0.5">En bitácora DG</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Activos en bitácora</p>
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,6 +365,22 @@
                         </svg>
                     </div>
                 </a>
+
+                <!-- Apartado Exclusivo: Cancelados -->
+                <a href="{{ route('firma-dg.index', array_merge(request()->except('page'), ['estatus' => 'Cancelado'])) }}"
+                    class="bg-white rounded-2xl p-4 border {{ request('estatus') === 'Cancelado' ? 'border-slate-700 ring-2 ring-slate-300 bg-slate-50' : 'border-slate-200/80' }} shadow-sm hover:shadow transition flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Cancelados</p>
+                        <p class="text-2xl font-extrabold text-slate-600 mt-1">{{ $stats['cancelados'] }}</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">No cuentan en total</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                    </div>
+                </a>
             </div>
 
             <!-- Barra de Filtros y Búsqueda -->
@@ -383,11 +416,12 @@
                     <div>
                         <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Estatus</label>
                         <select name="estatus" class="w-full py-2 px-3 text-xs rounded-xl border-slate-200 focus:border-guinda-ceaa focus:ring-guinda-ceaa">
-                            <option value="">Todos los estatus</option>
+                            <option value="">Todos los activos</option>
                             <option value="En Firma" @selected(request('estatus') === 'En Firma')>⏳ En Firma DG</option>
                             <option value="Firmado" @selected(request('estatus') === 'Firmado')>✍️ Firmado (Listo p/ recoger)</option>
                             <option value="Entregado" @selected(request('estatus') === 'Entregado')>✅ Entregado / Recogido</option>
                             <option value="Devuelto" @selected(request('estatus') === 'Devuelto')>⚠️ Devuelto c/ observaciones</option>
+                            <option value="Cancelado" @selected(request('estatus') === 'Cancelado')>🚫 Cancelados</option>
                         </select>
                     </div>
 
@@ -512,6 +546,11 @@
                                                 <span class="font-bold">Nota:</span> {{ $reg->observaciones }}
                                             </p>
                                         @endif
+                                        @if($reg->estatus === 'Cancelado' && $reg->motivo_cancelacion)
+                                            <p class="text-[11px] text-rose-800 bg-rose-50 border border-rose-200 rounded-lg px-2 py-1 mt-1.5">
+                                                <span class="font-bold">Motivo de Cancelación:</span> {{ $reg->motivo_cancelacion }}
+                                            </p>
+                                        @endif
                                     </td>
 
                                     <!-- Col 4: Cuándo lo dejaron -->
@@ -567,12 +606,31 @@
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
                                                 Devuelto s/firma
                                             </span>
+                                        @elseif($reg->estatus === 'Cancelado')
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-bold text-[11px]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                                🚫 Cancelado
+                                            </span>
+                                            @if($reg->fecha_cancelacion)
+                                                <div class="text-[10px] text-slate-500 mt-1">
+                                                    {{ $reg->fecha_cancelacion->format('d/m/Y H:i') }}
+                                                </div>
+                                            @endif
                                         @endif
                                     </td>
 
                                     <!-- Col 6: Quién recogió y Cuándo -->
                                     <td class="px-4 py-3.5">
-                                        @if($reg->fecha_entrega || $quienRecogio)
+                                        @if($reg->estatus === 'Cancelado')
+                                            <div class="text-[11px] font-semibold text-slate-600">
+                                                Cancelado en DG
+                                            </div>
+                                            @if($reg->cancelador)
+                                                <div class="text-[10px] text-slate-400 mt-0.5">
+                                                    Por: {{ Str::words($reg->cancelador->name, 2, '') }}
+                                                </div>
+                                            @endif
+                                        @elseif($reg->fecha_entrega || $quienRecogio)
                                             <div class="font-bold text-emerald-800">
                                                 🙋‍♂️ {{ $quienRecogio ?: 'Recogido por el área' }}
                                             </div>
@@ -596,31 +654,32 @@
 
                                     <!-- Col 7: Acciones -->
                                     <td class="px-4 py-3.5 text-right whitespace-nowrap print:hidden">
-                                        <div class="inline-flex items-center gap-1.5">
-                                            <button type="button"
-                                                @click="abrirModalEntrega(@js($jsPayload))"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl {{ $reg->estatus === 'Entregado' ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm' }} text-[11px] font-bold transition">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                                </svg>
-                                                {{ $reg->estatus === 'Entregado' ? 'Editar Entrega' : 'Registrar Quién Recoge' }}
-                                            </button>
-
-                                            <form method="POST" action="{{ route('firma-dg.destroy', $reg) }}"
-                                                onsubmit="return confirm('¿Eliminar este registro de la bitácora de Firma DG?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="p-1.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
-                                                    title="Eliminar registro">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        @if($reg->estatus !== 'Cancelado')
+                                            <div class="inline-flex items-center gap-1.5">
+                                                <button type="button"
+                                                    @click="abrirModalEntrega(@js($jsPayload))"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl {{ $reg->estatus === 'Entregado' ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm' }} text-[11px] font-bold transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                                     </svg>
+                                                    {{ $reg->estatus === 'Entregado' ? 'Editar Entrega' : 'Registrar Quién Recoge' }}
                                                 </button>
-                                            </form>
-                                        </div>
+
+                                                <button type="button"
+                                                    @click="abrirModalCancelar(@js($jsPayload))"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition"
+                                                    title="Cancelar registro (se moverá a la pestaña de Cancelados)">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        @else
+                                            <span class="text-[11px] font-semibold text-slate-400 italic">Registro cancelado</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -1060,6 +1119,60 @@
                         <button type="submit"
                             class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
                             Confirmar Entrega
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- MODAL 3: CANCELAR DOCUMENTO (MOVER AL APARTADO DE CANCELADOS)  -->
+        <!-- ============================================================== -->
+        <div x-show="openModalCancelar" x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs print:hidden">
+            <div @click.away="openModalCancelar = false"
+                class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+
+                <div class="bg-rose-700 px-6 py-4 flex items-center justify-between text-white">
+                    <div>
+                        <h3 class="font-bold text-sm uppercase tracking-wide">Cancelar Registro de Firma DG</h3>
+                        <p class="text-[11px] text-rose-100 mt-0.5" x-text="cancelarFolio + ' · ' + cancelarAreaNombre"></p>
+                    </div>
+                    <button type="button" @click="openModalCancelar = false" class="text-rose-200 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form method="POST" :action="'{{ url('/firma-dg') }}/' + cancelarRegistroId + '/cancelar'" class="p-6 space-y-4">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <p class="font-bold text-slate-700" x-text="cancelarAsunto"></p>
+                        <p class="text-[11px] text-slate-500 mt-1">
+                            El documento no se borrará del sistema: pasará al apartado de <strong>Cancelados</strong> y dejará de sumarse en Total Registrados.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            Motivo de la cancelación <span class="text-red-500">*</span>
+                        </label>
+                        <textarea name="motivo_cancelacion" x-model="motivoCancelacion" rows="3" required
+                            placeholder="Ej. Captura duplicada, el área retiró el oficio antes de pasar a firma, error en número de oficio..."
+                            class="w-full text-xs rounded-xl border-slate-300 focus:border-rose-600 focus:ring-rose-600"></textarea>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+                        <button type="button" @click="openModalCancelar = false"
+                            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                            Volver
+                        </button>
+                        <button type="submit"
+                            class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition">
+                            Confirmar Cancelación
                         </button>
                     </div>
                 </form>

@@ -12,8 +12,8 @@ class BitacoraActividadController extends Controller
     private function authorizeAccess(): void
     {
         $user = Auth::user();
-        if (!$user || ($user->role !== 'admin' && !$user->isDireccionGeneral())) {
-            abort(403, 'Acceso restringido a Administración y Dirección General.');
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Acceso restringido exclusivamente al Administrador del sistema.');
         }
     }
 

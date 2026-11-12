@@ -28,14 +28,18 @@ class OficioFirmaDg extends Model
         'recogido_por_nombre',
         'fecha_entrega',
         'observaciones',
+        'motivo_cancelacion',
+        'fecha_cancelacion',
         'registrado_por',
         'entregado_en_dg_por',
+        'cancelado_por',
     ];
 
     protected $casts = [
         'fecha_recepcion' => 'datetime',
         'fecha_firma' => 'datetime',
         'fecha_entrega' => 'datetime',
+        'fecha_cancelacion' => 'datetime',
     ];
 
     public function area()
@@ -61,6 +65,11 @@ class OficioFirmaDg extends Model
     public function entregadorDg()
     {
         return $this->belongsTo(User::class, 'entregado_en_dg_por')->withTrashed();
+    }
+
+    public function cancelador()
+    {
+        return $this->belongsTo(User::class, 'cancelado_por')->withTrashed();
     }
 }
 

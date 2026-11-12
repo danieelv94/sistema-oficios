@@ -419,8 +419,8 @@
                     </a>
                 @endif
 
-                <!-- Módulo de Bitácora de Actividades / Auditoría (Admin y DG) -->
-                @if(Auth::user()->role === 'admin' || Auth::user()->isDireccionGeneral())
+                <!-- Módulo de Bitácora de Actividades / Auditoría (Solo Admin) -->
+                @if(Auth::user()->role === 'admin')
                     <a href="{{ route('bitacora.index') }}"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition duration-150 group {{ request()->routeIs('bitacora.*') ? 'bg-gradient-to-r from-guinda-ceaa to-guinda-ceaa-hover text-white font-bold shadow-sm' : 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}"
                         title="Bitácora de Actividades (Auditoría)">

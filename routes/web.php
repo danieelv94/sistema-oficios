@@ -81,7 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/firma-dg', [OficioFirmaDgController::class, 'store'])->name('firma-dg.store');
     Route::patch('/firma-dg/{registro}/estatus', [OficioFirmaDgController::class, 'cambiarEstatus'])->name('firma-dg.estatus');
     Route::patch('/firma-dg/{registro}/entrega', [OficioFirmaDgController::class, 'registrarEntrega'])->name('firma-dg.entrega');
-    Route::delete('/firma-dg/{registro}', [OficioFirmaDgController::class, 'destroy'])->name('firma-dg.destroy');
+    Route::patch('/firma-dg/{registro}/cancelar', [OficioFirmaDgController::class, 'cancelar'])->name('firma-dg.cancelar');
 
     // --- Bitácora de Actividades / Auditoría del Sistema (Admin y DG) ---
     Route::get('/bitacora-auditoria', [BitacoraActividadController::class, 'index'])->name('bitacora.index');
