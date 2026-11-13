@@ -21,6 +21,24 @@
 
     {{-- Agregamos JS al head con defer para asegurar que Alpine.js responda antes de renderizar el menú lateral --}}
     <script src="{{ mix('js/app.js') }}" defer></script>
+
+    <style>
+        @media print {
+            .layout-print-reset {
+                padding-left: 0 !important;
+                padding-top: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .slot-print-reset {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="font-sans antialiased bg-gray-100" x-data="{ openSidebar: true }">
@@ -30,7 +48,7 @@
 
     {{-- Contenedor con el margen dinámico corregido --}}
     <div :class="openSidebar ? 'md:pl-64' : 'md:pl-16'"
-        class="pt-16 transition-all duration-300 min-h-screen flex flex-col justify-between">
+        class="layout-print-reset pt-16 transition-all duration-300 min-h-screen flex flex-col justify-between">
 
         <main class="flex-1">
             @if (isset($header))
@@ -41,7 +59,7 @@
                 </header>
             @endif
 
-            <div class="p-4 sm:p-6 lg:p-8">
+            <div class="slot-print-reset p-4 sm:p-6 lg:p-8">
                 {{ $slot }}
             </div>
         </main>

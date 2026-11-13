@@ -1,6 +1,11 @@
 <x-app-layout>
     <style>
         @media print {
+            @page {
+                size: letter;
+                margin: 10mm;
+            }
+
             .no-print,
             nav,
             button,
@@ -16,23 +21,61 @@
 
             body {
                 background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .max-w-7xl {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .overflow-hidden,
+            .overflow-x-auto {
+                overflow: visible !important;
             }
 
             table {
                 width: 100% !important;
+                min-width: 0 !important;
+                table-layout: fixed !important;
                 border-collapse: collapse !important;
             }
 
             th,
             td {
-                border: 1px solid #ccc !important;
-                padding: 8px !important;
-                font-size: 9pt !important;
-                color: black !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 5px 6px !important;
+                font-size: 8pt !important;
+                line-height: 1.25 !important;
+                color: #0f172a !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                vertical-align: top !important;
+                max-width: none !important;
             }
 
             th {
-                background-color: #f3f4f6 !important;
+                background-color: #f1f5f9 !important;
+                font-size: 7.5pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .truncate,
+            .line-clamp-1,
+            .line-clamp-2 {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                -webkit-line-clamp: unset !important;
+                display: block !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
             }
         }
 
@@ -174,14 +217,14 @@
                     <table class="min-w-full bg-white divide-y divide-slate-100 text-xs">
                         <thead class="bg-slate-50/80 text-slate-600 text-[11px] font-black uppercase tracking-wider">
                             <tr>
-                                <th class="py-3 px-4 text-left">No. Oficio</th>
-                                <th class="py-3 px-4 text-left">Fecha Emisión</th>
+                                <th class="py-3 px-4 text-left" style="width: 15%;">No. Oficio</th>
+                                <th class="py-3 px-4 text-left" style="width: 10%;">Fecha Emisión</th>
                                 @if(in_array(Auth::user()->role, ['admin', 'secretaria_area']))
-                                    <th class="py-3 px-4 text-left">Comisionado</th>
+                                    <th class="py-3 px-4 text-left" style="width: 22%;">Comisionado</th>
                                 @endif
-                                <th class="py-3 px-4 text-left">Días Comisión</th>
-                                <th class="py-3 px-4 text-left">Actividad / Lugar</th>
-                                <th class="py-3 px-4 text-center">Estado</th>
+                                <th class="py-3 px-4 text-left" style="width: 16%;">Días Comisión</th>
+                                <th class="py-3 px-4 text-left" style="width: 27%;">Actividad / Lugar</th>
+                                <th class="py-3 px-4 text-center" style="width: 10%;">Estado</th>
                                 <th class="py-3 px-4 text-center no-print">Acciones</th>
                             </tr>
                         </thead>
