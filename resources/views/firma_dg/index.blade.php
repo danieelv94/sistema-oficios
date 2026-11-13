@@ -129,7 +129,7 @@
 
         abrirModalCancelar(reg) {
             this.cancelarRegistroId = reg.id;
-            this.cancelarFolio = reg.numero_oficio || ('Folio #' + reg.id);
+            this.cancelarFolio = 'No. ' + (reg.consecutivo || reg.id) + (reg.numero_oficio ? (' · ' + reg.numero_oficio) : '');
             this.cancelarAsunto = reg.asunto;
             this.cancelarAreaNombre = reg.area_nombre;
             this.motivoCancelacion = '';
@@ -209,7 +209,7 @@
 
         abrirModalEntrega(reg) {
             this.entregaRegistroId = reg.id;
-            this.entregaFolio = reg.numero_oficio || ('#' + reg.id);
+            this.entregaFolio = 'No. ' + (reg.consecutivo || reg.id) + (reg.numero_oficio ? (' · ' + reg.numero_oficio) : '');
             this.entregaAsunto = reg.asunto;
             this.entregaAreaNombre = reg.area_nombre;
             this.entregaQuienDejoId = reg.entregado_por_user_id ? String(reg.entregado_por_user_id) : '';
@@ -455,7 +455,7 @@
                     <table class="min-w-full divide-y divide-slate-200 text-xs">
                         <thead class="bg-slate-50 text-slate-600 uppercase text-[10px] font-bold tracking-wider">
                             <tr>
-                                <th class="px-4 py-3 text-left">Documento / No. Oficio</th>
+                                <th class="px-4 py-3 text-left">No. / Documento</th>
                                 <th class="px-4 py-3 text-left">Quién lo Dejó y Área</th>
                                 <th class="px-4 py-3 text-left">Asunto / Destinatario</th>
                                 <th class="px-4 py-3 text-left">Cuándo lo Dejaron</th>
@@ -467,6 +467,8 @@
                         <tbody class="divide-y divide-slate-100 bg-white">
                             @forelse ($registros as $reg)
                                 @php
+                                    $numConsecutivo = $reg->consecutivo ?? $reg->id;
+
                                     $quienDejo = $reg->entregadoPor
                                         ? trim(($reg->entregadoPor->prof ? $reg->entregadoPor->prof . ' ' : '') . $reg->entregadoPor->name)
                                         : ($reg->entregado_por_nombre ?: 'Solo Área (Sin especificar persona)');
@@ -477,6 +479,7 @@
 
                                     $jsPayload = [
                                         'id' => $reg->id,
+                                        'consecutivo' => $numConsecutivo,
                                         'numero_oficio' => $reg->numero_oficio,
                                         'asunto' => $reg->asunto,
                                         'area_nombre' => $reg->area ? $reg->area->name : 'Sin Área',
@@ -490,9 +493,12 @@
                                     ];
                                 @endphp
                                 <tr class="hover:bg-slate-50/80 transition align-top">
-                                    <!-- Col 1: Documento / Folio / Prioridad -->
+                                    <!-- Col 1: Consecutivo / Documento / Folio / Prioridad -->
                                     <td class="px-4 py-3.5 whitespace-nowrap">
                                         <div class="flex items-center gap-1.5">
+                                            <span class="px-2 py-0.5 rounded-md bg-guinda-ceaa text-white font-extrabold text-[11px]" title="Número consecutivo de bitácora DG">
+                                                #{{ str_pad($numConsecutivo, 3, '0', STR_PAD_LEFT) }}
+                                            </span>
                                             <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[10px] uppercase">
                                                 {{ $reg->tipo_documento }}
                                             </span>
@@ -503,7 +509,7 @@
                                             @endif
                                         </div>
                                         <div class="font-bold text-slate-800 mt-1">
-                                            {{ $reg->numero_oficio ?: 'S/N (Folio #' . $reg->id . ')' }}
+                                            {{ $reg->numero_oficio ?: 'S/N (Consecutivo #' . str_pad($numConsecutivo, 3, '0', STR_PAD_LEFT) . ')' }}
                                         </div>
                                         @if($reg->anexos)
                                             <div class="text-[11px] text-slate-500 mt-0.5">

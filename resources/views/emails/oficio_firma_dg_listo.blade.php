@@ -182,8 +182,13 @@
                 </div>
 
                 <div class="info-row">
+                    <div class="info-label">No. Consecutivo DG:</div>
+                    <div class="info-value"><strong>#{{ str_pad($registro->consecutivo ?? $registro->id, 3, '0', STR_PAD_LEFT) }}</strong></div>
+                </div>
+
+                <div class="info-row">
                     <div class="info-label">No. de Oficio / Folio:</div>
-                    <div class="info-value"><strong>{{ $registro->numero_oficio ?: 'S/N (Folio #' . $registro->id . ')' }}</strong></div>
+                    <div class="info-value"><strong>{{ $registro->numero_oficio ?: 'S/N (Consecutivo #' . str_pad($registro->consecutivo ?? $registro->id, 3, '0', STR_PAD_LEFT) . ')' }}</strong></div>
                 </div>
 
                 <div class="info-row">

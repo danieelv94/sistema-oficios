@@ -12,6 +12,7 @@ class OficioFirmaDg extends Model
     protected $table = 'oficios_firma_dg';
 
     protected $fillable = [
+        'consecutivo',
         'numero_oficio',
         'tipo_documento',
         'area_id',

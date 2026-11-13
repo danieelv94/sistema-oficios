@@ -181,8 +181,9 @@ class AppServiceProvider extends ServiceProvider
             return "Oficio No. " . ($modelo->numero_oficio ?: "#{$modelo->id}") . " ({$modelo->asunto})";
         }
         if ($modelo instanceof OficioFirmaDg) {
-            $folio = $modelo->numero_oficio ?: "Folio #{$modelo->id}";
-            return "{$modelo->tipo_documento} {$folio} - {$modelo->asunto}";
+            $num = $modelo->consecutivo ?? $modelo->id;
+            $folio = $modelo->numero_oficio ?: "Consecutivo #{$num}";
+            return "{$modelo->tipo_documento} (#{$num} / {$folio}) - {$modelo->asunto}";
         }
         if ($modelo instanceof Comision || $modelo instanceof ComisionOdso) {
             return "Comisión #" . ($modelo->consecutivo ?? $modelo->id) . " ({$modelo->lugar})";
@@ -211,7 +212,8 @@ class AppServiceProvider extends ServiceProvider
     private static function descripcionPersonalizada(Model $modelo, string $accion, array $anteriores = [], array $cambios = []): ?string
     {
         if ($modelo instanceof OficioFirmaDg) {
-            $folio = $modelo->numero_oficio ?: "Folio #{$modelo->id}";
+            $num = $modelo->consecutivo ?? $modelo->id;
+            $folio = $modelo->numero_oficio ?: "Consecutivo #{$num}";
             $areaNombre = $modelo->area ? $modelo->area->name : 'Área';
             if ($accion === 'Creación') {
                 return "Registró {$modelo->tipo_documento} ({$folio}) del área {$areaNombre} para firma del Director General. Asunto: {$modelo->asunto}";

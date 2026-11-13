@@ -60,8 +60,10 @@ class OficioFirmaDgController extends Controller
         // Buscador general
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
+            $searchNumero = ltrim($search, '#0');
+            $query->where(function ($q) use ($search, $searchNumero) {
                 $q->where('numero_oficio', 'like', "%{$search}%")
+                  ->orWhere('consecutivo', $search)
                   ->orWhere('asunto', 'like', "%{$search}%")
                   ->orWhere('destinatario', 'like', "%{$search}%")
                   ->orWhere('entregado_por_nombre', 'like', "%{$search}%")
@@ -76,10 +78,13 @@ class OficioFirmaDgController extends Controller
                   ->orWhereHas('area', function ($a) use ($search) {
                       $a->where('name', 'like', "%{$search}%");
                   });
+                if ($searchNumero !== '' && is_numeric($searchNumero)) {
+                    $q->orWhere('consecutivo', (int) $searchNumero);
+                }
             });
         }
 
-        $registros = $query->orderBy('fecha_recepcion', 'desc')->orderBy('id', 'desc')->paginate(15)->withQueryString();
+        $registros = $query->orderBy('consecutivo', 'desc')->orderBy('id', 'desc')->paginate(15)->withQueryString();
 
         // Indicadores KPI (Total Registrados excluye los Cancelados)
         $stats = [
@@ -136,7 +141,10 @@ class OficioFirmaDgController extends Controller
             }
         }
 
+        $siguienteConsecutivo = ((int) OficioFirmaDg::max('consecutivo')) + 1;
+
         OficioFirmaDg::create([
+            'consecutivo' => $siguienteConsecutivo,
             'numero_oficio' => $request->numero_oficio,
             'tipo_documento' => $request->tipo_documento,
             'area_id' => $request->area_id,
@@ -209,7 +217,8 @@ class OficioFirmaDgController extends Controller
             // Evitar duplicados (por si quien lo dejó fue el mismo Director de Área)
             $destinatarios = $destinatarios->unique('id');
 
-            $folioLabel = $registro->numero_oficio ?: ('Folio #' . $registro->id);
+            $numConsecutivo = $registro->consecutivo ?? $registro->id;
+            $folioLabel = $registro->numero_oficio ?: ('Folio #' . $numConsecutivo);
 
             foreach ($destinatarios as $usuarioDestino) {
                 if (!$usuarioDestino->recibir_correos || empty($usuarioDestino->email)) {
@@ -358,16 +367,21 @@ class OficioFirmaDgController extends Controller
         // Búsqueda por texto
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
+            $searchNumero = ltrim($search, '#0');
+            $query->where(function ($q) use ($search, $searchNumero) {
                 $q->where('numero_oficio', 'like', "%{$search}%")
+                  ->orWhere('consecutivo', $search)
                   ->orWhere('asunto', 'like', "%{$search}%")
                   ->orWhere('destinatario', 'like', "%{$search}%")
                   ->orWhere('observaciones', 'like', "%{$search}%");
+                if ($searchNumero !== '' && is_numeric($searchNumero)) {
+                    $q->orWhere('consecutivo', (int) $searchNumero);
+                }
             });
         }
 
         $registros = $query->orderByRaw("FIELD(estatus, 'Firmado', 'Devuelto', 'En Firma', 'Entregado')")
-            ->orderBy('fecha_recepcion', 'desc')
+            ->orderBy('consecutivo', 'desc')
             ->paginate(15)
             ->withQueryString();
 
