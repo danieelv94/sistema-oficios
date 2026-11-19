@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Area;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -10,39 +12,114 @@ use Illuminate\Support\Facades\Mail;
 class TicketController extends Controller
 {
     /**
-     * Muestra el dashboard de tickets, variando según el rol del usuario.
+     * Muestra el dashboard de tickets con filtros por estatus (Por atender / Atendidos),
+     * por usuario solicitante ("quién me mandó qué"), por área y búsqueda por texto.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $esAdmin = $user->role === 'admin';
 
-        if ($user->role == 'admin') {
-            // El admin ve todos los tickets, separados por estado y ordenados por antigüedad
-            $ticketsPendientes = Ticket::where('status', 'Pendiente')
-                ->with('user.area')
-                ->oldest()
-                ->paginate(10, ['*'], 'page_pendientes')
-                ->withQueryString();
-            $ticketsConcluidos = Ticket::where('status', 'Concluido')
-                ->with('user.area')
-                ->latest()
-                ->paginate(10, ['*'], 'page_concluidos')
-                ->withQueryString();
-        } else {
-            // Los demás usuarios solo ven sus propios tickets
-            $ticketsPendientes = Ticket::where('user_id', $user->id)
-                ->where('status', 'Pendiente')
-                ->latest()
-                ->paginate(10, ['*'], 'page_pendientes')
-                ->withQueryString();
-            $ticketsConcluidos = Ticket::where('user_id', $user->id)
-                ->where('status', 'Concluido')
-                ->latest()
-                ->paginate(10, ['*'], 'page_concluidos')
-                ->withQueryString();
+        // Estatus seleccionado: 'todos', 'Pendiente' (Por atender), 'Concluido' (Atendidos)
+        $estatusFiltro = $request->input('estatus', 'todos');
+        $userIdFiltro = $request->input('user_id', '');
+        $areaIdFiltro = $request->input('area_id', '');
+        $search = trim($request->input('search', ''));
+
+        // Base query según rol
+        $baseQuery = Ticket::with(['user.area']);
+        if (!$esAdmin) {
+            $baseQuery->where('user_id', $user->id);
         }
 
-        return view('tickets.index', compact('ticketsPendientes', 'ticketsConcluidos'));
+        // Aplicar filtros comunes (usuario, área, búsqueda) para que impacten en las tablas y contadores
+        $filteredQuery = clone $baseQuery;
+
+        if ($esAdmin && !empty($userIdFiltro)) {
+            $filteredQuery->where('user_id', $userIdFiltro);
+        }
+
+        if ($esAdmin && !empty($areaIdFiltro)) {
+            $filteredQuery->whereHas('user', function ($q) use ($areaIdFiltro) {
+                $q->withTrashed()->where('area_id', $areaIdFiltro);
+            });
+        }
+
+        if (!empty($search)) {
+            $filteredQuery->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('resolution_notes', 'like', "%{$search}%")
+                  ->orWhere('id', ltrim($search, '#0'))
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->withTrashed()
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('cargo', 'like', "%{$search}%")
+                        ->orWhereHas('area', function ($a) use ($search) {
+                            $a->where('name', 'like', "%{$search}%");
+                        });
+                  });
+            });
+        }
+
+        // Estadísticas globales (o filtradas por usuario/área/búsqueda)
+        $stats = [
+            'total' => (clone $filteredQuery)->count(),
+            'pendientes' => (clone $filteredQuery)->where('status', 'Pendiente')->count(),
+            'atendidos' => (clone $filteredQuery)->where('status', 'Concluido')->count(),
+        ];
+
+        // Tablas paginadas de "Por Atender" (Pendiente) y "Atendidos" (Concluido)
+        $ticketsPendientes = (clone $filteredQuery)
+            ->where('status', 'Pendiente')
+            ->orderBy('created_at', $esAdmin ? 'asc' : 'desc')
+            ->paginate(10, ['*'], 'page_pendientes')
+            ->withQueryString();
+
+        $ticketsConcluidos = (clone $filteredQuery)
+            ->where('status', 'Concluido')
+            ->orderBy('completed_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(10, ['*'], 'page_concluidos')
+            ->withQueryString();
+
+        // Catálogos y resumen de "Quién me mandó qué" para el Admin
+        $areas = collect();
+        $remitentesResumen = collect();
+
+        if ($esAdmin) {
+            $areas = Area::orderBy('name')->get();
+
+            // Usuarios que han enviado tickets con conteo de Por Atender y Atendidos
+            $remitentesResumen = User::withTrashed()
+                ->with('area')
+                ->whereHas('tickets')
+                ->withCount([
+                    'tickets as total_tickets',
+                    'tickets as pendientes_count' => function ($q) {
+                        $q->where('status', 'Pendiente');
+                    },
+                    'tickets as atendidos_count' => function ($q) {
+                        $q->where('status', 'Concluido');
+                    },
+                ])
+                ->orderByDesc('pendientes_count')
+                ->orderByDesc('total_tickets')
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('tickets.index', compact(
+            'ticketsPendientes',
+            'ticketsConcluidos',
+            'stats',
+            'estatusFiltro',
+            'userIdFiltro',
+            'areaIdFiltro',
+            'search',
+            'areas',
+            'remitentesResumen'
+        ));
     }
 
     /**
@@ -71,10 +148,14 @@ class TicketController extends Controller
 
         // NOTIFICACIÓN AL ADMIN (Tú)
         $data = ['ticket' => $ticket, 'usuario' => Auth::user()->name];
-        Mail::send('emails.ticket_nuevo', $data, function ($message) use ($ticket) {
-            $message->to('daniel.lopez@hidalgo.gob.mx')
-                ->subject('SOPORTE: Nuevo Ticket de ' . Auth::user()->name);
-        });
+        try {
+            Mail::send('emails.ticket_nuevo', $data, function ($message) use ($ticket) {
+                $message->to('daniel.lopez@hidalgo.gob.mx')
+                    ->subject('SOPORTE: Nuevo Ticket de ' . Auth::user()->name);
+            });
+        } catch (\Throwable $e) {
+            // Evitar fallo si el servidor de correo no responde
+        }
 
         return redirect()->route('tickets.index')->with('success', 'Tu solicitud de soporte ha sido enviada.');
     }
@@ -132,10 +213,14 @@ class TicketController extends Controller
         // NOTIFICACIÓN AL USUARIO
         if ($ticket->user && $ticket->user->recibir_correos) {
             $data = ['ticket' => $ticket];
-            Mail::send('emails.ticket_resuelto', $data, function ($message) use ($ticket) {
-                $message->to($ticket->user->email)
-                    ->subject('Ticket Resuelto: ' . $ticket->subject);
-            });
+            try {
+                Mail::send('emails.ticket_resuelto', $data, function ($message) use ($ticket) {
+                    $message->to($ticket->user->email)
+                        ->subject('Ticket Resuelto: ' . $ticket->subject);
+                });
+            } catch (\Throwable $e) {
+                // Evitar fallo si el servidor de correo no responde
+            }
         }
 
         return redirect()->route('tickets.index')->with('success', 'El ticket ha sido marcado como concluido.');
