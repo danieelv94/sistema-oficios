@@ -44,9 +44,16 @@
                     <div class="flex flex-wrap items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60">
                         <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Todos']) }}"
                             class="px-3.5 py-1.5 rounded-md font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Todos' ? 'bg-white text-guinda-ceaa shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
-                            Todos
+                            {{ in_array(Auth::user()->role, ['admin', 'correspondencia']) ? '🏢 Todo el Organismo' : 'Todos' }}
                         </a>
                         @if(in_array(Auth::user()->role, ['admin', 'correspondencia']))
+                        <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Mios']) }}"
+                            class="px-3.5 py-1.5 rounded-md font-bold text-xs uppercase tracking-wider transition-all inline-flex items-center gap-1.5 {{ $filtroTipo === 'Mios' ? 'bg-guinda-ceaa text-white shadow-xs' : 'text-guinda-ceaa hover:bg-white' }}">
+                            <span>👤 Mis Oficios (Asignados a Mí)</span>
+                            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ $filtroTipo === 'Mios' ? 'bg-white/20 text-white' : 'bg-guinda-ceaa/10 text-guinda-ceaa' }}">
+                                {{ $misInternosCount ?? 0 }}
+                            </span>
+                        </a>
                         <a href="{{ request()->fullUrlWithQuery(['tipo' => 'Enviados']) }}"
                             class="px-3.5 py-1.5 rounded-md font-bold text-xs uppercase tracking-wider transition-all {{ $filtroTipo === 'Enviados' ? 'bg-white text-guinda-ceaa shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
                             Enviados
@@ -254,7 +261,7 @@
                                                             Turnar
                                                         </a>
                                                     @endif
-                                                @elseif(Auth::user()->role === 'subdirector')
+                                                @elseif(Auth::user()->role === 'subdirector' || (Auth::user()->role === 'admin' && Auth::user()->subarea_id))
                                                     @if($subareaOficio)
                                                         @if($subareaOficio->estatus == 'Asignado')
                                                             <form action="{{ route('oficios.notificarTurno', $pivot->id) }}" method="POST" class="inline-block">

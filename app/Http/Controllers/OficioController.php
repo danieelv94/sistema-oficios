@@ -133,6 +133,48 @@ class OficioController extends Controller
 
         $query = Oficio::where('tipo_correspondencia', '!=', 'Interna');
 
+        // Alcance para Admin: 'todos' (todo el organismo) o 'mios' (solo los asignados a mí / mi subdirección)
+        $alcance = $request->input('alcance', 'todos');
+        $misExternosCount = 0;
+
+        if ($user->role === 'admin') {
+            $misExternosQuery = function ($q) use ($user) {
+                if ($user->area_id) {
+                    $q->where('areas.id', $user->area_id);
+                }
+                $q->where(function ($sub) use ($user) {
+                    $sub->where('area_oficio.user_id', $user->id)
+                        ->orWhereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where(function ($deepQ) use ($user) {
+                                    $deepQ->where('subarea_oficio.user_id', $user->id);
+                                    if ($user->subarea_id) {
+                                        $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                    }
+                                });
+                        });
+                    if ($user->subarea_id) {
+                        $sub->orWhereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('users')
+                                ->whereColumn('users.id', 'area_oficio.user_id')
+                                ->where('users.subarea_id', $user->subarea_id);
+                        });
+                    }
+                });
+            };
+
+            $misExternosCount = Oficio::where('tipo_correspondencia', '!=', 'Interna')
+                ->whereHas('areas', $misExternosQuery)
+                ->count();
+
+            if ($alcance === 'mios') {
+                $query->whereHas('areas', $misExternosQuery);
+            }
+        }
+
         // Búsqueda por número, remitente o asunto
         if ($request->filled('search')) {
             $search = $request->search;
@@ -143,8 +185,9 @@ class OficioController extends Controller
             });
         }
 
-        // Filtro por estatus. Por defecto es 'Pendiente' (Pendiente de Turnar)
-        $estatus = $request->input('estatus', 'Pendiente');
+        // Filtro por estatus. Si está viendo "Mis Oficios" por defecto mostramos 'Todos'
+        $defaultEstatus = ($alcance === 'mios') ? 'Todos' : 'Pendiente';
+        $estatus = $request->input('estatus', $defaultEstatus);
         if ($estatus !== 'Todos') {
             if ($estatus === 'Pendiente') {
                 $query->where(function ($q) {
@@ -159,9 +202,10 @@ class OficioController extends Controller
         // Ordenamos por número de oficio de forma descendente (año y consecutivo)
         $oficios = $query->orderByRaw("IF(numero_oficio LIKE '%/%', CAST(SUBSTRING_INDEX(numero_oficio, '/', -1) AS UNSIGNED), YEAR(fecha_recepcion)) DESC")
             ->orderByRaw("CAST(SUBSTRING_INDEX(numero_oficio, '/', 1) AS UNSIGNED) DESC")
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('oficios.index', compact('oficios'));
+        return view('oficios.index', compact('oficios', 'alcance', 'misExternosCount', 'estatus'));
     }
 
     public function create()
@@ -245,7 +289,10 @@ class OficioController extends Controller
         $oficio->load('areas');
 
         // Determinamos qué turnos mostrar según el rol del usuario de forma automática
-        if (in_array($user->role, ['admin', 'recepcionista', 'correspondencia', 'dg']) || ($user->role == 'jefe_area' && $user->area_id == 2) || ($user->id == 326)) {
+        if ($user->role === 'admin' && $request->input('mode') === 'operativo' && $user->area_id) {
+            // Si el Admin entra en modo operativo ("Mis Oficios"), solo mostramos el turno de su área/subdirección
+            $turnosParaMostrar = $oficio->areas->where('id', $user->area_id);
+        } elseif (in_array($user->role, ['admin', 'recepcionista', 'correspondencia', 'dg']) || ($user->role == 'jefe_area' && $user->area_id == 2) || ($user->id == 326)) {
             $turnosParaMostrar = $oficio->areas;
         } elseif ($user->role == 'jefe_area' || $user->role == 'secretaria_area') {
             $turnosParaMostrar = $oficio->areas->where('id', $user->area_id);
@@ -957,8 +1004,18 @@ class OficioController extends Controller
     {
         $user = Auth::user();
 
-        // Base query con ámbito del usuario
-        $baseQuery = Oficio::where('tipo_correspondencia', '!=', 'Interna')->whereHas('areas', function ($query) use ($user) {
+        // Filtro por tipo de correspondencia en Gestión de Turnos: 'todos', 'Externa', 'Interna'
+        $tipoCorrespondencia = $request->input('tipo_corr', 'todos');
+
+        // Base query con ámbito del usuario (incluye Externos e Internos para poder atender ambos desde su bandeja)
+        $baseQuery = Oficio::query();
+        if ($tipoCorrespondencia === 'Externa') {
+            $baseQuery->where('tipo_correspondencia', '!=', 'Interna');
+        } elseif ($tipoCorrespondencia === 'Interna') {
+            $baseQuery->where('tipo_correspondencia', 'Interna');
+        }
+
+        $baseQuery->whereHas('areas', function ($query) use ($user) {
             $query->where('area_id', $user->area_id);
 
             if ($user->role === 'subdirector' || ($user->role === 'admin' && $user->subarea_id !== null)) {
@@ -1067,7 +1124,12 @@ class OficioController extends Controller
                            $existsQ->select(DB::raw(1))
                                ->from('subarea_oficio')
                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
-                               ->where('subarea_oficio.user_id', $user->id);
+                               ->where(function ($deepQ) use ($user) {
+                                   $deepQ->where('subarea_oficio.user_id', $user->id);
+                                   if ($user->subarea_id && in_array($user->role, ['subdirector', 'admin'])) {
+                                       $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                   }
+                               });
                        });
               });
         })->count();
@@ -1151,7 +1213,12 @@ class OficioController extends Controller
                                $existsQ->select(DB::raw(1))
                                    ->from('subarea_oficio')
                                    ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
-                                   ->where('subarea_oficio.user_id', $user->id);
+                                   ->where(function ($deepQ) use ($user) {
+                                       $deepQ->where('subarea_oficio.user_id', $user->id);
+                                       if ($user->subarea_id && in_array($user->role, ['subdirector', 'admin'])) {
+                                           $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                       }
+                                   });
                            });
                   });
             });
@@ -1728,6 +1795,42 @@ class OficioController extends Controller
         $filtroTipo = $request->input('tipo', 'Todos'); // Todos, Enviados, Recibidos, Solventados
         $filtroEstatus = $request->input('estatus', 'Todos'); // Todos, Notificado, Asignado, En Proceso, Solventado, Cancelado
 
+        // Admin y correspondencia ven todos y pueden filtrar, o bien ver solo "Mis Oficios" (tipo = Mios)
+        $misInternosCount = 0;
+        if ($isAdminOrCorrespondencia) {
+            $misInternosQuery = function ($q) use ($areaId, $user) {
+                if ($areaId) {
+                    $q->where('areas.id', $areaId);
+                }
+                $q->where(function ($sub) use ($user) {
+                    $sub->where('area_oficio.user_id', $user->id)
+                        ->orWhereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('subarea_oficio')
+                                ->whereColumn('subarea_oficio.area_oficio_id', 'area_oficio.id')
+                                ->where(function ($deepQ) use ($user) {
+                                    $deepQ->where('subarea_oficio.user_id', $user->id);
+                                    if ($user->subarea_id) {
+                                        $deepQ->orWhere('subarea_oficio.subarea_id', $user->subarea_id);
+                                    }
+                                });
+                        });
+                    if ($user->subarea_id) {
+                        $sub->orWhereExists(function ($subQ) use ($user) {
+                            $subQ->select(DB::raw(1))
+                                ->from('users')
+                                ->whereColumn('users.id', 'area_oficio.user_id')
+                                ->where('users.subarea_id', $user->subarea_id);
+                        });
+                    }
+                });
+            };
+
+            $misInternosCount = Oficio::where('tipo_correspondencia', 'Interna')
+                ->whereHas('areas', $misInternosQuery)
+                ->count();
+        }
+
         if (!$isAdminOrCorrespondencia) {
             if ($filtroTipo === 'Enviados') {
                 $query->whereRaw('1 = 0');
@@ -1847,8 +1950,10 @@ class OficioController extends Controller
                 }
             }
         } else {
-            // Admin y correspondencia ven todos y pueden filtrar
-            if ($filtroTipo === 'Enviados') {
+            // Admin y correspondencia ven todos y pueden filtrar, o filtrar solo "Mis Oficios" (Mios)
+            if ($filtroTipo === 'Mios' && isset($misInternosQuery)) {
+                $query->whereHas('areas', $misInternosQuery);
+            } elseif ($filtroTipo === 'Enviados') {
                 if ($request->filled('area_origen_id')) {
                     $query->where('area_origen_id', $request->area_origen_id);
                 }
@@ -1884,10 +1989,10 @@ class OficioController extends Controller
             }
         }
 
-        $oficios = $query->orderBy('created_at', 'desc')->paginate(10);
+        $oficios = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
         $areas = \App\Models\Area::all();
 
-        return view('oficios.internos.index', compact('oficios', 'filtroTipo', 'filtroEstatus', 'areas'));
+        return view('oficios.internos.index', compact('oficios', 'filtroTipo', 'filtroEstatus', 'areas', 'misInternosCount'));
     }
 
     public function internosCreate()

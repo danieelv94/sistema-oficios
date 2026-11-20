@@ -49,8 +49,27 @@
             @endif
 
             {{-- Bloque de Filtros y Buscador --}}
-            <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-5 no-print">
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-5 no-print space-y-4">
+                @if(Auth::user()->role === 'admin')
+                    <div class="flex flex-wrap items-center gap-1.5 pb-3 border-b border-slate-100">
+                        <a href="{{ route('oficios.index', ['alcance' => 'todos', 'estatus' => request('estatus', 'Pendiente')]) }}"
+                            class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 {{ ($alcance ?? 'todos') !== 'mios' ? 'bg-slate-800 text-white shadow-xs' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/80' }}">
+                            <span>🏢 Todo el Organismo</span>
+                        </a>
+                        <a href="{{ route('oficios.index', ['alcance' => 'mios', 'estatus' => 'Todos']) }}"
+                            class="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition inline-flex items-center gap-2 {{ ($alcance ?? 'todos') === 'mios' ? 'bg-guinda-ceaa text-white shadow-xs' : 'bg-white text-guinda-ceaa hover:bg-guinda-ceaa/5 border border-guinda-ceaa/30' }}">
+                            <span>👤 Mis Oficios Externos (Asignados a Mí)</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black {{ ($alcance ?? 'todos') === 'mios' ? 'bg-white/20 text-white' : 'bg-guinda-ceaa/10 text-guinda-ceaa' }}">
+                                {{ $misExternosCount ?? 0 }}
+                            </span>
+                        </a>
+                    </div>
+                @endif
+
                 <form action="{{ route('oficios.index') }}" method="GET" class="space-y-3">
+                    @if(isset($alcance) && $alcance === 'mios')
+                        <input type="hidden" name="alcance" value="mios">
+                    @endif
                     <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         <div class="sm:col-span-2 lg:col-span-2">
                             <label for="search" class="block text-xs font-bold uppercase text-slate-600 mb-1">
@@ -73,15 +92,18 @@
                             <label for="estatus" class="block text-xs font-bold uppercase text-slate-600 mb-1">
                                 Estatus del Oficio
                             </label>
+                            @php
+                                $estatusActual = $estatus ?? request('estatus', (($alcance ?? 'todos') === 'mios' ? 'Todos' : 'Pendiente'));
+                            @endphp
                             <select name="estatus" id="estatus" onchange="this.form.submit()"
                                 class="w-full py-2 px-3 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-guinda-ceaa/20 focus:border-guinda-ceaa bg-white transition">
-                                <option value="Todos" {{ request('estatus', 'Pendiente') == 'Todos' ? 'selected' : '' }}>-- Todos los Estados --</option>
-                                <option value="Pendiente" {{ request('estatus', 'Pendiente') == 'Pendiente' ? 'selected' : '' }}>Pendiente de Turnar</option>
-                                <option value="Turnado" {{ request('estatus') == 'Turnado' ? 'selected' : '' }}>Turnado</option>
-                                <option value="En Proceso" {{ request('estatus') == 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
-                                <option value="Atendido" {{ request('estatus') == 'Atendido' ? 'selected' : '' }}>Atendido</option>
-                                <option value="Solventado" {{ request('estatus') == 'Solventado' ? 'selected' : '' }}>Solventado</option>
-                                <option value="Cancelado" {{ request('estatus') == 'Cancelado' ? 'selected' : '' }}>Cancelado</option>
+                                <option value="Todos" {{ $estatusActual == 'Todos' ? 'selected' : '' }}>-- Todos los Estados --</option>
+                                <option value="Pendiente" {{ $estatusActual == 'Pendiente' ? 'selected' : '' }}>Pendiente de Turnar</option>
+                                <option value="Turnado" {{ $estatusActual == 'Turnado' ? 'selected' : '' }}>Turnado</option>
+                                <option value="En Proceso" {{ $estatusActual == 'En Proceso' ? 'selected' : '' }}>En Proceso</option>
+                                <option value="Atendido" {{ $estatusActual == 'Atendido' ? 'selected' : '' }}>Atendido</option>
+                                <option value="Solventado" {{ $estatusActual == 'Solventado' ? 'selected' : '' }}>Solventado</option>
+                                <option value="Cancelado" {{ $estatusActual == 'Cancelado' ? 'selected' : '' }}>Cancelado</option>
                             </select>
                         </div>
 
@@ -93,8 +115,8 @@
                                 </svg>
                                 Buscar
                             </button>
-                            @if(request()->filled('search') || request('estatus', 'Pendiente') !== 'Pendiente')
-                                <a href="{{ route('oficios.index') }}"
+                            @if(request()->filled('search') || request()->filled('estatus') || (($alcance ?? 'todos') === 'mios'))
+                                <a href="{{ route('oficios.index', ($alcance ?? 'todos') === 'mios' ? ['alcance' => 'mios'] : []) }}"
                                     class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -193,6 +215,47 @@
                                     {{-- Acciones --}}
                                     <td class="py-3.5 px-4 text-center no-print whitespace-nowrap">
                                         <div class="flex justify-center items-center gap-1.5">
+                                            @if(($alcance ?? 'todos') === 'mios' && Auth::user()->area_id)
+                                                @php
+                                                    $miAreaExt = $oficio->areas->first(fn($a) => $a->id == Auth::user()->area_id);
+                                                    $pivotExt = $miAreaExt ? $miAreaExt->pivot : null;
+                                                    $subareaOficioExt = null;
+                                                    if ($pivotExt) {
+                                                        $subareaOficioExt = \App\Models\SubareaOficio::where('area_oficio_id', $pivotExt->id)
+                                                            ->where('user_id', Auth::id())
+                                                            ->first();
+                                                        if (!$subareaOficioExt && Auth::user()->subarea_id) {
+                                                            $subareaOficioExt = \App\Models\SubareaOficio::where('area_oficio_id', $pivotExt->id)
+                                                                ->where('subarea_id', Auth::user()->subarea_id)
+                                                                ->whereNull('user_id')
+                                                                ->first();
+                                                        }
+                                                    }
+                                                @endphp
+                                                @if($pivotExt && $subareaOficioExt)
+                                                    @if($subareaOficioExt->estatus === 'Asignado')
+                                                        <form action="{{ route('oficios.notificarTurno', $pivotExt->id) }}" method="POST" class="inline-block">
+                                                            @csrf @method('PUT')
+                                                            <input type="hidden" name="subarea_oficio_id" value="{{ $subareaOficioExt->id }}">
+                                                            <button type="submit"
+                                                                class="px-2.5 py-1 bg-dorado-ocre hover:bg-guinda-ceaa text-white rounded text-[10px] font-bold uppercase tracking-wider shadow-xs transition inline-flex items-center gap-1">
+                                                                Confirmar Recibido
+                                                            </button>
+                                                        </form>
+                                                    @elseif($subareaOficioExt->estatus === 'Notificado')
+                                                        <a href="{{ route('oficios.atender', [$pivotExt->id, 'subarea_oficio_id' => $subareaOficioExt->id]) }}"
+                                                            class="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-[10px] font-bold uppercase tracking-wider shadow-xs transition inline-flex items-center gap-1">
+                                                            Atender
+                                                        </a>
+                                                    @endif
+                                                @endif
+                                                <a href="{{ route('oficios.show', [$oficio->id, 'mode' => 'operativo']) }}"
+                                                    class="px-2.5 py-1 bg-guinda-ceaa hover:bg-guinda-ceaa-hover text-white rounded text-[10px] font-bold uppercase tracking-wider transition shadow-xs inline-flex items-center gap-1"
+                                                    title="Ver Mi Turno">
+                                                    Mi Turno
+                                                </a>
+                                            @endif
+
                                             @if($oficio->pdf_path)
                                                 <a href="{{ asset('storage/' . $oficio->pdf_path) }}" target="_blank"
                                                     class="px-2.5 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded text-[10px] font-bold uppercase tracking-wider transition shadow-xs inline-flex items-center gap-1"

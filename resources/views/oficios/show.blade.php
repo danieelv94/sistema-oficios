@@ -117,6 +117,17 @@
             @php
                 $turnosOperativos = $turnosParaMostrar->filter(function($area) {
                     $user = Auth::user();
+                    if ($area->pivot->user_id == $user->id) {
+                        return true;
+                    }
+                    if (in_array($user->role, ['subdirector', 'admin']) && $user->subarea_id) {
+                        return \App\Models\SubareaOficio::where('area_oficio_id', $area->pivot->id)
+                            ->where(function ($q) use ($user) {
+                                $q->where('subarea_id', $user->subarea_id)
+                                  ->orWhere('user_id', $user->id);
+                            })
+                            ->exists();
+                    }
                     if (!in_array($user->role, ['admin', 'correspondencia', 'recepcionista'])) {
                         return $area->id == $user->area_id;
                     }

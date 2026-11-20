@@ -72,6 +72,14 @@
                     @if(request('filtro'))
                         <input type="hidden" name="filtro" value="{{ request('filtro') }}">
                     @endif
+                    <div class="w-full sm:w-48">
+                        <select name="tipo_corr" onchange="this.form.submit()"
+                            class="w-full py-2 px-3 text-xs border border-slate-300 rounded-lg focus:ring-guinda-ceaa focus:border-guinda-ceaa bg-white font-semibold transition">
+                            <option value="todos" {{ request('tipo_corr', 'todos') === 'todos' ? 'selected' : '' }}>📋 Externos e Internos</option>
+                            <option value="Externa" {{ request('tipo_corr') === 'Externa' ? 'selected' : '' }}>🌐 Solo Externos</option>
+                            <option value="Interna" {{ request('tipo_corr') === 'Interna' ? 'selected' : '' }}>🏢 Solo Internos</option>
+                        </select>
+                    </div>
                     <div class="relative flex-1 w-full">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
